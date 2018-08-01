@@ -207,7 +207,7 @@ if plot_voltage_course_colored:
 if measure_single_node_response:
     
     ##### stimulus duration
-    runtime = 1.5*ms
+    runtime = 1.25*ms
     
     ##### number of timesteps
     N = int(runtime/defaultclock.dt)
@@ -223,7 +223,7 @@ if measure_single_node_response:
     node_response_data = pd.DataFrame(np.zeros((len(current_amps)*nof_runs, len(col_names))), columns = col_names)
     
     ##### compartments for measurements
-    comp_index = 47
+    comp_index = 48
     
     ##### run several simulations and plot results
     plt.figure("Single node response Frijns 2005")
