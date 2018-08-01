@@ -11,15 +11,15 @@ import matplotlib.pyplot as plt
 from scipy import stats
 
 import my_modules.comp_data_rattay_01 as data # morphologic and physiologic data of the model by Rattay et al.
-import my_modules.stimulation as stim      # calculates currents at current source for different types of stimuli
-import my_modules.get_currents as cur      # calculates currents at each compartment over time
+import my_modules.stimulation as stim         # calculates currents at current source for different types of stimuli
+import my_modules.get_currents as cur         # calculates currents at each compartment over time
 
 # =============================================================================
 # Simulations to be done
 # =============================================================================
 plot_voltage_course_scheme = True
 plot_voltage_course_colored = True
-measure_single_node_response = True
+measure_single_node_response = False
 
 # =============================================================================
 # Initialize parameters
@@ -169,13 +169,12 @@ if plot_voltage_course_scheme:
     v_amp_factor = 1/(50)
     
     ##### distances between lines and x-axis
-    offset = (np.sum(data.distance_comps_middle) - np.cumsum(data.distance_comps_middle))/meter
     offset = np.cumsum(data.distance_comps_middle)/meter
     offset = (offset/max(offset))*10
     
     rattay_stimulation = plt.figure("Voltage course Rattay 2001")
     for ii in data.comps_to_plot:
-        plt.plot(M.t/ms, offset[ii] - v_amp_factor*(M.v[ii, :]-V_res)/mV, data.plot_colors[ii])
+        plt.plot(M.t/ms, offset[ii] - v_amp_factor*(M.v[ii, :]-V_res)/mV, "#000000")
     plt.yticks(np.linspace(0,10, int(data.length_neuron/mm)+1),range(0,int(data.length_neuron/mm)+1,1))
     plt.xlabel('Time/ms', fontsize=16)
     plt.ylabel('Position/mm [major] V/mV [minor]', fontsize=16)

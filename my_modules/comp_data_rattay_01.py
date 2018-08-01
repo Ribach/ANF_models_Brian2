@@ -217,20 +217,3 @@ middle_comp_presomatic_region = int(start_index_presomatic_region + floor((nof_s
 middle_comp_soma = int(start_index_soma + floor((nof_segments_soma)/2))
 ##### create array with all compartments to plot
 comps_to_plot = sort(np.append(indexes_comps, [middle_comp_presomatic_region, middle_comp_soma]))
-
-# =============================================================================
-# Colors for plot
-# =============================================================================
-plot_colors = np.tile("#000000",nof_comps)
-###### terminal
-#plot_colors[np.where(structure == 0)] = "#660066"
-###### internodes
-#plot_colors[np.where(structure == 1)] = "#0000cc"
-###### nodes
-#plot_colors[np.where(structure == 2)] = "#000000"
-######  presomatic region
-#plot_colors[np.where(structure == 3)] = "#ff6600"
-###### soma
-#plot_colors[np.where(structure == 4)] = "#ff0000"
-###### postsomatic region
-#plot_colors[np.where(structure == 5)] = "#ff6600"

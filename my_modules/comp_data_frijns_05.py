@@ -199,6 +199,17 @@ compartment_center_diameters = (compartment_diameters[0:-1] + compartment_diamet
 R_a = (compartment_lengths*rho_in) / ((compartment_center_diameters*0.5)**2*np.pi)
 
 # =============================================================================
+# Surface arias
+# =============================================================================
+##### lateral surfaces
+m = [np.sqrt(abs(compartment_diameters[i+1] - compartment_diameters[i])**2 + compartment_lengths[i]**2)
+           for i in range(0,nof_comps)]
+
+##### total surfaces
+A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]
+           for i in range(0,nof_comps)]
+
+# =============================================================================
 # Compartments to plot
 # =============================================================================
 ##### get indexes of all compartments that are not segmented
@@ -208,9 +219,3 @@ middle_comp_presomatic_region = int(start_index_presomatic_region + floor((nof_s
 middle_comp_soma = int(start_index_soma + floor((nof_segments_soma)/2))
 ##### create array with all compartments to plot
 comps_to_plot = sort(np.append(indexes_comps, [middle_comp_presomatic_region, middle_comp_soma]))
-
-# =============================================================================
-# Colors for plot
-# =============================================================================
-plot_colors = np.tile("#000000",nof_comps)
-                      
