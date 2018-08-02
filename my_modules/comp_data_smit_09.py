@@ -175,11 +175,17 @@ compartment_center_diameters = (compartment_diameters[0:-1] + compartment_diamet
 R_a = (compartment_lengths*rho_in) / ((compartment_center_diameters*0.5)**2*np.pi)
 
 # =============================================================================
+# Surface arias
+# =============================================================================
+##### lateral surfaces
+m = [np.sqrt(abs(compartment_diameters[i+1] - compartment_diameters[i])**2 + compartment_lengths[i]**2)
+           for i in range(0,nof_comps)]
+
+##### total surfaces
+A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]
+           for i in range(0,nof_comps)]
+
+# =============================================================================
 # Compartments to plot
 # =============================================================================
 comps_to_plot = range(1,nof_comps)
-
-# =============================================================================
-# Colors for plot
-# =============================================================================
-plot_colors = np.tile("#000000",nof_comps)

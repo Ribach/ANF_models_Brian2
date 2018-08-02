@@ -1,8 +1,8 @@
-##### Don't show warnings
+##### don't show warnings
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
-##### Import needed packages
+##### import needed packages
 from brian2 import *
 from brian2.units.constants import zero_celsius, gas_constant as R, faraday_constant as F
 import numpy as np
@@ -11,13 +11,13 @@ import matplotlib.pyplot as plt
 from scipy import stats
 
 import my_modules.comp_data_rattay_01 as data # morphologic and physiologic data of the model by Rattay et al.
-import my_modules.stimulation as stim         # calculates currents at current source for different types of stimuli
-import my_modules.get_currents as cur         # calculates currents at each compartment over time
+import my_modules.stimulation as stim         # calculates currents for each compartment and timestep
+import my_modules.create_plots as plot        # defines some plots
 
 # =============================================================================
-# Simulations to be done
+# Simulations to be done / Plots to be shown
 # =============================================================================
-plot_voltage_course_scheme = True
+plot_voltage_course_lines = True
 plot_voltage_course_colored = True
 measure_single_node_response = False
 
@@ -26,7 +26,10 @@ measure_single_node_response = False
 # =============================================================================
 start_scope()
 
-##### Load parameters that are part of the equations in data.eqs
+##### define length of timesteps
+defaultclock.dt = 5*us
+
+##### load parameters that are part of the equations in data.eqs
 V_res = data.V_res
 E_Na = data.E_Na
 E_K = data.E_K
@@ -50,10 +53,10 @@ neuron = SpatialNeuron(morphology = morpho,
                        method="exponential_euler")
 
 ##### initial values
-neuron.v = V_res          # initial cell potential
-neuron.m = data.m_init    # initial value for m
-neuron.n = data.n_init    # initial value for n
-neuron.h = data.h_init    # initial value for h
+neuron.v = V_res
+neuron.m = data.m_init
+neuron.n = data.n_init
+neuron.h = data.h_init
 
 ##### record the membrane voltage
 M = StateMonitor(neuron, 'v', record=True)
@@ -79,119 +82,60 @@ neuron.g_K[np.asarray(np.where(data.structure == 1))] = 0*msiemens/cm**2
 neuron.g_L[np.asarray(np.where(data.structure == 1))] = 0*msiemens/cm**2
 
 # =============================================================================
-# Initializations for simulation
+# Run simulation and observe voltage courses for each compartment
 # =============================================================================
-##### duration of timesteps
-defaultclock.dt = 5*us
-
-##### duration of simulation
-runtime = 4*ms
-
-##### number of timesteps
-N = int(runtime/defaultclock.dt)
-
-# =============================================================================
-# External stimulation
-# =============================================================================
-##### current vector for monophasic pulse
-I_elec_mono_ext = stim.single_monophasic_pulse_stimulus(nof_timesteps = N,
-                                                        dt = defaultclock.dt,
-                                                        current_amplitude = -1*uA, #1 uA
-                                                        time_before_pulse = 0*ms,
-                                                        stimulus_duration = 250*us)
-##### current vector for biphasic pulse
-I_elec_bi_ext = stim.single_biphasic_pulse_stimulus(nof_timesteps = N,
-                                                    dt = defaultclock.dt,
-                                                    current_amplitude_first_phase = -2*uA,
-                                                    current_amplitude_second_phase= 2*uA,
-                                                    time_before_pulse = 0*us,
-                                                    duration_first_phase = 100*us,
-                                                    duration_second_phase = 100*us,
-                                                    duration_interphase_gap = 0*us)
-
-##### current vector for pulse train
-I_elec_pulse_train_ext = stim.pulse_train_stimulus(nof_timesteps = N,
-                                                   dt = defaultclock.dt,
-                                                   current_vector = I_elec_bi_ext, # leading and trailing zeros will be cut
-                                                   time_before_pulse_train = 0*us,
-                                                   nof_pulses = 4, #4
-                                                   inter_pulse_gap = 800*us)
-
-##### current at compartments
-I_ext = cur.get_currents_for_external_stimulation(compartment_lengths = data.compartment_lengths,
-                                                   nof_timesteps = N,
-                                                   stimulus_current_vector = I_elec_pulse_train_ext,
-                                                   stimulated_compartment = 4,
-                                                   electrode_distance = 300*um,
-                                                   rho_out = data.rho_out,
-                                                   axoplasmatic_resistances = data.R_a)
-
-# =============================================================================
-# Internal stimulation
-# =============================================================================
-##### current vector for monophasic pulse
-I_elec_mono_int = stim.single_monophasic_pulse_stimulus(nof_timesteps = N,
-                                                    dt = defaultclock.dt,
-                                                    current_amplitude = np.array([0])*pA, #50 pA
-                                                    time_before_pulse = 0*ms,
-                                                    stimulus_duration = 250*us)
-
-##### current at compartments
-I_int = cur.get_currents_for_internal_stimulation(nof_compartments = nof_comps,
-                                                   nof_timesteps = N,
-                                                   stimulus_current_vector = I_elec_mono_int,
-                                                   stimulated_compartments = np.array([0]))
-
-# =============================================================================
-# Gaussian noise current term
-# =============================================================================
-k_noise = 0.0003*uA/np.sqrt(mS)
-I_noise = np.transpose(np.transpose(np.random.normal(0, 1, np.shape(I_int)))*k_noise*np.sqrt(data.A_surface*data.g_Na))
-
-# =============================================================================
-# Get stimulus current for each compartment and timestep and run simulation
-# =============================================================================
-##### get TimedArray of stimulus currents (due to both intern and extern stimulation)
-stimulus = TimedArray(np.transpose(I_ext + I_int + I_noise), dt=defaultclock.dt)
-
-##### save initializations of monitors
-store('initialized')
-
-##### run simulation
-run(runtime)
-
-# =============================================================================
-# Plot membrane potential of all compartments over time (2 plots)
-# =============================================================================
-if plot_voltage_course_scheme:
-
-    ##### factor to define voltage-amplitude heights
-    v_amp_factor = 1/(50)
+if plot_voltage_course_lines | plot_voltage_course_colored:
     
-    ##### distances between lines and x-axis
-    offset = np.cumsum(data.distance_comps_middle)/meter
-    offset = (offset/max(offset))*10
+    ##### define how the ANF is stimulated
+    I_stim, runtime = stim.get_stimulus_current(dt = defaultclock.dt,
+                                                stimulation_type = "extern",
+                                                pulse_form = "bi",
+                                                nof_pulses = 4,
+                                                time_before = 0*ms,
+                                                time_after = 1*ms,
+                                                add_noise = True,
+                                                ##### monophasic stimulation
+                                                amp_mono = -1*uA,
+                                                duration_mono = 250*us,
+                                                ##### biphasic stimulation
+                                                amps_bi = np.array([-2,2])*uA,
+                                                durations_bi = np.array([100,0,100])*us,
+                                                ##### multiple pulses / pulse trains
+                                                inter_pulse_gap = 800*us,
+                                                ##### external stimulation
+                                                compartment_lengths = data.compartment_lengths,
+                                                stimulated_compartment = 4,
+                                                electrode_distance = 300*um,
+                                                rho_out = data.rho_out,
+                                                axoplasmatic_resistances =  data.R_a,
+                                                ##### noise
+                                                k_noise = 0.0003*uA/np.sqrt(mS),
+                                                noise_term = np.sqrt(data.A_surface*data.g_Na))
     
-    rattay_stimulation = plt.figure("Voltage course Rattay 2001")
-    for ii in data.comps_to_plot:
-        plt.plot(M.t/ms, offset[ii] - v_amp_factor*(M.v[ii, :]-V_res)/mV, "#000000")
-    plt.yticks(np.linspace(0,10, int(data.length_neuron/mm)+1),range(0,int(data.length_neuron/mm)+1,1))
-    plt.xlabel('Time/ms', fontsize=16)
-    plt.ylabel('Position/mm [major] V/mV [minor]', fontsize=16)
-    plt.gca().invert_yaxis() # inverts y-axis => - v_amp_factor*(.... has to be written above
-    plt.show("Voltage course Rattay 2001")
-    #rattay_stimulation.savefig('rattay_stimulation.png')
-
-##### Here is a second plot, showing the same results a bit different
-if plot_voltage_course_colored:
-    plt.figure("Voltage course Rattay 2001 (2)")
-    plt.set_cmap('jet')
-    plt.pcolormesh(np.array(M.t/ms),np.cumsum(data.distance_comps_middle)/mm,np.array((M.v)/mV))
-    clb = plt.colorbar()
-    clb.set_label('V/mV')
-    plt.xlabel('t/ms')
-    plt.ylabel('Position/mm')
-    plt.show("Voltage course Rattay 2001 (2)")
+    ##### get TimedArray of stimulus currents
+    stimulus = TimedArray(np.transpose(I_stim), dt=defaultclock.dt)
+    
+    ##### save initializations of monitors
+    store('initialized')
+    
+    ##### run simulation
+    run(runtime)
+    
+    ##### Plot membrane potential of all compartments over time (2 plots)
+    if plot_voltage_course_lines:
+        plot.voltage_course_lines(plot_name = "Voltage course Rattay 2001",
+                                  time_vector = M.t,
+                                  voltage_matrix = M.v,
+                                  comps_to_plot = data.comps_to_plot,
+                                  distance_comps_middle = data.distance_comps_middle,
+                                  length_neuron = data.length_neuron,
+                                  V_res = V_res)
+    
+    if plot_voltage_course_colored:
+        plot.voltage_course_colors(plot_name = "Voltage course Rattay 2001 (2)",
+                                   time_vector = M.t,
+                                   voltage_matrix = M.v,
+                                   distance_comps_middle = data.distance_comps_middle)
 
 # =============================================================================
 # Now a simulation will be run several times to calculate the
@@ -204,16 +148,10 @@ if plot_voltage_course_colored:
 # =============================================================================
 if measure_single_node_response:
     
-    ##### stimulus duration
-    runtime = 1.8*ms
-    
-    ##### number of timesteps
-    N = int(runtime/defaultclock.dt)
-    
     ##### number of simulations to run
     nof_runs = 10
     
-    ##### current amplitude
+    ##### current amplitudes
     current_amps = np.array([-0.5, -0.7, -1.2, -2, -10])*uA
     
     ##### initialize dataset for measurements
@@ -228,7 +166,7 @@ if measure_single_node_response:
 
     for ii in range(0, len(current_amps)):
         
-        ##### sign stimulus amplitude
+        ##### sign stimulus amplitude in plot
         unit = r'$\mu V$'
         plt.text(0.04, 100*ii+V_res/mV+10, f"{round(current_amps[ii]*10**6/amp,1)} {unit}")
         
@@ -236,28 +174,35 @@ if measure_single_node_response:
             
             ##### go back to initial values
             restore('initialized')
-        
-            ##### current vector for monophasic pulse
-            I_elec_mono_ext = stim.single_monophasic_pulse_stimulus(nof_timesteps = N,
-                                                                    dt = defaultclock.dt,
-                                                                    current_amplitude = current_amps[ii],
-                                                                    time_before_pulse = 0*ms,
-                                                                    stimulus_duration = 250*us)
             
-            ##### current at compartments
-            I_ext = cur.get_currents_for_external_stimulation(compartment_lengths = data.compartment_lengths,
-                                                               nof_timesteps = N,
-                                                               stimulus_current_vector = I_elec_mono_ext,
-                                                               stimulated_compartment = 4,
-                                                               electrode_distance = 300*um,
-                                                               rho_out = data.rho_out,
-                                                               axoplasmatic_resistances = data.R_a)
+            ##### define how the ANF is stimulated
+            I_stim, runtime = stim.get_stimulus_current(dt = defaultclock.dt,
+                                                        stimulation_type = "extern",
+                                                        pulse_form = "mono",
+                                                        nof_pulses = 1,
+                                                        time_before = 0*ms,
+                                                        time_after = 1.5*ms,
+                                                        add_noise = True,
+                                                        ##### monophasic stimulation
+                                                        amp_mono = current_amps[ii],
+                                                        duration_mono = 250*us,
+                                                        ##### biphasic stimulation
+                                                        amps_bi = np.array([-2,2])*uA,
+                                                        durations_bi = np.array([100,0,100])*us,
+                                                        ##### multiple pulses / pulse trains
+                                                        inter_pulse_gap =800*us,
+                                                        ##### external stimulation
+                                                        compartment_lengths = data.compartment_lengths,
+                                                        stimulated_compartment = 4,
+                                                        electrode_distance = 300*um,
+                                                        rho_out = data.rho_out,
+                                                        axoplasmatic_resistances =  data.R_a,
+                                                        ##### noise
+                                                        k_noise = 0.0003*uA/np.sqrt(mS),
+                                                        noise_term = np.sqrt(data.A_surface*data.g_Na))
         
-            ##### add Gaussian noise current term
-            I_noise = np.transpose(np.transpose(np.random.normal(0, 1, np.shape(I_ext)))*k_noise*np.sqrt(data.A_surface*data.g_Na))
-            
             ##### Get TimedArray of stimulus currents and run simulation
-            stimulus = TimedArray(np.transpose(I_ext + I_noise), dt=defaultclock.dt)
+            stimulus = TimedArray(np.transpose(I_stim), dt=defaultclock.dt)
             
             ##### run simulation
             run(runtime)
