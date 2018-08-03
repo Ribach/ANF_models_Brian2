@@ -132,14 +132,3 @@ def strength_duration_curve(plot_name,
     
     return strength_duration_curve
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    

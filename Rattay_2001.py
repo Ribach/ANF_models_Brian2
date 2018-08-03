@@ -28,7 +28,7 @@ measure_strength_duration_curve = True
 start_scope()
 
 ##### define length of timesteps
-defaultclock.dt = 5*us
+defaultclock.dt = 1*us
 
 ##### load parameters that are part of the equations in data.eqs
 V_res = data.V_res
@@ -256,33 +256,36 @@ if measure_single_node_response:
 if measure_strength_duration_curve:
       
     ##### phase durations
-    phase_durations = np.round(np.logspace(1, 8, num=20, base=2.0),2)*us
+    phase_durations = np.round(np.logspace(1, 9, num=20, base=2.0))*us
     
-    ##### initialize vector for amplitudes of stimulus currents
-    stim_amps = np.zeros_like(phase_durations/second)*amp
+    ##### initialize vector for minimum required stimulus current amplitudes
+    min_required_amps = np.zeros_like(phase_durations/second)*amp
     
-    ##### minimum and maximum stimulus current amplitudes
-    amps_min = 0.1*uA
-    amps_max = 10*uA
+    ##### minimum and maximum stimulus current amplitudes that are tested
+    stim_amps_min = 0.1*uA
+    stim_amps_max = 20*uA
     
-    ##### start amplitde for measurements
-    start_amp = (amps_max-amps_min)/2
+    ##### start amplitde for first run
+    start_amp = (stim_amps_max-stim_amps_min)/2
     
-    ##### number of runs per phase_duration
-    nof_runs = 8
+    ##### required accuracy
+    delta = 0.01*uA
     
     ##### compartment for measurements
     comp_index = 47
 
+    ##### loop over phase durations
     for ii in range(0, len(phase_durations)):
         
-        ##### initializations of vectors for tested amplitudes and spike information
-        amps = np.zeros(nof_runs)*uA
-        spikes = np.zeros(nof_runs, dtype = bool)
-              
-        amps[0] = start_amp
+        ##### initializations
+        min_amp_spiked = 0*amp
+        lower_border = stim_amps_min
+        upper_border = stim_amps_max
+        stim_amp = start_amp
+        amp_diff = upper_border - lower_border
         
-        for jj in range(0,nof_runs):
+        ##### adjust stimulus amplitude until required accuracy is obtained
+        while amp_diff > delta:
             
             ##### go back to initial values
             restore('initialized')
@@ -290,16 +293,16 @@ if measure_strength_duration_curve:
             ##### define how the ANF is stimulated
             I_stim, runtime = stim.get_stimulus_current(dt = defaultclock.dt,
                                                         stimulation_type = "extern",
-                                                        pulse_form = "bi",
+                                                        pulse_form = "mono",
                                                         nof_pulses = 1,
                                                         time_before = 0*ms,
                                                         time_after = 1*ms,
                                                         add_noise = False,
                                                         ##### monophasic stimulation
-                                                        amp_mono = 0*uA,
-                                                        duration_mono = 250*us,
+                                                        amp_mono = -stim_amp,
+                                                        duration_mono = phase_durations[ii],
                                                         ##### biphasic stimulation
-                                                        amps_bi = np.array([-amps[jj],amps[jj]])*amp,
+                                                        amps_bi = np.array([-stim_amp,stim_amp])*amp,
                                                         durations_bi = np.array([phase_durations[ii],0,phase_durations[ii]])*second,
                                                         ##### multiple pulses / pulse trains
                                                         inter_pulse_gap =800*us,
@@ -319,37 +322,24 @@ if measure_strength_duration_curve:
             ##### run simulation
             run(runtime)
             
+            print(f"Duration: {phase_durations[ii]/us} us; Stimulus amplitde: {np.round(stim_amp/uA,4)} uA")
+            
             ##### test if there was a spike
-            if max(M.v[comp_index,:]-V_res) > 60*mV : spikes[jj] = True
-            
-            ##### calculate next test amplitude
-            if jj < nof_runs-1:
-                ##### There was a spike
-                if spikes[jj]:
-                    amps[jj+1] = (amps[jj] + max(np.array([amps_min] + list(amps[0:jj][amps[0:jj] < amps[jj]]))*amp))/2
-                #### There was no spike
-                else:
-                    amps[jj+1] = (amps[jj] + min(np.array([amps_max] + list(amps[0:jj][amps[0:jj] > amps[jj]]))*amp))/2
+            if max(M.v[comp_index,:]-V_res) > 60*mV:
+                min_amp_spiked = stim_amp
+                upper_border = stim_amp
+                stim_amp = (stim_amp + lower_border)/2
+            else:
+                lower_border = stim_amp
+                stim_amp = (stim_amp + upper_border)/2
                 
-            print(f"Duration: {phase_durations[ii]/us} us; Stimulus amplitde: {amps[jj]/uA} uA")
-            
+            amp_diff = upper_border - lower_border
+                            
         ##### write the found minimum stimulus current in vector
-        if any(spikes):
-            stim_amps[ii] = min(amps[np.where(spikes)])
-            start_amp = min(amps[np.where(spikes)])
+        min_required_amps[ii] = min_amp_spiked
+        start_amp[min_amp_spiked != 0*amp] = min_amp_spiked
     
     ##### plot strength duration curve
     plot.strength_duration_curve(plot_name = "Strength duration curve Rattay 2001",
                                  durations = phase_durations,
-                                 stimulus_amps = stim_amps)
-
-            
-    
-    
-    
-    
-    
-    
-    
-    
-    
+                                 stimulus_amps = min_required_amps)
