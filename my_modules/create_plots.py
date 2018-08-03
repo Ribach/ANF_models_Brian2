@@ -49,7 +49,7 @@ def voltage_course_lines(plot_name,
     plt.xlabel('Time/ms', fontsize=16)
     plt.ylabel('Position/mm [major] V/mV [minor]', fontsize=16)
     plt.gca().invert_yaxis() # inverts y-axis => - v_amp_factor*(.... has to be written above
-    plt.show("Voltage course Rattay 2001")
+    plt.show(plot_name)
     #voltage_course.savefig('voltage_course_lines.png')
     
     return voltage_course
@@ -84,12 +84,62 @@ def voltage_course_colors(plot_name,
     """
     
     plt.close(plot_name)
-    plt.figure(plot_name)
-    plt.set_cmap('jet')
+    voltage_course = plt.figure(plot_name)
+    plt.set_cmap('hot')
     plt.pcolormesh(np.array(time_vector/ms),np.cumsum(distance_comps_middle)/mm,np.array((voltage_matrix)/mV))
     clb = plt.colorbar()
     clb.set_label('V/mV')
     plt.xlabel('t/ms')
     plt.ylabel('Position/mm')
-    plt.show("Voltage course Rattay 2001 (2)")
+    plt.show(plot_name)
+    
+    return voltage_course
+    
+# =============================================================================
+#  Strength duration curve
+# =============================================================================
+def strength_duration_curve(plot_name,
+                            durations,
+                            stimulus_amps):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    time_vector : integer
+        Number of timesteps of whole simulation.
+    voltage_matrix : time
+        Lenght of one time step.
+    distance_comps_middle : current
+        Amplitude of current stimulus.
+    time_before_pulse : time
+        Time until pulse starts.
+    stimulus_duration : time
+        Duration of stimulus.
+                
+    Returns
+    -------
+    current vector
+        Gives back a vector of currents for each timestep
+    """
+        
+    plt.close(plot_name)
+    strength_duration_curve = plt.figure(plot_name)
+    plt.plot(durations[np.where(stimulus_amps != 0)]/us, stimulus_amps[np.where(stimulus_amps != 0)]/uA, "#000000")
+    plt.xlabel('Stimulus duration / us', fontsize=16)
+    plt.ylabel('Stimulus amplitude required / uA', fontsize=16)
+    plt.show(plot_name)
+    
+    return strength_duration_curve
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     

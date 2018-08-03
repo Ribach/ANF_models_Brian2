@@ -18,8 +18,9 @@ import my_modules.create_plots as plot        # defines some plots
 # Simulations to be done / Plots to be shown
 # =============================================================================
 plot_voltage_course_lines = True
-plot_voltage_course_colored = True
+plot_voltage_course_colored = False
 measure_single_node_response = False
+measure_strength_duration_curve = True
 
 # =============================================================================
 # Initialize parameters
@@ -81,6 +82,9 @@ neuron.g_Na[np.asarray(np.where(data.structure == 1))] = 0*msiemens/cm**2
 neuron.g_K[np.asarray(np.where(data.structure == 1))] = 0*msiemens/cm**2
 neuron.g_L[np.asarray(np.where(data.structure == 1))] = 0*msiemens/cm**2
 
+##### save initializations of monitors
+store('initialized')
+
 # =============================================================================
 # Run simulation and observe voltage courses for each compartment
 # =============================================================================
@@ -98,8 +102,8 @@ if plot_voltage_course_lines | plot_voltage_course_colored:
                                                 amp_mono = -1*uA,
                                                 duration_mono = 250*us,
                                                 ##### biphasic stimulation
-                                                amps_bi = np.array([-2,2])*uA,
-                                                durations_bi = np.array([100,0,100])*us,
+                                                amps_bi = np.array([-2,0.2])*uA,          # [-2,2]
+                                                durations_bi = np.array([100,0,100])*us,    # [100,0,100]
                                                 ##### multiple pulses / pulse trains
                                                 inter_pulse_gap = 800*us,
                                                 ##### external stimulation
@@ -114,9 +118,6 @@ if plot_voltage_course_lines | plot_voltage_course_colored:
     
     ##### get TimedArray of stimulus currents
     stimulus = TimedArray(np.transpose(I_stim), dt=defaultclock.dt)
-    
-    ##### save initializations of monitors
-    store('initialized')
     
     ##### run simulation
     run(runtime)
@@ -201,7 +202,7 @@ if measure_single_node_response:
                                                         k_noise = 0.0003*uA/np.sqrt(mS),
                                                         noise_term = np.sqrt(data.A_surface*data.g_Na))
         
-            ##### Get TimedArray of stimulus currents and run simulation
+            ##### get TimedArray of stimulus currents and run simulation
             stimulus = TimedArray(np.transpose(I_stim), dt=defaultclock.dt)
             
             ##### run simulation
@@ -218,6 +219,8 @@ if measure_single_node_response:
             node_response_data["AP peak time"][ii*nof_runs+jj] = AP_time/ms
             node_response_data["AP start time"][ii*nof_runs+jj] = AP_start_time/ms
             node_response_data["AP end time"][ii*nof_runs+jj] = AP_end_time/ms
+            
+            print(f"Stimulus amplitde: {current_amps[ii]}")
 
             ##### plot curve
             plt.plot(M.t/ms, 100*ii + M.v[comp_index, :]/mV, "#000000")
@@ -243,4 +246,110 @@ if measure_single_node_response:
     ##### plot results in bar plot
     average_node_response_data.iloc[:,1:].transpose().plot.bar(rot = 0)
     #average_node_response_data.plot.bar(rot = 0,secondary_y = ("AP height (mV)"))
+    
+# =============================================================================
+# Now a simulation will be run several times to calculate the strength-duration
+#  curve. This allows to determine the following properties
+# - Rheobase
+# - chronaxie
+# =============================================================================
+if measure_strength_duration_curve:
+      
+    ##### phase durations
+    phase_durations = np.round(np.logspace(1, 8, num=20, base=2.0),2)*us
+    
+    ##### initialize vector for amplitudes of stimulus currents
+    stim_amps = np.zeros_like(phase_durations/second)*amp
+    
+    ##### minimum and maximum stimulus current amplitudes
+    amps_min = 0.1*uA
+    amps_max = 10*uA
+    
+    ##### start amplitde for measurements
+    start_amp = (amps_max-amps_min)/2
+    
+    ##### number of runs per phase_duration
+    nof_runs = 8
+    
+    ##### compartment for measurements
+    comp_index = 47
+
+    for ii in range(0, len(phase_durations)):
+        
+        ##### initializations of vectors for tested amplitudes and spike information
+        amps = np.zeros(nof_runs)*uA
+        spikes = np.zeros(nof_runs, dtype = bool)
+              
+        amps[0] = start_amp
+        
+        for jj in range(0,nof_runs):
+            
+            ##### go back to initial values
+            restore('initialized')
+            
+            ##### define how the ANF is stimulated
+            I_stim, runtime = stim.get_stimulus_current(dt = defaultclock.dt,
+                                                        stimulation_type = "extern",
+                                                        pulse_form = "bi",
+                                                        nof_pulses = 1,
+                                                        time_before = 0*ms,
+                                                        time_after = 1*ms,
+                                                        add_noise = False,
+                                                        ##### monophasic stimulation
+                                                        amp_mono = 0*uA,
+                                                        duration_mono = 250*us,
+                                                        ##### biphasic stimulation
+                                                        amps_bi = np.array([-amps[jj],amps[jj]])*amp,
+                                                        durations_bi = np.array([phase_durations[ii],0,phase_durations[ii]])*second,
+                                                        ##### multiple pulses / pulse trains
+                                                        inter_pulse_gap =800*us,
+                                                        ##### external stimulation
+                                                        compartment_lengths = data.compartment_lengths,
+                                                        stimulated_compartment = 4,
+                                                        electrode_distance = 300*um,
+                                                        rho_out = data.rho_out,
+                                                        axoplasmatic_resistances =  data.R_a,
+                                                        ##### noise
+                                                        k_noise = 0.0003*uA/np.sqrt(mS),
+                                                        noise_term = np.sqrt(data.A_surface*data.g_Na))
+        
+            ##### get TimedArray of stimulus currents and run simulation
+            stimulus = TimedArray(np.transpose(I_stim), dt=defaultclock.dt)
+            
+            ##### run simulation
+            run(runtime)
+            
+            ##### test if there was a spike
+            if max(M.v[comp_index,:]-V_res) > 60*mV : spikes[jj] = True
+            
+            ##### calculate next test amplitude
+            if jj < nof_runs-1:
+                ##### There was a spike
+                if spikes[jj]:
+                    amps[jj+1] = (amps[jj] + max(np.array([amps_min] + list(amps[0:jj][amps[0:jj] < amps[jj]]))*amp))/2
+                #### There was no spike
+                else:
+                    amps[jj+1] = (amps[jj] + min(np.array([amps_max] + list(amps[0:jj][amps[0:jj] > amps[jj]]))*amp))/2
+                
+            print(f"Duration: {phase_durations[ii]/us} us; Stimulus amplitde: {amps[jj]/uA} uA")
+            
+        ##### write the found minimum stimulus current in vector
+        if any(spikes):
+            stim_amps[ii] = min(amps[np.where(spikes)])
+            start_amp = min(amps[np.where(spikes)])
+    
+    ##### plot strength duration curve
+    plot.strength_duration_curve(plot_name = "Strength duration curve Rattay 2001",
+                                 durations = phase_durations,
+                                 stimulus_amps = stim_amps)
+
+            
+    
+    
+    
+    
+    
+    
+    
+    
     

@@ -19,7 +19,7 @@ import my_modules.create_plots as plot        # defines some plots
 # =============================================================================
 plot_voltage_course_lines = True
 plot_voltage_course_colored = True
-measure_single_node_response = True
+measure_single_node_response = False
 
 # =============================================================================
 # Initialize parameters

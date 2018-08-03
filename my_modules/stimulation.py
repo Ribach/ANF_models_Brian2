@@ -171,6 +171,7 @@ def get_stimulus_current(dt,
         return
     
     ##### add noise
-    I_stim = I_stim + np.transpose(np.transpose(np.random.normal(0, 1, np.shape(I_stim)))*k_noise*noise_term)
+    if add_noise:
+        I_stim = I_stim + np.transpose(np.transpose(np.random.normal(0, 1, np.shape(I_stim)))*k_noise*noise_term)
         
     return I_stim, runtime
