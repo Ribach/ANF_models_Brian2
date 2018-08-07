@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 ##### import functions
 import functions.stimulation as stim
 import functions.create_plots as plot
+import functions.model_tests as test
 
 ##### import models
 import models.Rattay_2001 as rattay_01
@@ -207,97 +208,107 @@ if measure_single_node_response:
 # =============================================================================
 if measure_strength_duration_curve:
     
-    ##### Initialize model with new defaultclock
-    dt = 1*us
-    neuron, param_string = model.set_up_model(dt = dt, model = model)
-    exec(param_string)
-    M = StateMonitor(neuron, 'v', record=True)
-    store('initialized')
-          
-    ##### phase durations
-    phase_durations = np.round(np.logspace(1, 9, num=20, base=2.0))*us
+    phase_durations = 100*us #np.round(np.logspace(1, 9, num=20, base=2.0))*us
     
-    ##### initialize vector for minimum required stimulus current amplitudes
-    min_required_amps = np.zeros_like(phase_durations/second)*amp
+    min_required_amps = test.get_phase_duration_curve(model = model,
+                                                      dt = 5*us,
+                                                      phase_durations = phase_durations,
+                                                      start_intervall = [0.1,20]*uA,
+                                                      delta = 0.01*uA,
+                                                      stimulation_type = "extern",
+                                                      pulse_form = "mono")
     
-    ##### minimum and maximum stimulus current amplitudes that are tested
-    stim_amps_min = 0.1*uA
-    stim_amps_max = 20*uA
-    
-    ##### start amplitde for first run
-    start_amp = (stim_amps_max-stim_amps_min)/2
-    
-    ##### required accuracy
-    delta = 0.05*uA
-    
-    ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][10]
-
-    ##### loop over phase durations
-    for ii in range(0, len(phase_durations)):
-        
-        ##### initializations
-        min_amp_spiked = 0*amp
-        lower_border = stim_amps_min
-        upper_border = stim_amps_max
-        stim_amp = start_amp
-        amp_diff = upper_border - lower_border
-        
-        ##### adjust stimulus amplitude until required accuracy is obtained
-        while amp_diff > delta:
-            
-            ##### print progress
-            print(f"Duration: {phase_durations[ii]/us} us; Stimulus amplitde: {np.round(stim_amp/uA,4)} uA")
-            
-            ##### define how the ANF is stimulated
-            I_stim, runtime = stim.get_stimulus_current(model = model,
-                                                        dt = dt,
-                                                        stimulation_type = "extern",
-                                                        pulse_form = "mono",
-                                                        stimulated_compartment = 4,
-                                                        nof_pulses = 1,
-                                                        time_before = 0*ms,
-                                                        time_after = 1*ms,
-                                                        add_noise = False,
-                                                        ##### monophasic stimulation
-                                                        amp_mono = -stim_amp,
-                                                        duration_mono = phase_durations[ii],
-                                                        ##### biphasic stimulation
-                                                        amps_bi = [-stim_amp,stim_amp],
-                                                        durations_bi = [phase_durations[ii],0*second,phase_durations[ii]],
-                                                        ##### multiple pulses / pulse trains
-                                                        inter_pulse_gap =800*us)
-        
-            ##### get TimedArray of stimulus currents and run simulation
-            stimulus = TimedArray(np.transpose(I_stim), dt=dt)
-            
-            ##### reset state monitor
-            restore('initialized')
-            
-            ##### run simulation
-            run(runtime)
-            
-            ##### test if there was a spike
-            if max(M.v[comp_index,:]-model.V_res) > 60*mV:
-                min_amp_spiked = stim_amp
-                upper_border = stim_amp
-                stim_amp = (stim_amp + lower_border)/2
-            else:
-                lower_border = stim_amp
-                stim_amp = (stim_amp + upper_border)/2
-                
-            amp_diff = upper_border - lower_border
-                            
-        ##### write the found minimum stimulus current in vector
-        min_required_amps[ii] = min_amp_spiked
-        start_amp[min_amp_spiked != 0*amp] = min_amp_spiked
-        start_amp[min_amp_spiked == 0*amp] = stim_amps_max
+#    ##### Initialize model with new defaultclock
+#    dt = 1*us
+#    neuron, param_string = model.set_up_model(dt = dt, model = model)
+#    exec(param_string)
+#    M = StateMonitor(neuron, 'v', record=True)
+#    store('initialized')
+#          
+#    ##### phase durations
+#    phase_durations = np.round(np.logspace(1, 9, num=20, base=2.0))*us
+#    
+#    ##### initialize vector for minimum required stimulus current amplitudes
+#    min_required_amps = np.zeros_like(phase_durations/second)*amp
+#    
+#    ##### minimum and maximum stimulus current amplitudes that are tested
+#    stim_amps_min = 0.1*uA
+#    stim_amps_max = 20*uA
+#    
+#    ##### start amplitde for first run
+#    start_amp = (stim_amps_max-stim_amps_min)/2
+#    
+#    ##### required accuracy
+#    delta = 0.05*uA
+#    
+#    ##### compartment for measurements
+#    comp_index = np.where(model.structure == 2)[0][10]
+#
+#    ##### loop over phase durations
+#    for ii in range(0, len(phase_durations)):
+#        
+#        ##### initializations
+#        min_amp_spiked = 0*amp
+#        lower_border = stim_amps_min
+#        upper_border = stim_amps_max
+#        stim_amp = start_amp
+#        amp_diff = upper_border - lower_border
+#        
+#        ##### adjust stimulus amplitude until required accuracy is obtained
+#        while amp_diff > delta:
+#            
+#            ##### print progress
+#            print(f"Duration: {phase_durations[ii]/us} us; Stimulus amplitde: {np.round(stim_amp/uA,4)} uA")
+#            
+#            ##### define how the ANF is stimulated
+#            I_stim, runtime = stim.get_stimulus_current(model = model,
+#                                                        dt = dt,
+#                                                        stimulation_type = "extern",
+#                                                        pulse_form = "mono",
+#                                                        stimulated_compartment = 4,
+#                                                        nof_pulses = 1,
+#                                                        time_before = 0*ms,
+#                                                        time_after = 1*ms,
+#                                                        add_noise = False,
+#                                                        ##### monophasic stimulation
+#                                                        amp_mono = -stim_amp,
+#                                                        duration_mono = phase_durations[ii],
+#                                                        ##### biphasic stimulation
+#                                                        amps_bi = [-stim_amp,stim_amp],
+#                                                        durations_bi = [phase_durations[ii],0*second,phase_durations[ii]],
+#                                                        ##### multiple pulses / pulse trains
+#                                                        inter_pulse_gap =800*us)
+#        
+#            ##### get TimedArray of stimulus currents and run simulation
+#            stimulus = TimedArray(np.transpose(I_stim), dt=dt)
+#            
+#            ##### reset state monitor
+#            restore('initialized')
+#            
+#            ##### run simulation
+#            run(runtime)
+#            
+#            ##### test if there was a spike
+#            if max(M.v[comp_index,:]-model.V_res) > 60*mV:
+#                min_amp_spiked = stim_amp
+#                upper_border = stim_amp
+#                stim_amp = (stim_amp + lower_border)/2
+#            else:
+#                lower_border = stim_amp
+#                stim_amp = (stim_amp + upper_border)/2
+#                
+#            amp_diff = upper_border - lower_border
+#                            
+#        ##### write the found minimum stimulus current in vector
+#        min_required_amps[ii] = min_amp_spiked
+#        start_amp[min_amp_spiked != 0*amp] = min_amp_spiked
+#        start_amp[min_amp_spiked == 0*amp] = stim_amps_max
     
     ##### plot strength duration curve
     plot.strength_duration_curve(plot_name = f"Strength duration curve {model.display_name}",
                                  durations = phase_durations,
                                  stimulus_amps = min_required_amps)
-
+    
 # =============================================================================
 # Now the relative and absolute refractory periods will be measured. This is
 # done with two stimuli, the first one with an amplitude of 150% of threshold

@@ -6,7 +6,7 @@ import numpy as np
 # =============================================================================
 def get_stimulus_current(model,
                          dt = 5*ms,
-                         stimulation_type = "external",
+                         stimulation_type = "extern",
                          pulse_form = "mono",
                          stimulated_compartment = 4,
                          time_before = 0*ms,
