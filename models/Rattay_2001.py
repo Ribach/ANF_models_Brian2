@@ -1,6 +1,10 @@
+##### import needed packages
 from brian2 import *
+from brian2.units.constants import zero_celsius, gas_constant as R, faraday_constant as F
 import numpy as np
-import my_modules.my_functions as my_fun
+
+##### import functions
+import functions.calculations as calc
 
 # =============================================================================
 # Nernst potentials
@@ -50,7 +54,7 @@ h_init = 0.6
 
 # =============================================================================
 # Differential equations
-# =============================================================================dv/dt = 1/(1*uF/cm**2)*(Im + I_stim + 1*xi/sqrt(ms)) : 1
+# =============================================================================
 eqs = '''
 Im = g_Na*m**3*h* (E_Na-(v-V_res)) + g_K*n**4*(E_K-(v-V_res)) + g_L*(E_L-(v-V_res)) + g_myelin*(-(v-V_res)): amp/meter**2
 I_stim = stimulus(t,i) : amp (point current)
@@ -148,7 +152,7 @@ compartment_diameters = np.zeros(nof_comps+1)*um
 ##### dendrite
 compartment_diameters[0:start_index_soma] = dendrite_diameter
 ##### soma
-soma_comp_diameters = my_fun.get_soma_diameters(nof_segments_soma,
+soma_comp_diameters = calc.get_soma_diameters(nof_segments_soma,
                                                 dendrite_diameter,
                                                 soma_diameter,
                                                 axon_diameter)
@@ -208,12 +212,103 @@ A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]
            for i in range(0,nof_comps)]
 
 # =============================================================================
+# Noise term
+# =============================================================================
+k_noise = 0.0003*uA/np.sqrt(mS)
+noise_term = np.sqrt(A_surface*g_Na)
+
+# =============================================================================
+# Electrode
+# =============================================================================
+electrode_distance = 300*um
+
+# =============================================================================
+# Display name for plots
+# =============================================================================
+display_name = "Rattay et al. 2001"
+
+# =============================================================================
 # Compartments to plot
 # =============================================================================
 ##### get indexes of all compartments that are not segmented
 indexes_comps = np.where(np.logical_or(np.logical_or(np.logical_or(structure == 0, structure == 1), structure == 2), structure == 5))
 ##### calculate middle compartments of presomatic region and soma
-middle_comp_presomatic_region = int(start_index_presomatic_region + floor((nof_segments_presomatic_region)/2))
-middle_comp_soma = int(start_index_soma + floor((nof_segments_soma)/2))
+middle_comp_presomatic_region = int(start_index_presomatic_region + np.floor((nof_segments_presomatic_region)/2))
+middle_comp_soma = int(start_index_soma + np.floor((nof_segments_soma)/2))
 ##### create array with all compartments to plot
-comps_to_plot = sort(np.append(indexes_comps, [middle_comp_presomatic_region, middle_comp_soma]))
+comps_to_plot = np.sort(np.append(indexes_comps, [middle_comp_presomatic_region, middle_comp_soma]))
+
+# =============================================================================
+# Set up the model
+# =============================================================================
+def set_up_model(dt, model):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    dt : time
+        Sets the defaultclock.
+    model : module
+        Contains all morphologic and physiologic data of a model
+                
+    Returns
+    -------
+    neuron
+        Gives back a brian2 neuron
+    param_string
+        Gives back a string of parameter assignments
+    """
+    
+    start_scope()
+    
+    ##### initialize defaultclock
+    defaultclock.dt = dt
+
+    ##### define morphology
+    morpho = Section(n = model.nof_comps,
+                     length = model.compartment_lengths,
+                     diameter = model.compartment_diameters)
+    
+    ##### define neuron
+    neuron = SpatialNeuron(morphology = morpho,
+                           model = model.eqs,
+                           Cm = model.c_m,
+                           Ri = model.rho_in,
+                           method="exponential_euler")
+    
+    ##### initial values
+    neuron.v = model.V_res
+    neuron.m = model.m_init
+    neuron.n = model.n_init
+    neuron.h = model.h_init
+    
+    ##### Set parameter values (parameters that were initialised in the equations eqs and which are different for different compartment types)
+    # conductances active compartments
+    neuron.g_Na = model.g_Na
+    neuron.g_K = model.g_K
+    neuron.g_L = model.g_L
+    
+    # conductances soma
+    neuron.g_Na[model.index_soma] = model.g_Na_soma
+    neuron.g_K[model.index_soma] = model.g_K_soma
+    neuron.g_L[model.index_soma] = model.g_L_soma
+    
+    # conductances internodes
+    neuron.g_myelin = model.g_m
+    neuron.g_Na[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
+    neuron.g_K[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
+    neuron.g_L[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
+    
+    ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
+    param_string = '''
+    V_res = model.V_res
+    E_Na = model.E_Na
+    E_K = model.E_K
+    E_L = model.E_L
+    '''
+    
+    ##### remove spaces to avoid complications
+    param_string = param_string.replace(" ", "")
+    
+    return neuron, param_string

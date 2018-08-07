@@ -94,6 +94,52 @@ def voltage_course_colors(plot_name,
     plt.show(plot_name)
     
     return voltage_course
+
+# =============================================================================
+#  Single node response
+# =============================================================================
+def single_node_response(plot_name,
+                         time_vector,
+                         voltage_matrix,
+                         parameter_vector,
+                         parameter_unit,
+                         V_res):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    time_vector : integer
+        Number of timesteps of whole simulation.
+    voltage_matrix : time
+        Lenght of one time step.
+    distance_comps_middle : current
+        Amplitude of current stimulus.
+    time_before_pulse : time
+        Time until pulse starts.
+    stimulus_duration : time
+        Duration of stimulus.
+                
+    Returns
+    -------
+    current vector
+        Gives back a vector of currents for each timestep
+    """
+    
+    nof_test_parameter = len(parameter_vector)
+    nof_runs_per_test_parameter = round(np.shape(voltage_matrix)[0]/nof_test_parameter)
+     
+    plt.close(plot_name)
+    single_node_response = plt.figure(plot_name)
+    for ii in range(0,nof_test_parameter):
+        plt.text(0.04, 100*ii+V_res/mV+10, f"{round(parameter_vector[ii],1)} {parameter_unit}")
+        for jj in range(0, nof_runs_per_test_parameter):
+            plt.plot(time_vector, 100*ii + voltage_matrix[nof_runs_per_test_parameter*ii+jj,:], "#000000")     
+    plt.xlabel('Time/ms', fontsize=16)
+    plt.tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
+    plt.show(plot_name)
+    
+    return single_node_response
     
 # =============================================================================
 #  Strength duration curve

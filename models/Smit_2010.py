@@ -1,7 +1,10 @@
+##### import needed packages
 from brian2 import *
-import numpy as np
-import my_modules.my_functions as my_fun
 from brian2.units.constants import zero_celsius, gas_constant as R, faraday_constant as F
+import numpy as np
+
+##### import functions
+import functions.calculations as calc
 
 # =============================================================================
 # Temperature
@@ -197,7 +200,7 @@ compartment_diameters = np.zeros(nof_comps+1)*um
 ##### dendrite
 compartment_diameters[0:start_index_soma] = dendrite_diameter
 ##### soma
-soma_comp_diameters = my_fun.get_soma_diameters(nof_segments_soma,
+soma_comp_diameters = calc.get_soma_diameters(nof_segments_soma,
                                                 dendrite_diameter,
                                                 soma_diameter,
                                                 axon_diameter)
@@ -275,6 +278,22 @@ A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]
            for i in range(0,nof_comps)]
 
 # =============================================================================
+# Noise term
+# =============================================================================
+k_noise = 0.0003*uA/np.sqrt(mS)
+noise_term = np.sqrt(A_surface*g_Na_Rat)
+
+# =============================================================================
+# Electrode
+# =============================================================================
+electrode_distance = 300*um
+
+# =============================================================================
+# Display name for plots
+# =============================================================================
+display_name = "Smit et al. 2010"
+
+# =============================================================================
 # Compartments to plot
 # =============================================================================
 ##### get indexes of all compartments that are not segmented
@@ -284,3 +303,108 @@ middle_comp_presomatic_region = int(start_index_presomatic_region + floor((nof_s
 middle_comp_soma = int(start_index_soma + floor((nof_segments_soma)/2))
 ##### create array with all compartments to plot
 comps_to_plot = sort(np.append(indexes_comps, [middle_comp_presomatic_region, middle_comp_soma]))
+
+# =============================================================================
+# Set up the model
+# =============================================================================
+def set_up_model(dt, model):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    dt : time
+        Sets the defaultclock.
+    model : module
+        Contains all morphologic and physiologic data of a model
+                
+    Returns
+    -------
+    neuron
+        Gives back a brian2 neuron
+    param_string
+        Gives back a string of parameter assignments
+    """
+    
+    start_scope()
+    
+    ##### initialize defaultclock
+    defaultclock.dt = dt
+
+    ##### define morphology
+    morpho = Section(n = model.nof_comps,
+                     length = model.compartment_lengths,
+                     diameter = model.compartment_diameters)
+    
+    ##### define neuron
+    neuron = SpatialNeuron(morphology = morpho,
+                           model = model.eqs,
+                           Cm = model.c_m,
+                           Ri = model.rho_in,
+                           method="exponential_euler")
+    
+    ##### initial values
+    neuron.v = V_res
+    neuron.m_t_Smit = model.m_t_init_Smit
+    neuron.m_p_Smit = model.m_p_init_Smit
+    neuron.n_Smit = model.n_init_Smit
+    neuron.h_Smit = model.h_init_Smit
+    neuron.m_Rat = model.m_init_Rat
+    neuron.n_Rat = model.n_init_Rat
+    neuron.h_Rat = model.h_init_Rat
+    
+    ##### Set parameter values (parameters that were initialised in the equations eqs and which are different for different compartment types)
+    # conductances dentritic nodes and peripheral terminal 
+    neuron.g_Na_Rat[0:model.start_index_soma] = model.g_Na_Rat
+    neuron.g_K_Rat[0:model.start_index_soma] = model.g_K_Rat
+    neuron.g_L_Rat[0:model.start_index_soma] = model.g_L_Rat
+    
+    neuron.g_Na_Smit[0:model.start_index_soma] = 0*msiemens/cm**2
+    neuron.g_K_Smit[0:model.start_index_soma] = 0*msiemens/cm**2
+    neuron.g_L_Smit[0:model.start_index_soma] = 0*msiemens/cm**2
+    
+    # conductances axonal nodes
+    neuron.g_Na_Smit[model.end_index_soma+1:] = model.g_Na_Smit
+    neuron.g_K_Smit[model.end_index_soma+1:] = model.g_K_Smit
+    neuron.g_K_Smit[model.end_index_soma+1:] = model.g_L_Smit
+    
+    neuron.g_Na_Rat[model.end_index_soma+1:] = 0*msiemens/cm**2
+    neuron.g_K_Rat[model.end_index_soma+1:] = 0*msiemens/cm**2
+    neuron.g_K_Rat[model.end_index_soma+1:] = 0*msiemens/cm**2
+    
+    # conductances soma
+    neuron.g_Na_Rat[model.index_soma] = model.g_Na_soma
+    neuron.g_K_Rat[model.index_soma] = model.g_K_soma
+    neuron.g_L_Rat[model.index_soma] = model.g_L_soma
+    
+    neuron.g_Na_Smit[model.index_soma] = 0*msiemens/cm**2
+    neuron.g_K_Smit[model.index_soma] = 0*msiemens/cm**2
+    neuron.g_L_Smit[model.index_soma] = 0*msiemens/cm**2
+    
+    # conductances internodes
+    neuron.g_myelin = model.g_m
+    
+    neuron.g_Na_Rat[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
+    neuron.g_K_Rat[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
+    neuron.g_L_Rat[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
+    
+    neuron.g_Na_Smit[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
+    neuron.g_K_Smit[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
+    neuron.g_L_Smit[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
+    
+    ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
+    param_string = '''
+    V_res = model.V_res
+    E_Na_Smit = model.E_Na_Smit
+    E_K_Smit = model.E_K_Smit
+    E_L_Smit = model.E_L_Smit
+    E_Na_Rat = model.E_Na_Rat
+    E_K_Rat = model.E_K_Rat
+    E_L_Rat = model.E_L_Rat
+    T_celsius = model.T_celsius
+    '''
+    
+    ##### remove spaces to avoid complications
+    param_string = param_string.replace(" ", "")
+    
+    return neuron, param_string

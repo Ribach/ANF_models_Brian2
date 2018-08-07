@@ -1,11 +1,14 @@
+##### import needed packages
 from brian2 import *
-import numpy as np
-import my_modules.my_functions as my_fun
 from brian2.units.constants import zero_celsius, gas_constant as R, faraday_constant as F
+import numpy as np
 
-## =============================================================================
-## Temperature
-## =============================================================================
+##### import functions
+import functions.calculations as calc
+
+# =============================================================================
+# Temperature
+# =============================================================================
 T_celsius = 37
 T_kelvin = zero_celsius + T_celsius*kelvin
 
@@ -210,6 +213,22 @@ A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]
            for i in range(0,nof_comps)]
 
 # =============================================================================
+# Noise term
+# =============================================================================
+k_noise = 0.0000001*uA*np.sqrt(second/um**3)
+noise_term = np.sqrt(A_surface*P_Na)
+    
+# =============================================================================
+# Electrode
+# =============================================================================
+electrode_distance = 300*um
+
+# =============================================================================
+# Display name for plots
+# =============================================================================
+display_name = "Frijns et al. 2005"
+
+# =============================================================================
 # Compartments to plot
 # =============================================================================
 ##### get indexes of all compartments that are not segmented
@@ -219,3 +238,80 @@ middle_comp_presomatic_region = int(start_index_presomatic_region + floor((nof_s
 middle_comp_soma = int(start_index_soma + floor((nof_segments_soma)/2))
 ##### create array with all compartments to plot
 comps_to_plot = sort(np.append(indexes_comps, [middle_comp_presomatic_region, middle_comp_soma]))
+
+# =============================================================================
+# Set up the model
+# =============================================================================
+def set_up_model(dt, model):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    dt : time
+        Sets the defaultclock.
+    model : module
+        Contains all morphologic and physiologic data of a model
+                
+    Returns
+    -------
+    neuron
+        Gives back a brian2 neuron
+    param_string
+        Gives back a string of parameter assignments
+    """
+    
+    start_scope()
+    
+    ##### initialize defaultclock
+    defaultclock.dt = dt
+
+    ##### define morphology
+    morpho = Section(n = model.nof_comps,
+                     length = model.compartment_lengths,
+                     diameter = model.compartment_diameters)
+    
+    ##### define neuron
+    neuron = SpatialNeuron(morphology = morpho,
+                           model = model.eqs,
+                           Cm = model.c_m,
+                           Ri = model.rho_in,
+                           method="exponential_euler")
+    
+    ##### initial values
+    neuron.v = model.V_res
+    neuron.m = model.m_init
+    neuron.n = model.n_init
+    neuron.h = model.h_init
+    
+    ##### Set parameter values (parameters that were initialised in the equations eqs and which are different for different compartment types)
+    # permeabilities presomatic region and active compartments
+    neuron.P_Na[np.asarray(np.where(np.logical_or(model.structure == 0, model.structure == 2)))] = model.P_Na
+    neuron.P_K[np.asarray(np.where(np.logical_or(model.structure == 0, model.structure == 2)))] = model.P_K
+    
+    # permeabilities internodes
+    neuron.P_Na[np.asarray(np.where(model.structure == 1))] = 0*meter/second
+    neuron.P_K[np.asarray(np.where(model.structure == 1))] = 0*meter/second
+    
+    # permeabilities somatic region
+    neuron.P_Na[np.asarray(np.where(np.logical_or(model.structure == 3, model.structure == 4)))] = model.P_Na/model.dividing_factor
+    neuron.P_K[np.asarray(np.where(np.logical_or(model.structure == 3, model.structure == 4)))] = model.P_K/model.dividing_factor
+    
+    # conductances
+    neuron.g_myelin = model.g_m
+    
+    ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
+    param_string = '''
+    V_res = model.V_res
+    T_celsius = model.T_celsius
+    T_kelvin = model.T_kelvin
+    Na_i = model.Na_i
+    Na_e = model.Na_e
+    K_i = model.K_i
+    K_e = model.K_e
+    '''
+    
+    ##### remove spaces to avoid complications
+    param_string = param_string.replace(" ", "")
+    
+    return neuron, param_string

@@ -4,25 +4,20 @@ import numpy as np
 # =============================================================================
 #  Calculate stimulus currents for each compartment and timestep
 # =============================================================================
-def get_stimulus_current(dt,
-                         stimulation_type,
-                         pulse_form,
-                         time_before,
-                         time_after,
-                         nof_pulses,
-                         add_noise,
-                         amp_mono,
-                         duration_mono,
-                         amps_bi,
-                         durations_bi,
-                         inter_pulse_gap,
-                         compartment_lengths,
-                         stimulated_compartment,
-                         electrode_distance,
-                         rho_out,
-                         axoplasmatic_resistances,
-                         k_noise,
-                         noise_term):
+def get_stimulus_current(model,
+                         dt = 5*ms,
+                         stimulation_type = "external",
+                         pulse_form = "mono",
+                         stimulated_compartment = 4,
+                         time_before = 0*ms,
+                         time_after = 1*ms,
+                         nof_pulses = 1,
+                         add_noise = False,
+                         amp_mono = 1.5*uA,
+                         duration_mono = 200*us,
+                         amps_bi = [-2,2]*uA,
+                         durations_bi = [100,0,100]*us,
+                         inter_pulse_gap = 1*ms):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -84,19 +79,19 @@ def get_stimulus_current(dt,
         print("Just 'mono' and 'bi' are allowed for pulse_form")
         return
     
-    ##### calculate runtime
-    nof_timesteps = int(np.ceil(runtime/defaultclock.dt))
+    ##### calculate number of timesteps
+    nof_timesteps = int(np.ceil(runtime/dt))
     
     ##### initialize current stimulus vector
     I_elec = np.zeros((1,nof_timesteps))*mA
     
     ##### create current vector for one pulse
     if pulse_form == "mono":
-        timesteps_pulse = int(duration_mono/defaultclock.dt)
+        timesteps_pulse = int(duration_mono/dt)
         I_pulse = np.zeros((1,timesteps_pulse))*mA
         I_pulse[:] = amp_mono
     else:
-        timesteps_pulse = int(sum(durations_bi)/defaultclock.dt)
+        timesteps_pulse = int(sum(durations_bi)/dt)
         I_pulse = np.zeros((1,timesteps_pulse))*mA
         end_index_first_phase = round(durations_bi[0]/dt)
         start_index_second_phase = round(end_index_first_phase + durations_bi[1]/dt)
@@ -112,7 +107,7 @@ def get_stimulus_current(dt,
         I_elec[0,round(time_before/dt):round(time_before/dt)+len(I_pulse_train)] = I_pulse_train
         
     ##### number of compartments
-    nof_comps = len(compartment_lengths)
+    nof_comps = len(model.compartment_lengths)
     
     ##### external stimulation
     if stimulation_type == "extern":
@@ -122,26 +117,26 @@ def get_stimulus_current(dt,
         
         if stimulated_compartment > 0:
             for ii in range(stimulated_compartment-1,-1,-1):
-                distance_x[0,ii] = 0.5* compartment_lengths[stimulated_compartment] + np.sum(compartment_lengths[stimulated_compartment-1:ii:-1]) + 0.5* compartment_lengths[ii]
+                distance_x[0,ii] = 0.5* model.compartment_lengths[stimulated_compartment] + np.sum(model.compartment_lengths[stimulated_compartment-1:ii:-1]) + 0.5* model.compartment_lengths[ii]
         
         if stimulated_compartment < nof_comps:
             for ii in range(stimulated_compartment+1,nof_comps,1):
-                distance_x[0,ii] = 0.5* compartment_lengths[stimulated_compartment] + np.sum(compartment_lengths[stimulated_compartment+1:ii:1]) + 0.5* compartment_lengths[ii]
+                distance_x[0,ii] = 0.5* model.compartment_lengths[stimulated_compartment] + np.sum(model.compartment_lengths[stimulated_compartment+1:ii:1]) + 0.5* model.compartment_lengths[ii]
                 
-        distance = np.sqrt((distance_x*meter)**2 + electrode_distance**2)
+        distance = np.sqrt((distance_x*meter)**2 + model.electrode_distance**2)
         
         # calculate axoplasmatic resistances (always for the two halfs of neightbouring compartments)
         R_a = np.zeros((1,nof_comps))*ohm
         
         if stimulated_compartment > 0:
             for i in range(0,stimulated_compartment):
-                R_a[0,i] = 0.5* axoplasmatic_resistances[i] + 0.5* axoplasmatic_resistances[i+1]
+                R_a[0,i] = 0.5* model.R_a[i] + 0.5* model.R_a[i+1]
                 
-        R_a[0,stimulated_compartment] = axoplasmatic_resistances[stimulated_compartment]
+        R_a[0,stimulated_compartment] = model.R_a[stimulated_compartment]
         
         if stimulated_compartment < nof_comps:
             for i in range(stimulated_compartment+1,nof_comps):
-                R_a[0,i] = 0.5* axoplasmatic_resistances[i-1] + 0.5* axoplasmatic_resistances[i]
+                R_a[0,i] = 0.5* model.R_a[i-1] + 0.5* model.R_a[i]
                 
         # Calculate activation functions
         V_ext = np.zeros((nof_comps,nof_timesteps))*mV
@@ -149,7 +144,7 @@ def get_stimulus_current(dt,
         A_ext = np.zeros((nof_comps,nof_timesteps))*mV
         
         for ii in range(0,nof_timesteps):
-            V_ext[:,ii] = (rho_out*I_elec[0,ii]) / (4*np.pi*distance)
+            V_ext[:,ii] = (model.rho_out*I_elec[0,ii]) / (4*np.pi*distance)
             E_ext[0:-1,ii] = -np.diff(V_ext[:,ii])
             A_ext[1:-1,ii] = -np.diff(E_ext[0:-1,ii])
         
@@ -172,6 +167,6 @@ def get_stimulus_current(dt,
     
     ##### add noise
     if add_noise:
-        I_stim = I_stim + np.transpose(np.transpose(np.random.normal(0, 1, np.shape(I_stim)))*k_noise*noise_term)
+        I_stim = I_stim + np.transpose(np.transpose(np.random.normal(0, 1, np.shape(I_stim)))*model.k_noise*model.noise_term)
         
     return I_stim, runtime
