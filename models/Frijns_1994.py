@@ -184,7 +184,7 @@ comps_to_plot = range(1,nof_comps)
 # =============================================================================
 # Set up the model
 # =============================================================================
-def set_up_model(dt, model):
+def set_up_model(dt, model, model_name = "model"):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -194,6 +194,8 @@ def set_up_model(dt, model):
         Sets the defaultclock.
     model : module
         Contains all morphologic and physiologic data of a model
+    model_name : string
+        Sting with the variable name, in which the module is saved
                 
     Returns
     -------
@@ -236,14 +238,14 @@ def set_up_model(dt, model):
     neuron.P_K[np.asarray(np.where(model.structure == 1))] = 0*meter/second
     
     ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
-    param_string = '''
-    V_res = model.V_res
-    T_celsius = model.T_celsius
-    T_kelvin = model.T_kelvin
-    Na_i = model.Na_i
-    Na_e = model.Na_e
-    K_i = model.K_i
-    K_e = model.K_e
+    param_string = f'''
+    V_res = {model_name}.V_res
+    T_celsius = {model_name}.T_celsius
+    T_kelvin = {model_name}.T_kelvin
+    Na_i = {model_name}.Na_i
+    Na_e = {model_name}.Na_e
+    K_i = {model_name}.K_i
+    K_e = {model_name}.K_e
     '''
     
     ##### remove spaces to avoid complications

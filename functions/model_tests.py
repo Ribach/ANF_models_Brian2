@@ -1,7 +1,9 @@
 ##### import packages
 from brian2 import *
+from brian2.units.constants import zero_celsius, gas_constant as R, faraday_constant as F
 import numpy as np
 import pandas as pd
+#pd.options.mode.chained_assignment = None
 
 ##### import functions
 import functions.stimulation as stim
@@ -50,43 +52,47 @@ def get_single_node_response2(model,
         Gives back the duration of the simulation
     """
     
-    model = [rattay_01, smit_10]
-    dt = dt
-    param_1 = "model"
-    param_1_ratios = [0.8, 1.0, 1.2]
-    param_2 = "stochastic_runs"
-    param_2_ratios = [0.8, 0.9, 1.0, 1.1, 1.2]
-    stimulation_type = "extern"
-    pulse_form = "bi"
-    time_after_stimulation = 1.5*ms
-    stim_amp = 2*uA
-    phase_duration = 200*us
-    nof_runs = 10
+#    model = rattay_01
+#    dt = dt
+#    param_1 = "stim_amp"
+#    param_1_ratios = [0.8, 1.0, 1.2]
+#    param_2 = "compartment_diameters"
+#    param_2_ratios = [0.8, 0.9, 1.0, 1.1, 1.2]
+#    stimulation_type = "extern"
+#    pulse_form = "bi"
+#    time_after_stimulation = 1.5*ms
+#    stim_amp = 2*uA
+#    phase_duration = 200*us
+#    nof_runs = 10
     
-    ##### save model in new variable
-    if not param_1 == "model" and not param_2 == "model":
-        model_type = model
-    else:
-        model_type = model[0]
-        
     ##### initializations
     add_noise = False
     max_nof_timesteps = 0
     
-    ##### define neuron and state monitor
-    neuron, param_string = model_type.set_up_model(dt = dt, model = model_type)
-    exec(param_string)
-    M = StateMonitor(neuron, 'v', record=True)
-    store('initialized')
+    ##### save model in new variable
+    if param_1 == "model" or param_2 == "model":
+        if not isinstance(model, (list,)):
+            print("model must be a list, if one of the parameters is set to 'model'")
+            # return
+    else:
+        ##### define neuron and state monitor
+        if not isinstance(model, (list,)):
+            model = [model]
+        neuron, param_string = model[0].set_up_model(dt = dt, model = model[0], model_name = "model[0]")
+        exec(param_string)
+        M = StateMonitor(neuron, 'v', record=True)
+        store('initialized')
          
     ##### parameter 1
-    if hasattr(model_type, param_1):
-        # save the original value of the parameter
-        param_1_original_value = eval(f"model_type.{param_1}")
+    if hasattr(model[0], param_1):
         # get display name for plots and dataframe
-        param_1_display_name = param_1 # param_1_display_name = calc.get_display_name(param_1, param_1_original_value)
+        param_1_display_name = param_1
         # save the number of observations for parameter 1
         length_param_1 = len(param_1_ratios)
+        # save the original value of the parameter
+        param_1_original_value = np.zeros_like(model)
+        for ii in range(0,len(model)):
+            param_1_original_value[ii] = eval(f"model[ii].{param_1}")
     
     elif param_1 == "model":
         # get display name for plots and dataframe
@@ -126,17 +132,19 @@ def get_single_node_response2(model,
         
     else:
         # print error message for wrong entry
-        print("param_1 has to be either a model parameter, or one of: 'model', 'stochastic_runs', 'stim_amp' and 'phase_duration")
+        print("param_1 has to be either a model attribute or one of: 'model', 'stochastic_runs', 'stim_amp' and 'phase_duration")
         #return
     
     ##### parameter 2
-    if hasattr(model_type, param_2):
-        # save the original value of the parameter
-        param_2_original_value = eval(f"model_type.{param_2}")
+    if hasattr(model[0], param_2):
         # get display name for plots and dataframe
         param_2_display_name = param_2
         # save the number of observations for parameter 1
         length_param_2 = len(param_2_ratios)
+        # save the original value of the parameter
+        param_2_original_value = np.zeros_like(model)
+        for ii in range(0,len(model)):
+            param_2_original_value[ii] = eval(f"model[ii].{param_2}")
     
     elif param_2 == "model":
         # get display name for plots and dataframe
@@ -183,29 +191,29 @@ def get_single_node_response2(model,
     node_response_data = pd.DataFrame(np.zeros((length_param_1*length_param_2, len(col_names))), columns = col_names)
     
     ##### compartments for measurements
-    comp_index = np.where(model_type.structure == 2)[0][10]
+    comp_index = np.where(model[0].structure == 2)[0][10]
     
     ##### loop over parameter 1
     for ii in range(0, length_param_1):
         
-        if hasattr(model_type, param_1):
-            ##### adjust model parameter
-            exec(f"model_type.{param_1} = param_1_ratios[ii]*param_1_original_value")
-            ##### set up neuron with adjusted model parameter
-            neuron, param_string = model_type.set_up_model(dt = dt, model = model_type)
-            exec(param_string)
-            M = StateMonitor(neuron, 'v', record=True)
-            store('initialized')
+        if hasattr(model[0], param_1):
+            if not param_2 == "model":
+                ##### adjust model parameter
+                exec(f"model[0].{param_1} = param_1_ratios[ii]*param_1_original_value[0]")
+                ##### set up neuron with adjusted model parameter
+                neuron, param_string = model[0].set_up_model(dt = dt, model = model[0], model_name = "model[0]")
+                exec(param_string)
+                M = StateMonitor(neuron, 'v', record=True)
+                store('initialized')
         
         elif param_1 == "model":
             ##### set up neuron for actual model
-            model_type = model[ii]
-            neuron, param_string = model_type.set_up_model(dt = dt, model = model_type)
+            neuron, param_string = model[ii].set_up_model(dt = dt, model = model[ii], model_name = "model[ii]")
             exec(param_string)
             M = StateMonitor(neuron, 'v', record=True)
             store('initialized')
             ##### compartments for measurements
-            comp_index = np.where(model_type.structure == 2)[0][10]
+            comp_index = np.where(model[ii].structure == 2)[0][10]
                     
         elif param_1 == "stim_amp":
             ##### set stimulus amplitude for actual iteration
@@ -218,24 +226,34 @@ def get_single_node_response2(model,
         ##### loop over parameter 2
         for jj in range(0,length_param_2):
             
-            if hasattr(model_type, param_2):
-                ##### adjust model parameter
-                exec(f"model_type.{param_2} = param_2_ratios[jj]*param_2_original_value")
-                ##### set up neuron with adjusted model parameter
-                neuron, param_string = model_type.set_up_model(dt = dt, model = model_type)
-                exec(param_string)
-                M = StateMonitor(neuron, 'v', record=True)
-                store('initialized')
+            if hasattr(model[0], param_2):
+               if not param_1 == "model":
+                    ##### adjust model parameter
+                    exec(f"model[0].{param_2} = param_2_ratios[jj]*param_2_original_value[0]")
+                    ##### set up neuron with adjusted model parameter
+                    neuron, param_string = model[0].set_up_model(dt = dt, model = model[0], model_name = "model[0]")
+                    exec(param_string)
+                    M = StateMonitor(neuron, 'v', record=True)
+                    store('initialized')
+               else:
+                    exec(f"model[ii].{param_2} = param_2_ratios[jj]*param_2_original_value[ii]")
+                    ##### set up neuron again with adjusted model parameter
+                    neuron, param_string = model[ii].set_up_model(dt = dt, model = model[ii], model_name = "model[ii]")
+                    exec(param_string)
+                    M = StateMonitor(neuron, 'v', record=True)
+                    store('initialized')
             
             elif param_2 == "model":
+                if hasattr(model[0], param_1):
+                    ##### adjust model parameter
+                    exec(f"model[jj].{param_1} = param_1_ratios[ii]*param_1_original_value[jj]")
                 ##### set up neuron for actual model
-                model_type = model[jj]
-                neuron, param_string = model_type.set_up_model(dt = dt, model = model_type)
+                neuron, param_string = model[jj].set_up_model(dt = dt, model = model[jj], model_name = "model[jj]")
                 exec(param_string)
                 M = StateMonitor(neuron, 'v', record=True)
                 store('initialized')
                 ##### compartments for measurements
-                comp_index = np.where(model_type.structure == 2)[0][10]
+                comp_index = np.where(model[jj].structure == 2)[0][10]
                             
             elif param_2 == "stim_amp":
                 ##### set stimulus amplitude for actual iteration
@@ -244,6 +262,14 @@ def get_single_node_response2(model,
             elif param_2 == "phase_duration":
                 ##### set phase duration for actual iteration
                 phase_duration = phase_duration_original_value*param_2_ratios[jj]
+                
+            ##### save actual model type in model_type
+            if param_1 == "model":
+                model_type = model[ii]
+            elif param_2 == "model":
+                model_type = model[jj]
+            else:
+                model_type = model[0]
             
             ##### define how the ANF is stimulated
             I_stim, runtime = stim.get_stimulus_current(model = model_type,
@@ -281,13 +307,13 @@ def get_single_node_response2(model,
                 AP_end_time = 0*ms
             
             if hasattr(model_type, param_1): node_response_data[param_1_display_name][ii*length_param_2+jj] = param_1_ratios[ii]
-            elif param_1 == "model": node_response_data[param_1_display_name][ii*length_param_2+jj] = f"{model[ii]}"
+            elif param_1 == "model": node_response_data[param_1_display_name][ii*length_param_2+jj] = model[ii].display_name
             elif param_1 == "stochastic_runs": node_response_data[param_1_display_name][ii*length_param_2+jj] = ii
             elif param_1 == "stim_amp": node_response_data[param_1_display_name][ii*length_param_2+jj] = round(stim_amp/uA,2)
             elif param_1 == "phase_duration": node_response_data[param_1_display_name][ii*length_param_2+jj] = round(phase_duration/us,2)
             
             if hasattr(model_type, param_2): node_response_data[param_2_display_name][ii*length_param_2+jj] = param_2_ratios[jj]
-            elif param_2 == "model": node_response_data[param_2_display_name][ii*length_param_2+jj] = f"{model[jj]}"
+            elif param_2 == "model": node_response_data[param_2_display_name][ii*length_param_2+jj] = model[jj].display_name
             elif param_2 == "stochastic_runs": node_response_data[param_2_display_name][ii*length_param_2+jj] = jj
             elif param_2 == "stim_amp": node_response_data[param_2_display_name][ii*length_param_2+jj] = round(stim_amp/uA,2)
             elif param_2 == "phase_duration": node_response_data[param_2_display_name][ii*length_param_2+jj] = round(phase_duration/us,2)
@@ -330,16 +356,19 @@ def get_single_node_response2(model,
         node_response_data_summary = node_response_data.groupby([param_1_display_name, param_2_display_name])["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"].mean()
 
     ##### reset the adjusted parameter
-    if hasattr(model_type, param_1):
-        exec(f"model_type.{param_1} = param_1_original_value")
-    if hasattr(model_type, param_2):
-        exec(f"model_type.{param_2} = param_2_original_value")
+    if hasattr(model[0], param_1):
+        for ii in range(0, len(model)):
+            exec(f"model[ii].{param_1} = param_1_original_value[ii]")
+    if hasattr(model[0], param_2):
+        for ii in range(0, len(model)):
+            exec(f"model[ii].{param_2} = param_2_original_value[ii]")
         
     ##### reset neuron
-    neuron, param_string = model_type.set_up_model(dt = dt, model = model_type)
-    exec(param_string)
-    M = StateMonitor(neuron, 'v', record=True)
-    store('initialized')
+    for ii in range(0, len(model)):
+        neuron, param_string = model[ii].set_up_model(dt = dt, model = model[ii], model_name = "model[ii]")
+        exec(param_string)
+        M = StateMonitor(neuron, 'v', record=True)
+        store('initialized')
     
     return voltage_data, node_response_data_summary, M.t
 

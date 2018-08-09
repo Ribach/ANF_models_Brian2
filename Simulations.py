@@ -113,11 +113,11 @@ if measure_single_node_response:
 
     ##### Possible parameter types are all model attributes, "model", "stim_amp", "phase_duration" and "stochastic_runs"
     voltage_matrix, node_response_data_summary, time_vector = \
-    test.get_single_node_response2(model = [rattay_01, smit_10],
+    test.get_single_node_response2(model = [rattay_01, smit_10, smit_09],
                                    dt = dt,
-                                   param_1 = "model",
+                                   param_1 = "stim_amp",
                                    param_1_ratios = [0.8, 1.0, 1.2],
-                                   param_2 = "stochastic_runs",
+                                   param_2 = "model",
                                    param_2_ratios = [0.8, 0.9, 1.0, 1.1, 1.2],
                                    stimulation_type = "extern",
                                    pulse_form = "bi",

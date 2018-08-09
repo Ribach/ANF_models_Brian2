@@ -241,7 +241,7 @@ comps_to_plot = np.sort(np.append(indexes_comps, [middle_comp_presomatic_region,
 # =============================================================================
 # Set up the model
 # =============================================================================
-def set_up_model(dt, model):
+def set_up_model(dt, model, model_name = "model"):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -251,6 +251,8 @@ def set_up_model(dt, model):
         Sets the defaultclock.
     model : module
         Contains all morphologic and physiologic data of a model
+    model_name : string
+        Sting with the variable name, in which the module is saved
                 
     Returns
     -------
@@ -301,11 +303,11 @@ def set_up_model(dt, model):
     neuron.g_L[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
     
     ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
-    param_string = '''
-    V_res = model.V_res
-    E_Na = model.E_Na
-    E_K = model.E_K
-    E_L = model.E_L
+    param_string = f'''
+    V_res = {model_name}.V_res
+    E_Na = {model_name}.E_Na
+    E_K = {model_name}.E_K
+    E_L = {model_name}.E_L
     '''
     
     ##### remove spaces to avoid complications

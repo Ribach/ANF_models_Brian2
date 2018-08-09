@@ -307,7 +307,7 @@ comps_to_plot = sort(np.append(indexes_comps, [middle_comp_presomatic_region, mi
 # =============================================================================
 # Set up the model
 # =============================================================================
-def set_up_model(dt, model):
+def set_up_model(dt, model, model_name = "model"):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -317,6 +317,8 @@ def set_up_model(dt, model):
         Sets the defaultclock.
     model : module
         Contains all morphologic and physiologic data of a model
+    model_name : string
+        Sting with the variable name, in which the module is saved
                 
     Returns
     -------
@@ -393,15 +395,15 @@ def set_up_model(dt, model):
     neuron.g_L_Smit[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
     
     ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
-    param_string = '''
-    V_res = model.V_res
-    E_Na_Smit = model.E_Na_Smit
-    E_K_Smit = model.E_K_Smit
-    E_L_Smit = model.E_L_Smit
-    E_Na_Rat = model.E_Na_Rat
-    E_K_Rat = model.E_K_Rat
-    E_L_Rat = model.E_L_Rat
-    T_celsius = model.T_celsius
+    param_string = f'''
+    V_res = {model_name}.V_res
+    E_Na_Smit = {model_name}.E_Na_Smit
+    E_K_Smit = {model_name}.E_K_Smit
+    E_L_Smit = {model_name}.E_L_Smit
+    E_Na_Rat = {model_name}.E_Na_Rat
+    E_K_Rat = {model_name}.E_K_Rat
+    E_L_Rat = {model_name}.E_L_Rat
+    T_celsius = {model_name}.T_celsius
     '''
     
     ##### remove spaces to avoid complications
