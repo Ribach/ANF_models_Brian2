@@ -132,9 +132,9 @@ def single_node_response(plot_name,
     plt.close(plot_name)
     single_node_response = plt.figure(plot_name)
     for ii in range(0,nof_test_parameter):
-        plt.text(0.04, 100*ii+V_res/mV+10, f"{round(parameter_vector[ii],1)} {parameter_unit}")
+        plt.text(0.04, 100*ii+V_res/mV+10, f"{parameter_vector[ii]} {parameter_unit}")
         for jj in range(0, nof_runs_per_test_parameter):
-            plt.plot(time_vector, 100*ii + voltage_matrix[nof_runs_per_test_parameter*ii+jj,:], "#000000")     
+            plt.plot(time_vector/ms, 100*ii + voltage_matrix[nof_runs_per_test_parameter*ii+jj,:], "#000000")     
     plt.xlabel('Time/ms', fontsize=16)
     plt.tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
     plt.show(plot_name)

@@ -50,8 +50,8 @@ store('initialized')
 # =============================================================================
 plot_voltage_course_lines = True
 plot_voltage_course_colored = False
-measure_single_node_response = False
-measure_strength_duration_curve = True
+measure_single_node_response = True
+measure_strength_duration_curve = False
 measure_refractory_properties = False
 
 # =============================================================================
@@ -110,155 +110,69 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
 # - jitter
 # =============================================================================
 if measure_single_node_response:
-    
-    ##### number of simulations to run
-    nof_runs = 10
-    
-    ##### current amplitudes
-    current_amps = np.array([-0.5, -0.7, -1.2, -2, -10])*uA
-    
-    ##### initialize dataset for measurements
-    col_names = ["stimulation amplitude (uA)","AP height (mV)","AP peak time","AP start time","AP end time","rise time (ms)","fall time (ms)","latency (ms)","jitter"]
-    node_response_data = pd.DataFrame(np.zeros((len(current_amps)*nof_runs, len(col_names))), columns = col_names)
-    
-    ##### compartments for measurements
-    comp_index = np.where(model.structure == 2)[0][10]
-    
-    ##### loop over current ampltudes
-    for ii in range(0, len(current_amps)):
-        
-        for jj in range(0,nof_runs):
-            
-            ##### go back to initial values
-            restore('initialized')
-            
-            ##### define how the ANF is stimulated
-            I_stim, runtime = stim.get_stimulus_current(model = model,
-                                                        dt = dt,
-                                                        stimulation_type = "extern",
-                                                        pulse_form = "mono",
-                                                        stimulated_compartment = 4,
-                                                        nof_pulses = 1,
-                                                        time_before = 0*ms,
-                                                        time_after = 1.5*ms,
-                                                        add_noise = True,
-                                                        ##### monophasic stimulation
-                                                        amp_mono = current_amps[ii],
-                                                        duration_mono = 250*us,
-                                                        ##### biphasic stimulation
-                                                        amps_bi = [-2,2]*uA,
-                                                        durations_bi = [100,0,100]*us)
-        
-            ##### get TimedArray of stimulus currents and run simulation
-            stimulus = TimedArray(np.transpose(I_stim), dt=dt)
-            
-            ##### run simulation
-            run(runtime)
-            
-            ##### write results in table
-            AP_amp = max(M.v[comp_index,:]-model.V_res)
-            AP_time = M.t[M.v[comp_index,:]-model.V_res == AP_amp]
-            AP_start_time = M.t[np.argmin(abs(M.v[comp_index,np.where(M.t<AP_time)[0]]-model.V_res - 0.1*AP_amp))]
-            AP_end_time = M.t[np.where(M.t>AP_time)[0]][np.argmin(abs(M.v[comp_index,np.where(M.t>AP_time)[0]]-model.V_res - 0.1*AP_amp))]
-            
-            node_response_data["stimulation amplitude (uA)"][ii*nof_runs+jj] = current_amps[ii]/uA
-            node_response_data["AP height (mV)"][ii*nof_runs+jj] = AP_amp/mV
-            node_response_data["AP peak time"][ii*nof_runs+jj] = AP_time/ms
-            node_response_data["AP start time"][ii*nof_runs+jj] = AP_start_time/ms
-            node_response_data["AP end time"][ii*nof_runs+jj] = AP_end_time/ms
-            
-            ##### print progress
-            print(f"Stimulus amplitde: {np.round(current_amps[ii]/uA,3)} uA")
 
-            ##### save voltage course of single compartment for plotting 
-            if ii == jj == 0:
-                voltage_data = np.zeros((len(current_amps)*nof_runs,np.shape(M.v)[1]))
-            voltage_data[nof_runs*ii+jj,:] = M.v[comp_index, :]/mV
+    ##### Possible parameter types are all model attributes, "model", "stim_amp", "phase_duration" and "stochastic_runs"
+    voltage_matrix, node_response_data_summary, time_vector = \
+    test.get_single_node_response2(model = [rattay_01, smit_10],
+                                   dt = dt,
+                                   param_1 = "model",
+                                   param_1_ratios = [0.8, 1.0, 1.2],
+                                   param_2 = "stochastic_runs",
+                                   param_2_ratios = [0.8, 0.9, 1.0, 1.1, 1.2],
+                                   stimulation_type = "extern",
+                                   pulse_form = "bi",
+                                   time_after_stimulation = 1.5*ms,
+                                   stim_amp = 2*uA,
+                                   phase_duration = 200*us,
+                                   nof_runs = 10)
     
-    ##### calculate remaining single node response data
-    node_response_data["rise time (ms)"] = node_response_data["AP peak time"] - node_response_data["AP start time"]
-    node_response_data["fall time (ms)"] = node_response_data["AP end time"] - node_response_data["AP peak time"]
-    node_response_data["latency (ms)"] = node_response_data["AP peak time"]
-    node_response_data["jitter"] = 0
-    
-    ##### exclude runs where no AP was elicited
-    node_response_data = node_response_data[node_response_data["AP height (mV)"] > 60]
-    
-    ##### calculate average data and jitter for different stimulus amplitudes
-    average_node_response_data = node_response_data.groupby(["stimulation amplitude (uA)"])["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"].mean()
-    average_node_response_data["jitter (ms)"] = node_response_data.groupby(["stimulation amplitude (uA)"])["latency (ms)"].std()
-    
-    ##### plot single node response curves
-    plot.single_node_response(plot_name = f"Single node response {model.display_name}",
-                              time_vector = M.t/ms,
-                              voltage_matrix = voltage_data,
-                              parameter_vector = current_amps*10**6/amp,
-                              parameter_unit = r'$\mu A$',
-                              V_res = model.V_res)
+#    voltage_matrix, average_node_response_data, time_vector = \
+#        test.get_single_node_response(model = model,
+#                                      dt = dt,
+#                                      test_param_type = "compartment_lengths[np.where(model.structure == 2)]",
+#                                      test_param_display_name = "compartment lengths ratio",
+#                                      test_param_values = [0.8, 0.9, 1.0, 1.1, 1.2],
+#                                      stimulation_type = "extern",
+#                                      time_after_stimulation = 1.5*ms,
+#                                      pulse_form = "bi",
+#                                      stim_amp = 2*uA,
+#                                      phase_duration = 100*us,
+#                                      nof_runs = 5)
+
+#    ##### plot single node response curves
+#    plot.single_node_response(plot_name = f"Single node response {model.display_name}",
+#                              time_vector = time_vector,
+#                              voltage_matrix = voltage_matrix,
+#                              parameter_vector = [0.8, 0.9, 1.0, 1.1, 1.2],
+#                              parameter_unit = "of standard compartment length",
+#                              V_res = model.V_res)
     
     ##### plot results in bar plot
-    average_node_response_data.iloc[:,1:].transpose().plot.bar(rot = 0)
-    #average_node_response_data.plot.bar(rot = 0,secondary_y = ("AP height (mV)"))
-    
-# =============================================================================
-# Now a simulation will be run several times to calculate the strength-duration
-#  curve. This allows to determine the following properties
-# - Rheobase
-# - chronaxie
-# =============================================================================
-if measure_strength_duration_curve:
-    
-    phase_durations = 100*us #np.round(np.logspace(1, 9, num=20, base=2.0))*us
-    
-    min_required_amps = test.get_phase_duration_curve(model = model,
-                                                      dt = 5*us,
-                                                      phase_durations = phase_durations,
-                                                      start_intervall = [0.1,20]*uA,
-                                                      delta = 0.01*uA,
-                                                      stimulation_type = "extern",
-                                                      pulse_form = "mono")
-    
-#    ##### Initialize model with new defaultclock
-#    dt = 1*us
-#    neuron, param_string = model.set_up_model(dt = dt, model = model)
-#    exec(param_string)
-#    M = StateMonitor(neuron, 'v', record=True)
-#    store('initialized')
-#          
-#    ##### phase durations
-#    phase_durations = np.round(np.logspace(1, 9, num=20, base=2.0))*us
+    node_response_data_summary.iloc[:,1:].transpose().plot.bar(rot = 0)
+
+
+#if measure_single_node_response:
 #    
-#    ##### initialize vector for minimum required stimulus current amplitudes
-#    min_required_amps = np.zeros_like(phase_durations/second)*amp
+#    ##### number of simulations to run
+#    nof_runs = 10
 #    
-#    ##### minimum and maximum stimulus current amplitudes that are tested
-#    stim_amps_min = 0.1*uA
-#    stim_amps_max = 20*uA
+#    ##### current amplitudes
+#    current_amps = np.array([-0.5, -0.7, -1.2, -2, -10])*uA
 #    
-#    ##### start amplitde for first run
-#    start_amp = (stim_amps_max-stim_amps_min)/2
+#    ##### initialize dataset for measurements
+#    col_names = ["stimulation amplitude (uA)","AP height (mV)","AP peak time","AP start time","AP end time","rise time (ms)","fall time (ms)","latency (ms)","jitter"]
+#    node_response_data = pd.DataFrame(np.zeros((len(current_amps)*nof_runs, len(col_names))), columns = col_names)
 #    
-#    ##### required accuracy
-#    delta = 0.05*uA
-#    
-#    ##### compartment for measurements
+#    ##### compartments for measurements
 #    comp_index = np.where(model.structure == 2)[0][10]
-#
-#    ##### loop over phase durations
-#    for ii in range(0, len(phase_durations)):
+#    
+#    ##### loop over current ampltudes
+#    for ii in range(0, len(current_amps)):
 #        
-#        ##### initializations
-#        min_amp_spiked = 0*amp
-#        lower_border = stim_amps_min
-#        upper_border = stim_amps_max
-#        stim_amp = start_amp
-#        amp_diff = upper_border - lower_border
-#        
-#        ##### adjust stimulus amplitude until required accuracy is obtained
-#        while amp_diff > delta:
+#        for jj in range(0,nof_runs):
 #            
-#            ##### print progress
-#            print(f"Duration: {phase_durations[ii]/us} us; Stimulus amplitde: {np.round(stim_amp/uA,4)} uA")
+#            ##### go back to initial values
+#            restore('initialized')
 #            
 #            ##### define how the ANF is stimulated
 #            I_stim, runtime = stim.get_stimulus_current(model = model,
@@ -268,46 +182,90 @@ if measure_strength_duration_curve:
 #                                                        stimulated_compartment = 4,
 #                                                        nof_pulses = 1,
 #                                                        time_before = 0*ms,
-#                                                        time_after = 1*ms,
-#                                                        add_noise = False,
+#                                                        time_after = 1.5*ms,
+#                                                        add_noise = True,
 #                                                        ##### monophasic stimulation
-#                                                        amp_mono = -stim_amp,
-#                                                        duration_mono = phase_durations[ii],
+#                                                        amp_mono = current_amps[ii],
+#                                                        duration_mono = 250*us,
 #                                                        ##### biphasic stimulation
-#                                                        amps_bi = [-stim_amp,stim_amp],
-#                                                        durations_bi = [phase_durations[ii],0*second,phase_durations[ii]],
-#                                                        ##### multiple pulses / pulse trains
-#                                                        inter_pulse_gap =800*us)
+#                                                        amps_bi = [-2,2]*uA,
+#                                                        durations_bi = [100,0,100]*us)
 #        
 #            ##### get TimedArray of stimulus currents and run simulation
 #            stimulus = TimedArray(np.transpose(I_stim), dt=dt)
 #            
-#            ##### reset state monitor
-#            restore('initialized')
-#            
 #            ##### run simulation
 #            run(runtime)
 #            
-#            ##### test if there was a spike
-#            if max(M.v[comp_index,:]-model.V_res) > 60*mV:
-#                min_amp_spiked = stim_amp
-#                upper_border = stim_amp
-#                stim_amp = (stim_amp + lower_border)/2
-#            else:
-#                lower_border = stim_amp
-#                stim_amp = (stim_amp + upper_border)/2
-#                
-#            amp_diff = upper_border - lower_border
-#                            
-#        ##### write the found minimum stimulus current in vector
-#        min_required_amps[ii] = min_amp_spiked
-#        start_amp[min_amp_spiked != 0*amp] = min_amp_spiked
-#        start_amp[min_amp_spiked == 0*amp] = stim_amps_max
+#            ##### write results in table
+#            AP_amp = max(M.v[comp_index,:]-model.V_res)
+#            AP_time = M.t[M.v[comp_index,:]-model.V_res == AP_amp]
+#            AP_start_time = M.t[np.argmin(abs(M.v[comp_index,np.where(M.t<AP_time)[0]]-model.V_res - 0.1*AP_amp))]
+#            AP_end_time = M.t[np.where(M.t>AP_time)[0]][np.argmin(abs(M.v[comp_index,np.where(M.t>AP_time)[0]]-model.V_res - 0.1*AP_amp))]
+#            
+#            node_response_data["stimulation amplitude (uA)"][ii*nof_runs+jj] = current_amps[ii]/uA
+#            node_response_data["AP height (mV)"][ii*nof_runs+jj] = AP_amp/mV
+#            node_response_data["AP peak time"][ii*nof_runs+jj] = AP_time/ms
+#            node_response_data["AP start time"][ii*nof_runs+jj] = AP_start_time/ms
+#            node_response_data["AP end time"][ii*nof_runs+jj] = AP_end_time/ms
+#            
+#            ##### print progress
+#            print(f"Stimulus amplitde: {np.round(current_amps[ii]/uA,3)} uA")
+#
+#            ##### save voltage course of single compartment for plotting 
+#            if ii == jj == 0:
+#                voltage_data = np.zeros((len(current_amps)*nof_runs,np.shape(M.v)[1]))
+#            voltage_data[nof_runs*ii+jj,:] = M.v[comp_index, :]/mV
+#    
+#    ##### calculate remaining single node response data
+#    node_response_data["rise time (ms)"] = node_response_data["AP peak time"] - node_response_data["AP start time"]
+#    node_response_data["fall time (ms)"] = node_response_data["AP end time"] - node_response_data["AP peak time"]
+#    node_response_data["latency (ms)"] = node_response_data["AP peak time"]
+#    node_response_data["jitter"] = 0
+#    
+#    ##### exclude runs where no AP was elicited
+#    node_response_data = node_response_data[node_response_data["AP height (mV)"] > 60]
+#    
+#    ##### calculate average data and jitter for different stimulus amplitudes
+#    average_node_response_data = node_response_data.groupby(["stimulation amplitude (uA)"])["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"].mean()
+#    average_node_response_data["jitter (ms)"] = node_response_data.groupby(["stimulation amplitude (uA)"])["latency (ms)"].std()
+#    
+#    ##### plot single node response curves
+#    plot.single_node_response(plot_name = f"Single node response {model.display_name}",
+#                              time_vector = M.t/ms,
+#                              voltage_matrix = voltage_data,
+#                              parameter_vector = round(current_amps*10**6/amp,1),
+#                              parameter_unit = r'$\mu A$',
+#                              V_res = model.V_res)
+#    
+#    ##### plot results in bar plot
+#    average_node_response_data.iloc[:,1:].transpose().plot.bar(rot = 0)
+#    #average_node_response_data.plot.bar(rot = 0,secondary_y = ("AP height (mV)"))
+    
+# =============================================================================
+# Now a simulation will be run several times to calculate the strength-duration
+#  curve. This allows to determine the following properties
+# - Rheobase
+# - chronaxie
+# =============================================================================
+if measure_strength_duration_curve:
+    
+    ##### define phase_durations to be tested
+    phase_durations = np.round(np.logspace(1, 9, num=20, base=2.0))*us
+    
+    ##### calculated corresponding thresholds
+    thresholds = test.get_strength_duration_curve(model = model,
+                                                  dt = 1*us,
+                                                  phase_durations = phase_durations,
+                                                  start_intervall = [0.1,20]*uA,
+                                                  delta = 0.01*uA,
+                                                  stimulation_type = "extern",
+                                                  pulse_form = "bi")
     
     ##### plot strength duration curve
     plot.strength_duration_curve(plot_name = f"Strength duration curve {model.display_name}",
                                  durations = phase_durations,
-                                 stimulus_amps = min_required_amps)
+                                 stimulus_amps = thresholds)
     
 # =============================================================================
 # Now the relative and absolute refractory periods will be measured. This is
