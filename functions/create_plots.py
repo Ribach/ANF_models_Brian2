@@ -1,6 +1,9 @@
 from brian2 import *
 import numpy as np
 import matplotlib.pyplot as plt
+import pandas as pd
+import seaborn as sns
+sns.set(style="ticks", color_codes=True)
 
 # =============================================================================
 #  Voltage course lines
@@ -94,6 +97,37 @@ def voltage_course_colors(plot_name,
     plt.show(plot_name)
     
     return voltage_course
+
+# =============================================================================
+#  Single node response bar plot
+# =============================================================================
+def single_node_response_bar_plot(data):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    time_vector : integer
+        Number of timesteps of whole simulation.
+                
+    Returns
+    -------
+    current vector
+        Gives back a vector of currents for each timestep
+    """
+    
+    data = data.melt(id_vars = data.columns.values[0:2])
+    sns.catplot(x=data.columns.values[0],
+                y=data.columns.values[3],
+                hue=data.columns.values[1],
+                kind="bar",
+                data=data,
+                col = data.columns.values[2],
+                sharex=False,
+                sharey=False,
+                col_wrap=2)
+    
+    return single_node_response_bar_plot
 
 # =============================================================================
 #  Single node response

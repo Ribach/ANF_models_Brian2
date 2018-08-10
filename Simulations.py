@@ -113,12 +113,12 @@ if measure_single_node_response:
 
     ##### Possible parameter types are all model attributes, "model", "stim_amp", "phase_duration" and "stochastic_runs"
     voltage_matrix, node_response_data_summary, time_vector = \
-    test.get_single_node_response2(model = [rattay_01, smit_10, smit_09],
+    test.get_single_node_response(model = [rattay_01, smit_10, smit_09],
                                    dt = dt,
-                                   param_1 = "stim_amp",
+                                   param_1 = "model",
                                    param_1_ratios = [0.8, 1.0, 1.2],
-                                   param_2 = "model",
-                                   param_2_ratios = [0.8, 0.9, 1.0, 1.1, 1.2],
+                                   param_2 = "compartment_diameters",
+                                   param_2_ratios = [0.6, 0.8, 1.0, 2.0, 3.0],
                                    stimulation_type = "extern",
                                    pulse_form = "bi",
                                    time_after_stimulation = 1.5*ms,
@@ -126,19 +126,6 @@ if measure_single_node_response:
                                    phase_duration = 200*us,
                                    nof_runs = 10)
     
-#    voltage_matrix, average_node_response_data, time_vector = \
-#        test.get_single_node_response(model = model,
-#                                      dt = dt,
-#                                      test_param_type = "compartment_lengths[np.where(model.structure == 2)]",
-#                                      test_param_display_name = "compartment lengths ratio",
-#                                      test_param_values = [0.8, 0.9, 1.0, 1.1, 1.2],
-#                                      stimulation_type = "extern",
-#                                      time_after_stimulation = 1.5*ms,
-#                                      pulse_form = "bi",
-#                                      stim_amp = 2*uA,
-#                                      phase_duration = 100*us,
-#                                      nof_runs = 5)
-
 #    ##### plot single node response curves
 #    plot.single_node_response(plot_name = f"Single node response {model.display_name}",
 #                              time_vector = time_vector,
@@ -147,101 +134,10 @@ if measure_single_node_response:
 #                              parameter_unit = "of standard compartment length",
 #                              V_res = model.V_res)
     
+
     ##### plot results in bar plot
-    node_response_data_summary.iloc[:,1:].transpose().plot.bar(rot = 0)
+    plot.single_node_response_bar_plot(data = node_response_data_summary)
 
-
-#if measure_single_node_response:
-#    
-#    ##### number of simulations to run
-#    nof_runs = 10
-#    
-#    ##### current amplitudes
-#    current_amps = np.array([-0.5, -0.7, -1.2, -2, -10])*uA
-#    
-#    ##### initialize dataset for measurements
-#    col_names = ["stimulation amplitude (uA)","AP height (mV)","AP peak time","AP start time","AP end time","rise time (ms)","fall time (ms)","latency (ms)","jitter"]
-#    node_response_data = pd.DataFrame(np.zeros((len(current_amps)*nof_runs, len(col_names))), columns = col_names)
-#    
-#    ##### compartments for measurements
-#    comp_index = np.where(model.structure == 2)[0][10]
-#    
-#    ##### loop over current ampltudes
-#    for ii in range(0, len(current_amps)):
-#        
-#        for jj in range(0,nof_runs):
-#            
-#            ##### go back to initial values
-#            restore('initialized')
-#            
-#            ##### define how the ANF is stimulated
-#            I_stim, runtime = stim.get_stimulus_current(model = model,
-#                                                        dt = dt,
-#                                                        stimulation_type = "extern",
-#                                                        pulse_form = "mono",
-#                                                        stimulated_compartment = 4,
-#                                                        nof_pulses = 1,
-#                                                        time_before = 0*ms,
-#                                                        time_after = 1.5*ms,
-#                                                        add_noise = True,
-#                                                        ##### monophasic stimulation
-#                                                        amp_mono = current_amps[ii],
-#                                                        duration_mono = 250*us,
-#                                                        ##### biphasic stimulation
-#                                                        amps_bi = [-2,2]*uA,
-#                                                        durations_bi = [100,0,100]*us)
-#        
-#            ##### get TimedArray of stimulus currents and run simulation
-#            stimulus = TimedArray(np.transpose(I_stim), dt=dt)
-#            
-#            ##### run simulation
-#            run(runtime)
-#            
-#            ##### write results in table
-#            AP_amp = max(M.v[comp_index,:]-model.V_res)
-#            AP_time = M.t[M.v[comp_index,:]-model.V_res == AP_amp]
-#            AP_start_time = M.t[np.argmin(abs(M.v[comp_index,np.where(M.t<AP_time)[0]]-model.V_res - 0.1*AP_amp))]
-#            AP_end_time = M.t[np.where(M.t>AP_time)[0]][np.argmin(abs(M.v[comp_index,np.where(M.t>AP_time)[0]]-model.V_res - 0.1*AP_amp))]
-#            
-#            node_response_data["stimulation amplitude (uA)"][ii*nof_runs+jj] = current_amps[ii]/uA
-#            node_response_data["AP height (mV)"][ii*nof_runs+jj] = AP_amp/mV
-#            node_response_data["AP peak time"][ii*nof_runs+jj] = AP_time/ms
-#            node_response_data["AP start time"][ii*nof_runs+jj] = AP_start_time/ms
-#            node_response_data["AP end time"][ii*nof_runs+jj] = AP_end_time/ms
-#            
-#            ##### print progress
-#            print(f"Stimulus amplitde: {np.round(current_amps[ii]/uA,3)} uA")
-#
-#            ##### save voltage course of single compartment for plotting 
-#            if ii == jj == 0:
-#                voltage_data = np.zeros((len(current_amps)*nof_runs,np.shape(M.v)[1]))
-#            voltage_data[nof_runs*ii+jj,:] = M.v[comp_index, :]/mV
-#    
-#    ##### calculate remaining single node response data
-#    node_response_data["rise time (ms)"] = node_response_data["AP peak time"] - node_response_data["AP start time"]
-#    node_response_data["fall time (ms)"] = node_response_data["AP end time"] - node_response_data["AP peak time"]
-#    node_response_data["latency (ms)"] = node_response_data["AP peak time"]
-#    node_response_data["jitter"] = 0
-#    
-#    ##### exclude runs where no AP was elicited
-#    node_response_data = node_response_data[node_response_data["AP height (mV)"] > 60]
-#    
-#    ##### calculate average data and jitter for different stimulus amplitudes
-#    average_node_response_data = node_response_data.groupby(["stimulation amplitude (uA)"])["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"].mean()
-#    average_node_response_data["jitter (ms)"] = node_response_data.groupby(["stimulation amplitude (uA)"])["latency (ms)"].std()
-#    
-#    ##### plot single node response curves
-#    plot.single_node_response(plot_name = f"Single node response {model.display_name}",
-#                              time_vector = M.t/ms,
-#                              voltage_matrix = voltage_data,
-#                              parameter_vector = round(current_amps*10**6/amp,1),
-#                              parameter_unit = r'$\mu A$',
-#                              V_res = model.V_res)
-#    
-#    ##### plot results in bar plot
-#    average_node_response_data.iloc[:,1:].transpose().plot.bar(rot = 0)
-#    #average_node_response_data.plot.bar(rot = 0,secondary_y = ("AP height (mV)"))
-    
 # =============================================================================
 # Now a simulation will be run several times to calculate the strength-duration
 #  curve. This allows to determine the following properties
