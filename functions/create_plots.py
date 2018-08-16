@@ -116,28 +116,35 @@ def single_node_response_bar_plot(data):
         Gives back a vector of currents for each timestep
     """
     
-    data = data.melt(id_vars = data.columns.values[0:2])
-    sns.catplot(x=data.columns.values[0],
-                y=data.columns.values[3],
-                hue=data.columns.values[1],
-                kind="bar",
-                data=data,
-                col = data.columns.values[2],
-                sharex=False,
-                sharey=False,
-                col_wrap=2)
+    colnames = data.columns.values[2:]
+    
+    data = data.melt(id_vars = data.columns.values[0:2], var_name = "observation")
+        
+    if "run" in data.columns.values:
+        hue = None
+    else:
+        hue=data.columns.values[1]
+        
+    single_node_response_bar_plot = sns.catplot(x=data.columns.values[0],
+                                                y=data.columns.values[3],
+                                                hue=hue,
+                                                kind="bar",
+                                                data=data,
+                                                col = data.columns.values[2],
+                                                sharex=False,
+                                                sharey=False,
+                                                height = 2.8,
+                                                col_wrap=2)
+    
+    for ax, title in zip(single_node_response_bar_plot.axes.flat, colnames):
+        ax.set_title(title, fontsize=15)
     
     return single_node_response_bar_plot
 
 # =============================================================================
-#  Single node response
+#  Single node response voltage course plot
 # =============================================================================
-def single_node_response(plot_name,
-                         time_vector,
-                         voltage_matrix,
-                         parameter_vector,
-                         parameter_unit,
-                         V_res):
+def single_node_response_voltage_course(voltage_data):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -159,19 +166,41 @@ def single_node_response(plot_name,
     current vector
         Gives back a vector of currents for each timestep
     """
-    
-    nof_test_parameter = len(parameter_vector)
-    nof_runs_per_test_parameter = round(np.shape(voltage_matrix)[0]/nof_test_parameter)
      
-    plt.close(plot_name)
-    single_node_response = plt.figure(plot_name)
-    for ii in range(0,nof_test_parameter):
-        plt.text(0.04, 100*ii+V_res/mV+10, f"{parameter_vector[ii]} {parameter_unit}")
-        for jj in range(0, nof_runs_per_test_parameter):
-            plt.plot(time_vector/ms, 100*ii + voltage_matrix[nof_runs_per_test_parameter*ii+jj,:], "#000000")     
-    plt.xlabel('Time/ms', fontsize=16)
-    plt.tick_params(axis='y', which='both', left=False, right=False, labelleft=False)
-    plt.show(plot_name)
+    ##### define number of columns
+    nof_param_1_values = len(np.unique(voltage_data[voltage_data.columns.values[0]]))
+    col_wrap = 1
+    if nof_param_1_values > 3:
+        col_wrap = 2
+
+    if nof_param_1_values > 6:
+        col_wrap = 3
+    
+    ##### define color palette and legend
+    nof_param_2_values = len(np.unique(voltage_data[voltage_data.columns.values[1]]))
+    if "run" in voltage_data.columns.values:
+        palette = sns.color_palette("Blues_d", n_colors = nof_param_2_values)
+        legend = False
+    else:
+        palette = sns.color_palette(n_colors = nof_param_2_values)
+        legend = "full"
+    
+        
+    single_node_response = sns.relplot(x="time",
+                                       y="value",
+                                       hue=voltage_data.columns.values[1],
+                                       col=voltage_data.columns.values[0],
+                                       col_wrap = col_wrap,
+                                       kind="line",
+                                       data=voltage_data,
+                                       height = 2.8,
+                                       legend=legend,
+                                       palette = palette)
+    
+    if voltage_data.columns.values[0] == 'model name':
+        colnames = np.unique(voltage_data[voltage_data.columns.values[0]])
+        for ax, title in zip(single_node_response.axes.flat, colnames):
+            ax.set_title(title, fontsize=15) 
     
     return single_node_response
     
@@ -211,4 +240,82 @@ def strength_duration_curve(plot_name,
     plt.show(plot_name)
     
     return strength_duration_curve
+
+# =============================================================================
+#  refractory curve
+# =============================================================================
+def refractory_curve(plot_name,
+                     inter_pulse_intervalls,
+                     stimulus_amps,
+                     threshold):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    time_vector : integer
+        Number of timesteps of whole simulation.
+    voltage_matrix : time
+        Lenght of one time step.
+    distance_comps_middle : current
+        Amplitude of current stimulus.
+    time_before_pulse : time
+        Time until pulse starts.
+    stimulus_duration : time
+        Duration of stimulus.
+                
+    Returns
+    -------
+    current vector
+        Gives back a vector of currents for each timestep
+    """
+        
+    plt.close(plot_name)
+    strength_duration_curve = plt.figure(plot_name)
+    plt.plot(inter_pulse_intervalls[np.where(stimulus_amps != 0)]/ms, (stimulus_amps[np.where(stimulus_amps != 0)]/threshold)/uA, "#000000")
+    plt.xlabel('Inter pulse intervall / ms', fontsize=16)
+    plt.ylabel('Stimulus amplitude required / uA', fontsize=16)
+    plt.show(plot_name)
     
+    return strength_duration_curve
+    
+
+# =============================================================================
+#  post-stimulus-time-histogram
+# =============================================================================
+def post_stimulus_time_histogram(plot_name,
+                                 bin_edges,
+                                 bin_heigths,
+                                 bin_width):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    time_vector : integer
+        Number of timesteps of whole simulation.
+    voltage_matrix : time
+        Lenght of one time step.
+    distance_comps_middle : current
+        Amplitude of current stimulus.
+    time_before_pulse : time
+        Time until pulse starts.
+    stimulus_duration : time
+        Duration of stimulus.
+                
+    Returns
+    -------
+    current vector
+        Gives back a vector of currents for each timestep
+    """
+        
+    plt.close(plot_name)
+    post_stimulus_time_histogram = plt.figure(plot_name)
+    plt.bar(bin_edges[:-1]*1000,
+            bin_heigths,
+            width = bin_width)
+    plt.xlabel('Time / ms', fontsize=16)
+    plt.ylabel('Spikes per second', fontsize=16)
+    plt.show(plot_name)
+    
+    return post_stimulus_time_histogram

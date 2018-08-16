@@ -214,7 +214,7 @@ A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]
 # =============================================================================
 # Noise term
 # =============================================================================
-k_noise = 0.0003*uA/np.sqrt(mS)
+k_noise = 0.0006*uA/np.sqrt(mS)
 noise_term = np.sqrt(A_surface*g_Na)
 
 # =============================================================================
@@ -278,7 +278,7 @@ def set_up_model(dt, model, model_name = "model"):
                            Cm = model.c_m,
                            Ri = model.rho_in,
                            method="exponential_euler")
-    
+            
     ##### initial values
     neuron.v = model.V_res
     neuron.m = model.m_init

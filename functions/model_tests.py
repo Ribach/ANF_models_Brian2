@@ -2,6 +2,8 @@
 from brian2 import *
 from brian2.units.constants import zero_celsius, gas_constant as R, faraday_constant as F
 import numpy as np
+from scipy.signal import savgol_filter
+import peakutils as peak
 import pandas as pd
 pd.options.mode.chained_assignment = None
 
@@ -52,35 +54,17 @@ def get_single_node_response(model,
         Gives back the duration of the simulation
     """
     
-    model = [rattay_01, smit_10, smit_09]
-    dt = dt
-    param_1 = "model"
-    param_1_ratios = [0.8, 1.0, 1.2]
-    param_2 = "compartment_diameters"
-    param_2_ratios = [0.8, 0.9, 1.0, 1.1, 1.2]
-    stimulation_type = "extern"
-    pulse_form = "bi"
-    time_after_stimulation = 1.5*ms
-    stim_amp = 2*uA
-    phase_duration = 200*us
-    nof_runs = 10
-    
     ##### initializations
     add_noise = False
-    max_nof_timesteps = 0
-    param_info = {'param_1_display_name': 0,
-                  'param_1_values': 0,
-                  'param_2_display_name': 0,
-                  'param_2_values': 0,
-                  'V_res': [0]}
+    if pulse_form == "mono": max_runtime = phase_duration + time_after_stimulation
+    else: max_runtime = phase_duration*2 + time_after_stimulation
+    max_nof_timesteps = int(np.ceil(max_runtime/dt))
     
     ##### Test if model entry is a list
     if param_1 == "model" or param_2 == "model":
         if not isinstance(model, (list,)):
             print("model must be a list, if one of the parameters is set to 'model'")
-            # return
-        # initialize V_res of param_info dictionary
-        param_info["V_res"] = np.zeros_like(model)
+            return
     else:
         ##### define neuron and state monitor
         if not isinstance(model, (list,)):
@@ -93,7 +77,7 @@ def get_single_node_response(model,
     ##### parameter 1
     if hasattr(model[0], param_1):
         # get display name for plots and dataframe
-        param_1_display_name = param_1
+        param_1_display_name = param_1.replace("_", " ") + " ratios"
         # save the number of observations for parameter 1
         length_param_1 = len(param_1_ratios)
         # save the original value of the parameter
@@ -140,12 +124,12 @@ def get_single_node_response(model,
     else:
         # print error message for wrong entry
         print("param_1 has to be either a model attribute or one of: 'model', 'stochastic_runs', 'stim_amp' and 'phase_duration")
-        #return
+        return
     
     ##### parameter 2
     if hasattr(model[0], param_2):
         # get display name for plots and dataframe
-        param_2_display_name = param_2
+        param_2_display_name = param_2.replace("_", " ") + " ratios"
         # save the number of observations for parameter 1
         length_param_2 = len(param_2_ratios)
         # save the original value of the parameter
@@ -191,19 +175,18 @@ def get_single_node_response(model,
     else:
         # print error message for wrong entry
         print("param_2 has to be either a model parameter, or one of: 'model', 'stochastic_runs', 'stim_amp' and 'phase_duration")
-        #return
+        return
     
     ##### initialize dataframe for measurements
     col_names = [param_1_display_name, param_2_display_name, "AP height (mV)","AP peak time","AP start time","AP end time","rise time (ms)","fall time (ms)","latency (ms)"]
     node_response_data = pd.DataFrame(np.zeros((length_param_1*length_param_2, len(col_names))), columns = col_names)
     
+    ##### initialize matrix for voltage courses
+    voltage_data = np.zeros((length_param_1*length_param_2,max_nof_timesteps))
+    
     ##### compartments for measurements
     comp_index = np.where(model[0].structure == 2)[0][10]
-    
-    # initialize length of dict entry parameter values
-    param_info["param_1_values"] = np.zeros(length_param_1)
-    param_info["param_2_values"] = np.zeros(length_param_2)
-    
+            
     ##### loop over parameter 1
     for ii in range(0, length_param_1):
         
@@ -318,17 +301,13 @@ def get_single_node_response(model,
                 AP_end_time = 0*ms
             
             if hasattr(model_type, param_1): node_response_data[param_1_display_name][ii*length_param_2+jj] = param_1_ratios[ii]
-            elif param_1 == "model":
-                node_response_data[param_1_display_name][ii*length_param_2+jj] = model_type.display_name
-                param_info["V_res"][ii] = model_type.V_res
+            elif param_1 == "model": node_response_data[param_1_display_name][ii*length_param_2+jj] = model_type.display_name
             elif param_1 == "stochastic_runs": node_response_data[param_1_display_name][ii*length_param_2+jj] = ii
             elif param_1 == "stim_amp": node_response_data[param_1_display_name][ii*length_param_2+jj] = round(stim_amp/uA,2)
             elif param_1 == "phase_duration": node_response_data[param_1_display_name][ii*length_param_2+jj] = round(phase_duration/us,2)
             
             if hasattr(model_type, param_2): node_response_data[param_2_display_name][ii*length_param_2+jj] = param_2_ratios[jj]
-            elif param_2 == "model":
-                node_response_data[param_2_display_name][ii*length_param_2+jj] = model_type.display_name
-                param_info["V_res"][jj] = model_type.V_res
+            elif param_2 == "model": node_response_data[param_2_display_name][ii*length_param_2+jj] = model_type.display_name
             elif param_2 == "stochastic_runs": node_response_data[param_2_display_name][ii*length_param_2+jj] = jj
             elif param_2 == "stim_amp": node_response_data[param_2_display_name][ii*length_param_2+jj] = round(stim_amp/uA,2)
             elif param_2 == "phase_duration": node_response_data[param_2_display_name][ii*length_param_2+jj] = round(phase_duration/us,2)
@@ -337,19 +316,23 @@ def get_single_node_response(model,
             node_response_data["AP peak time"][ii*length_param_2+jj] = AP_time/ms
             node_response_data["AP start time"][ii*length_param_2+jj] = AP_start_time/ms
             node_response_data["AP end time"][ii*length_param_2+jj] = AP_end_time/ms
-            
-            ##### Write current parametersin info dictionary
-            param_info["param_1_values"][ii] = node_response_data[param_1_display_name][ii*length_param_2+jj]
-            param_info["param_2_values"][jj] = node_response_data[param_2_display_name][ii*length_param_2+jj]
 
             ##### print progress
             print(f"{param_1_display_name}: {ii+1}/{length_param_1}; {param_2_display_name}: {jj+1}/{length_param_2}")
 
             ##### save voltage course of single compartment for plotting
-            if ii == jj == 0:
-                voltage_data = np.zeros((length_param_1*length_param_2,max(max_nof_timesteps,np.shape(M.v)[1])))
             voltage_data[length_param_2*ii+jj,0:np.shape(M.v)[1]] = M.v[comp_index, :]/mV
     
+    ##### Change voltage_data to dataframe and add parameter information
+    voltage_data = pd.DataFrame(voltage_data)
+    voltage_data[param_1_display_name] = node_response_data[param_1_display_name]
+    voltage_data[param_2_display_name] = node_response_data[param_2_display_name]
+    
+    ##### change structure for seaborn plot
+    voltage_data = voltage_data.melt(id_vars = [param_1_display_name, param_2_display_name], var_name = "time")
+    voltage_data["time"] = voltage_data["time"]*dt/ms
+    voltage_data = voltage_data[voltage_data["value"]!=0]
+
     ##### calculate remaining single node response data
     node_response_data["rise time (ms)"] = node_response_data["AP peak time"] - node_response_data["AP start time"]
     node_response_data["fall time (ms)"] = node_response_data["AP end time"] - node_response_data["AP peak time"]
@@ -363,20 +346,18 @@ def get_single_node_response(model,
     ##### sum up relevant single node response properties in dataframe
     if param_1 == "stochastic_runs":
         node_response_data[param_1_display_name] = node_response_data[param_1_display_name].astype(int)
-        node_response_data_summary = node_response_data.groupby([param_2_display_name])["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"].mean().reset_index()
-        node_response_data_summary["jitter (ms)"] = node_response_data.groupby([param_2_display_name])["latency (ms)"].std()
+        #node_response_data_summary = node_response_data.groupby([param_2_display_name])["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"].mean().reset_index()
+        #node_response_data_summary["jitter (ms)"] = node_response_data.groupby([param_2_display_name])["latency (ms)"].std()
 
     elif param_2 == "stochastic_runs":
         node_response_data[param_2_display_name] = node_response_data[param_2_display_name].astype(int)
-        node_response_data_summary = node_response_data.groupby([param_1_display_name])["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"].mean().reset_index()
-        node_response_data_summary["jitter (ms)"] = node_response_data.groupby([param_1_display_name])["latency (ms)"].std()
+        #node_response_data_summary = node_response_data.groupby([param_1_display_name])["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"].mean().reset_index()
+        #node_response_data_summary["jitter (ms)"] = node_response_data.groupby([param_1_display_name])["latency (ms)"].std()
         
     else:
         node_response_data_summary = node_response_data[[param_1_display_name, param_2_display_name, "AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"]]
 
-    ##### Write remaining information in param_info dictionary
-    param_info["param_1_display_name"] = param_1_display_name
-    param_info["param_2_display_name"] = param_2_display_name
+    node_response_data_summary = node_response_data[[param_1_display_name, param_2_display_name, "AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"]]
 
     ##### reset the adjusted parameter
     if hasattr(model[0], param_1):
@@ -396,7 +377,7 @@ def get_single_node_response(model,
         M = StateMonitor(neuron, 'v', record=True)
         store('initialized')
     
-    return voltage_data, node_response_data_summary, time_vector, param_info
+    return voltage_data, node_response_data_summary, time_vector
 
 # =============================================================================
 #  Calculate phase duration curve / thresholds for certain phase_durations
@@ -407,7 +388,8 @@ def get_strength_duration_curve(model,
                                 start_intervall,
                                 delta,
                                 stimulation_type = "extern",
-                                pulse_form = "mono"):
+                                pulse_form = "mono",
+                                print_progress = True):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -435,7 +417,7 @@ def get_strength_duration_curve(model,
     """
     
     ##### test if phase_durations is a list or array, if not convert it to a list
-    if not isinstance(phase_durations, (list,)) and not isinstance(phase_durations, (np.ndarray,)):
+    if not isinstance(phase_durations, (list,)):
         phase_durations = [phase_durations]
         
     ##### initialize model with given defaultclock dt
@@ -471,7 +453,7 @@ def get_strength_duration_curve(model,
         while amp_diff > delta:
             
             ##### print progress
-            print(f"Duration: {phase_durations[ii]/us} us; Stimulus amplitde: {np.round(stim_amp/uA,4)} uA")
+            if print_progress: print(f"Duration: {phase_durations[ii]/us} us; Stimulus amplitde: {np.round(stim_amp/uA,4)} uA")
             
             ##### define how the ANF is stimulated
             I_stim, runtime = stim.get_stimulus_current(model = model,
@@ -511,4 +493,280 @@ def get_strength_duration_curve(model,
         start_amp[min_amp_spiked == 0*amp] = stim_amps_max
         
     return min_required_amps
+
+# =============================================================================
+#  Calculate refractory curve
+# =============================================================================
+def get_refractory_curve(model,
+                         dt,
+                         inter_pulse_intervalls,
+                         delta,
+                         stimulation_type = "extern",
+                         pulse_form = "mono",
+                         phase_duration = 100*us,
+                         print_progress = True):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    model : time
+        Lenght of one time step.
+    dt : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    phase_durations : string
+        Describes, which pulses are used; either "mono" or "bi" is possible
+    start_intervall : time
+        Time until (first) pulse starts.
+    delta : time
+        Time which is still simulated after the end of the last pulse
+    stimulation_type : amp/[k_noise]
+        Is multiplied with k_noise.
+    pulse_form : amp/[k_noise]
+        Is multiplied with k_noise.
+                
+    Returns
+    -------
+    min_required_amps matrix
+        Gives back a vector of currents for each timestep
+    """
+    
+    ##### calculate theshold of model
+    threshold = get_strength_duration_curve(model = model,
+                                            dt = dt,
+                                            phase_durations = phase_duration,
+                                            start_intervall = [0,100]*uA,
+                                            delta = 0.05*uA,
+                                            stimulation_type = stimulation_type,
+                                            pulse_form = pulse_form,
+                                            print_progress = False)
+    
+    ##### amplitude of masker stimulus (150% of threshold)
+    amp_masker = 1.5 * threshold
+
+    ##### initialize vector for minimum required stimulus current amplitudes
+    min_required_amps = np.zeros_like(inter_pulse_intervalls/second)*amp
+    
+    ##### minimum and maximum stimulus current amplitudes that are tested
+    stim_amps_min = 0*amp
+    stim_amps_max = threshold * 10
+    
+    ##### start amplitde for first run
+    start_amp = (stim_amps_max-stim_amps_min)/2
+    
+    ##### compartment for measurements
+    comp_index = np.where(model.structure == 2)[0][10]
+    
+    ##### initialize model and monitors
+    neuron, param_string = model.set_up_model(dt = dt, model = model)
+    exec(param_string)
+    M = StateMonitor(neuron, 'v', record=True)
+    store('initialized')
+
+    ##### loop over phase durations
+    for ii in range(0, len(inter_pulse_intervalls)):
         
+        ##### initializations
+        min_amp_spiked = 0*amp
+        lower_border = stim_amps_min
+        upper_border = stim_amps_max
+        stim_amp = start_amp
+        amp_diff = upper_border - lower_border
+        
+        ##### adjust stimulus amplitude until required accuracy is obtained
+        while amp_diff > delta:
+            
+            ##### print progress
+            if print_progress : print(f"Inter pulse intervall: {round(inter_pulse_intervalls[ii]/us)} us; Amplitude of second stimulus: {np.round(stim_amp/uA,2)} uA")
+            
+            ##### define how the ANF is stimulated
+            I_stim_masker, runtime_masker = stim.get_stimulus_current(model = model,
+                                                                      dt = dt,
+                                                                      stimulation_type = stimulation_type,
+                                                                      pulse_form = pulse_form,
+                                                                      time_before = 0*ms,
+                                                                      time_after = 0*ms,
+                                                                      ##### monophasic stimulation
+                                                                      amp_mono = -amp_masker,
+                                                                      duration_mono = phase_duration,
+                                                                      ##### biphasic stimulation
+                                                                      amps_bi = [-amp_masker/amp,amp_masker/amp]*amp,
+                                                                      durations_bi = [phase_duration/second,0,phase_duration/second]*second)
+ 
+            I_stim_2nd, runtime_2nd = stim.get_stimulus_current(model = model,
+                                                                dt = dt,
+                                                                stimulation_type = stimulation_type,
+                                                                pulse_form = pulse_form,
+                                                                time_before = inter_pulse_intervalls[ii],
+                                                                time_after = 1.5*ms,
+                                                                ##### monophasic stimulation
+                                                                amp_mono = -stim_amp,
+                                                                duration_mono = phase_duration,
+                                                                ##### biphasic stimulation
+                                                                amps_bi = [-stim_amp/amp,stim_amp/amp]*amp,
+                                                                durations_bi = [phase_duration/second,0,phase_duration/second]*second)
+            
+            ##### combine stimuli
+            I_stim = np.concatenate((I_stim_masker, I_stim_2nd), axis = 1)*amp
+            runtime = runtime_masker + runtime_2nd
+            
+            ##### get TimedArray of stimulus currents and run simulation
+            stimulus = TimedArray(np.transpose(I_stim), dt=dt)
+            
+            ##### reset state monitor
+            restore('initialized')
+            
+            ##### run simulation
+            run(runtime)
+            
+            ##### test if there were two spikes (one for masker and one for 2. stimulus)
+            nof_spikes = len(peak.indexes(M.v[comp_index,:], thres = model.V_res + 60*mV, thres_abs=True))
+            
+            ##### test if there was a spike
+            if nof_spikes > 1:
+                min_amp_spiked = stim_amp
+                upper_border = stim_amp
+                stim_amp = (stim_amp + lower_border)/2
+            else:
+                lower_border = stim_amp
+                stim_amp = (stim_amp + upper_border)/2
+                
+            amp_diff = upper_border - lower_border
+                            
+        ##### write the found minimum stimulus current in vector
+        min_required_amps[ii] = min_amp_spiked
+        start_amp[min_amp_spiked != 0*amp] = min_amp_spiked
+        start_amp[min_amp_spiked == 0*amp] = stim_amps_max
+        
+    return min_required_amps, threshold
+
+# =============================================================================
+#  Calculate refractory curve
+# =============================================================================
+def post_stimulus_time_histogram(model,
+                                 dt,
+                                 nof_repeats,
+                                 pulses_per_second,
+                                 stim_duration,
+                                 stim_amp,
+                                 stimulation_type,
+                                 pulse_form,
+                                 phase_duration,
+                                 bin_width,
+                                 normalize = True):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    model : time
+        Lenght of one time step.
+    dt : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    phase_durations : string
+        Describes, which pulses are used; either "mono" or "bi" is possible
+    start_intervall : time
+        Time until (first) pulse starts.
+    delta : time
+        Time which is still simulated after the end of the last pulse
+    stimulation_type : amp/[k_noise]
+        Is multiplied with k_noise.
+    pulse_form : amp/[k_noise]
+        Is multiplied with k_noise.
+                
+    Returns
+    -------
+    min_required_amps matrix
+        Gives back a vector of currents for each timestep
+    """
+    
+    ##### set up the neuron
+    neuron, param_string = model.set_up_model(dt = dt, model = model)
+    
+    ##### load the parameters of the differential equations in the workspace
+    exec(param_string)
+    
+    ##### initialize monitors
+    M = StateMonitor(neuron, 'v', record=True)
+    
+    ##### save initialization of the monitor(s)
+    store('initialized')
+    
+    ##### compartment for measurements
+    comp_index = np.where(model.structure == 2)[0][10]
+    
+    ##### calculate nof_pulses
+    nof_pulses = round(pulses_per_second*stim_duration/second)
+    
+    ##### calculate inter_pulse_gap
+    if pulse_form == "mono":
+        inter_pulse_gap = (1e6/pulses_per_second - phase_duration/us)*us
+    else:
+        inter_pulse_gap = (1e6/pulses_per_second - phase_duration*2/us)*us
+    
+    ##### initialize pulse train dataframe
+    spike_times = np.zeros((nof_repeats, nof_pulses))
+    
+    for ii in range(0, nof_repeats):
+        
+        ##### print progress
+        print(f"Run: {ii+1}/{nof_repeats}")
+        
+        ##### define how the ANF is stimulated
+        I_stim, runtime = stim.get_stimulus_current(model = model,
+                                                    dt = dt,
+                                                    stimulation_type = stimulation_type,
+                                                    pulse_form = pulse_form,
+                                                    stimulated_compartment = 4,
+                                                    nof_pulses = nof_pulses,
+                                                    time_before = 0*ms,
+                                                    time_after = 0*ms,
+                                                    add_noise = True,
+                                                    ##### monophasic stimulation
+                                                    amp_mono = -stim_amp*uA,
+                                                    duration_mono = phase_duration,
+                                                    ##### biphasic stimulation
+                                                    amps_bi = [-stim_amp/uA,0,stim_amp/uA]*uA,
+                                                    durations_bi = [phase_duration/us,0,phase_duration/us]*us,
+                                                    ##### multiple pulses / pulse trains
+                                                    inter_pulse_gap = inter_pulse_gap)
+    
+        ##### get TimedArray of stimulus currents
+        stimulus = TimedArray(np.transpose(I_stim), dt = dt)
+        
+        ##### reset state monitor
+        restore('initialized')
+                
+        ##### run simulation
+        run(runtime)
+        
+        ##### get spike times
+        spikes = M.t[peak.indexes(savgol_filter(M.v[comp_index,:], 51,3)*volt, thres = model.V_res + 60*mV, thres_abs=True)]/second
+        spike_times[ii, 0:len(spikes)] = spikes
+    
+    ##### connect all spike times to one vector
+    spike_times = np.concatenate(spike_times)
+    
+    ##### trim zeros
+    spike_times = spike_times[spike_times != 0]
+    
+    ##### calculate number of bins
+    nof_bins = int(np.ceil(stim_duration / bin_width))
+    
+    ##### calculate bin heights and bin edges
+    bin_heigths, bin_edges = np.histogram(spike_times,
+                                   bins = nof_bins,
+                                   range=(0, nof_bins*bin_width/second))
+    
+    ##### normalize bin heights
+    if normalize:
+        bin_heigths = bin_heigths / (bin_width/second) / nof_repeats
+
+    
+    return bin_heigths, bin_edges
+    
+    
+    
+    
+    
+    
