@@ -21,6 +21,7 @@ import models.Frijns_1994 as frijns_94
 import models.Frijns_2005 as frijns_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
+import models.Imennov_2009 as imennov_09
 
 ##### makes code faster and prevents warning
 prefs.codegen.target = "numpy"
@@ -29,7 +30,7 @@ prefs.codegen.target = "numpy"
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = smit_09
+model = imennov_09
 
 ##### initialize clock
 dt = 5*us
@@ -54,7 +55,7 @@ plot_voltage_course_colored = False
 measure_single_node_response = False
 measure_strength_duration_curve = False
 measure_refractory_properties = False
-post_stimulus_time_histogram = True
+post_stimulus_time_histogram = False
 
 # =============================================================================
 # Run simulation and observe voltage courses for each compartment
@@ -65,17 +66,17 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     I_stim, runtime = stim.get_stimulus_current(model = model,
                                                 dt = dt,
                                                 stimulation_type = "extern",
-                                                pulse_form = "bi",
+                                                pulse_form = "mono",
                                                 stimulated_compartment = 4,
-                                                nof_pulses = 4,
-                                                time_before = 0*ms,
+                                                nof_pulses = 1,
+                                                time_before = 1*ms,
                                                 time_after = 1*ms,
-                                                add_noise = True,
+                                                add_noise = False,
                                                 ##### monophasic stimulation
-                                                amp_mono = -1.5*uA,
+                                                amp_mono = -2*uA,
                                                 duration_mono = 200*us,
                                                 ##### biphasic stimulation
-                                                amps_bi = [-2,0.2]*uA,
+                                                amps_bi = [-2,2]*uA,
                                                 durations_bi = [100,0,100]*us,
                                                 ##### multiple pulses / pulse trains
                                                 inter_pulse_gap = 800*us)
@@ -118,12 +119,12 @@ if measure_single_node_response:
 
     ##### Possible parameter types are all model attributes, "model", "stim_amp", "phase_duration" and "stochastic_runs"
     voltage_data, node_response_data_summary, time_vector = \
-    test.get_single_node_response(model = [rattay_01, smit_10, smit_09],
+    test.get_single_node_response(model = [rattay_01, smit_10, frijns_05],
                                    dt = dt,
-                                   param_1 = "k_noise",
-                                   param_1_ratios = [0.6, 0.8, 1.0, 2.0, 3.0],
-                                   param_2 = "stochastic_runs",
-                                   param_2_ratios = [0.6, 0.8, 1.0, 2.0, 3.0],
+                                   param_1 = "model",
+                                   param_1_ratios = [0.6, 0.8, 1.0, 2, 3],
+                                   param_2 = "rho_in",
+                                   param_2_ratios = [0.6, 0.8, 1.0, 2, 3],
                                    stimulation_type = "extern",
                                    pulse_form = "bi",
                                    time_after_stimulation = 1.5*ms,
@@ -218,28 +219,3 @@ if post_stimulus_time_histogram:
                                       bin_heigths = bin_heigths,
                                       bin_width = bin_width/ms)
 
-# =============================================================================
-# Test map function
-# =============================================================================
-def multiply(a, b):
-    """Multiply two numbers."""
-
-    # The output should be wrapped in a dict
-    y = {'y': a * b}
-
-    return y
-
-
-# Keys in the input dict MUST correspond to the key word
-# arguments of the function (e.g. multiply)
-xs = {
-    'a': np.arange(50),
-    'b': np.arange(50)
-}
-
-# Uncomment `backend` for parallel execution
-ys = th.util.map(func = multiply,
-                 space = xs,
-                 backend='multiprocessing',
-                 cache = 'no'
-)

@@ -116,8 +116,6 @@ length_neuron = sum(compartment_lengths)
 # =============================================================================
 # Compartment diameters
 # =============================================================================
-##### define values
-dendrite_diameter = 1*um
 ##### initialize
 compartment_diameters = np.zeros(nof_comps+1)*um
 ##### dendrite
