@@ -273,7 +273,7 @@ def get_single_node_response(model,
                                                         time_after = time_after_stimulation,
                                                         add_noise = add_noise,
                                                         ##### monophasic stimulation
-                                                        amp_mono = stim_amp,
+                                                        amp_mono = -stim_amp,
                                                         duration_mono = phase_duration,
                                                         ##### biphasic stimulation
                                                         amps_bi = [-stim_amp/amp,stim_amp/amp]*amp,
@@ -417,7 +417,7 @@ def get_strength_duration_curve(model,
     """
     
     ##### test if phase_durations is a list or array, if not convert it to a list
-    if not isinstance(phase_durations, (list,)):
+    if not isinstance(phase_durations, (list,)) and len(np.shape(phase_durations))==0:
         phase_durations = [phase_durations]
         
     ##### initialize model with given defaultclock dt

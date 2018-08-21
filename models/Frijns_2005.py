@@ -52,7 +52,7 @@ h_init = 0.7469
 # =============================================================================
 ##### Myelin layers soma and presomatic region
 myelin_layers_somatic_region = 4
-##### Dividing factor for ion currentsin the somatic region (makes currents smaller)
+##### Dividing factor for ion currents in the somatic region (makes currents smaller)
 dividing_factor = 30
 
 # =============================================================================

@@ -198,7 +198,8 @@ def single_node_response_voltage_course(voltage_data):
                                        palette = palette)
     
     if voltage_data.columns.values[0] == 'model name':
-        colnames = np.unique(voltage_data[voltage_data.columns.values[0]])
+        _,index = np.unique(voltage_data[voltage_data.columns.values[0]], return_index=True)
+        colnames = voltage_data[voltage_data.columns.values[0]][np.sort(index)]
         for ax, title in zip(single_node_response.axes.flat, colnames):
             ax.set_title(title, fontsize=15) 
     
