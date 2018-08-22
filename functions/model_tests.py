@@ -134,8 +134,11 @@ def get_single_node_response(model,
         length_param_2 = len(param_2_ratios)
         # save the original value of the parameter
         param_2_original_value = np.zeros_like(model)
-        for ii in range(0,len(model)):
-            param_2_original_value[ii] = eval(f"model[ii].{param_2}")
+        if param_1 == "model":
+            for ii in range(0,len(model)):
+                param_2_original_value[ii] = eval(f"model[ii].{param_2}")
+        else:
+            param_2_original_value = [eval(f"model[0].{param_2}")]
 
     elif param_2 == "model":
         # get display name for plots and dataframe
@@ -361,11 +364,17 @@ def get_single_node_response(model,
 
     ##### reset the adjusted parameter
     if hasattr(model[0], param_1):
-        for ii in range(0, len(model)):
-            exec(f"model[ii].{param_1} = param_1_original_value[ii]")
+        if param_2 == "model":
+            for ii in range(0, len(model)):
+                exec(f"model[ii].{param_1} = param_1_original_value[ii]")
+        else:
+            exec(f"model[0].{param_1} = param_1_original_value[0]")                        
     if hasattr(model[0], param_2):
-        for ii in range(0, len(model)):
-            exec(f"model[ii].{param_2} = param_2_original_value[ii]")
+        if param_1 == "model":
+            for ii in range(0, len(model)):
+                exec(f"model[ii].{param_2} = param_2_original_value[ii]")
+        else:
+            exec(f"model[0].{param_2} = param_2_original_value[0]")
             
     ##### save time_vector
     time_vector = M.t

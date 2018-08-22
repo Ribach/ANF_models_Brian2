@@ -44,12 +44,6 @@ exec(param_string)
 
 ##### record the membrane voltage
 M = StateMonitor(neuron, 'v', record=True)
-m = StateMonitor(neuron, 'm', record=True)
-h = StateMonitor(neuron, 'h', record=True)
-n = StateMonitor(neuron, 'n', record=True)
-w = StateMonitor(neuron, 'w', record=True)
-z = StateMonitor(neuron, 'z', record=True)
-r = StateMonitor(neuron, 'r', record=True)
 
 ##### save initialization of the monitor(s)
 store('initialized')
@@ -59,7 +53,7 @@ store('initialized')
 # =============================================================================
 plot_voltage_course_lines = True
 plot_voltage_course_colored = False
-measure_single_node_response = False
+measure_single_node_response = True
 measure_strength_duration_curve = False
 measure_refractory_properties = False
 post_stimulus_time_histogram = False
@@ -73,14 +67,14 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     I_stim, runtime = stim.get_stimulus_current(model = model,
                                                 dt = dt,
                                                 stimulation_type = "extern",
-                                                pulse_form = "mono",
+                                                pulse_form = "bi",
                                                 stimulated_compartment = 4,
-                                                nof_pulses = 1,
+                                                nof_pulses = 6,
                                                 time_before = 0*ms,
                                                 time_after = 1*ms,
-                                                add_noise = False,
+                                                add_noise = True,
                                                 ##### monophasic stimulation
-                                                amp_mono = -3*uA,
+                                                amp_mono = -2*uA,
                                                 duration_mono = 200*us,
                                                 ##### biphasic stimulation
                                                 amps_bi = [-2,2]*uA,
@@ -113,40 +107,6 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                    voltage_matrix = M.v,
                                    distance_comps_middle = model.distance_comps_middle)
         
-## =============================================================================
-## plots to test model of immenov
-## =============================================================================       
-#I_Na = model.gamma_Na*model.rho_Na*m.m**3*h.h* (model.E_Na-(M.v-model.V_res))
-#I_K = model.gamma_K*model.rho_K*n.n**4*(model.E_K-(M.v-model.V_res))
-#I_KLT = model.gamma_KLT*model.rho_KLT*w.w**4*z.z*(model.E_K-(M.v-model.V_res))
-#I_HCN = model.gamma_HCN*model.rho_HCN*r.r*(model.E_K-(M.v-model.V_res))
-##I_Na = model.g_Na*m.m**3*h.h* (model.E_Na-(M.v-model.V_res))
-##I_K = model.g_K*n.n**4*(model.E_K-(M.v-model.V_res))
-##I_L = model.g_L*(model.E_L-(M.v-model.V_res))
-#
-#plt.figure(1)
-#plt.plot(M.v[4,:]/volt*10)
-#plt.plot(m.m[4,:]/amp*meter**2)
-#plt.plot(h.h[4,:]/amp*meter**2)
-#plt.plot(n.n[4,:]/amp*meter**2)
-#plt.plot(w.w[4,:]/amp*meter**2)
-#plt.plot(z.z[4,:]/amp*meter**2)
-#plt.plot(r.r[4,:]/amp*meter**2)
-#plt.legend(["v","m","h","n","w","z","r"])
-##plt.legend(["v","m","h","n"])
-#plt.show(1)
-#
-#plt.figure(2)
-#plt.plot(M.v[4,:]/mV)
-#plt.plot(I_Na[4,:]/amp*meter**2)
-#plt.plot(I_K[4,:]/amp*meter**2)
-#plt.plot(I_KLT[4,:]/amp*meter**2)
-#plt.plot(I_HCN[4,:]/amp*meter**2)
-#plt.plot(I_L[4,:]/amp*meter**2)
-#plt.legend(["v","I_Na","I_K","I_KLT","I_HCL","I_L"])
-##plt.legend(["v","I_Na","I_K","I_L"])
-#plt.show(2)
-
 # =============================================================================
 # Now a simulation will be run several times to calculate the
 # following temporal characteristics of the model:
@@ -160,11 +120,11 @@ if measure_single_node_response:
 
     ##### Possible parameter types are all model attributes, "model", "stim_amp", "phase_duration" and "stochastic_runs"
     voltage_data, node_response_data_summary, time_vector = \
-    test.get_single_node_response(model = [imennov_09, rattay_01, smit_10, frijns_05],
+    test.get_single_node_response(model = [negm_14, rattay_01, smit_10, frijns_05],
                                    dt = dt,
-                                   param_1 = "model",
+                                   param_1 = "stim_amp",
                                    param_1_ratios = [0.6, 0.8, 1, 2, 3],
-                                   param_2 = "rho_in",
+                                   param_2 = "c_mem",
                                    param_2_ratios = [0.6, 0.8, 1, 2, 3],
                                    stimulation_type = "extern",
                                    pulse_form = "bi",

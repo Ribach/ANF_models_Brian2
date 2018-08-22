@@ -10,7 +10,6 @@ import functions.calculations as calc
 # Temperature
 # =============================================================================
 T_celsius = 37
-T_kelvin = zero_celsius + T_celsius*kelvin
 
 # =============================================================================
 # Nernst potentials
@@ -51,15 +50,18 @@ nof_segments_internode = 1
 structure = np.array(list(np.tile([2] + np.tile([1],nof_segments_internode).tolist(),30)) + [2])
 nof_comps = len(structure)
 
+##### number of myelin layers
+myelin_layers = 35
+
 # =============================================================================
 #  Compartment lengths
 # ============================================================================= 
 ##### initialize
 compartment_lengths = np.zeros_like(structure)*um
 ##### length internodes
-compartment_lengths[structure == 1] = 230*um / nof_segments_internode
+compartment_lengths[structure == 1] = 300*um / nof_segments_internode
 ##### length nodes
-compartment_lengths[structure == 2] = 1*um
+compartment_lengths[structure == 2] = 1.5*um
 
 # =============================================================================
 # Compartment diameters
@@ -67,7 +69,7 @@ compartment_lengths[structure == 2] = 1*um
 ##### initialize
 compartment_diameters = np.zeros(nof_comps+1)*um
 ##### dendrite
-compartment_diameters[:] = 2.5*um
+compartment_diameters[:] = 1.0*um
 
 # =============================================================================
 # Surface arias
@@ -118,7 +120,7 @@ r_init = 0.1453
 # =============================================================================
 # Reverse potential of leakage channels
 # =============================================================================
-##### The reverse potential of the leakage channels is calculated by using
+# The reverse potential of the leakage channels is calculated by using
 # I_Na + I_K + I_KLT + I_HCN * I_L = 0 with v = V_res and the initial values for
 # the gating variables.
 E_L = -(gamma_Na*rho_Na*m_init**3*h_init*E_Na +  gamma_K*rho_K*n_init**4*(E_K+V_res) +\
@@ -183,28 +185,30 @@ length_neuron = sum(compartment_lengths)
 # =============================================================================
 # Capacities
 # =============================================================================
-##### cell membrane capacities one layer
-c_mem = 0.0714*pF/node_surface_aria
+##### cell membrane capacitiy one layer
+c_mem = 0.1*pF/node_surface_aria
 ##### myelin layer capacity
-c_my = 1.45e-10*nF/node_surface_aria
+c_my = 0.02*pF/node_surface_aria
 
 ##### initialize
-c_m = np.zeros_like(structure)*nF/mm**2
-##### nodes
+c_m = np.zeros_like(structure)*uF/cm**2
+##### all but internodes axon
 c_m[structure == 2] = c_mem
-##### internodes
-c_m[structure == 1] = c_my
+##### axonal internodes
+c_m[structure == 1] = 1/(1/c_mem + myelin_layers/c_my)
 
 # =============================================================================
 # Condactivities internodes
 # =============================================================================
-##### cell membrane + myelin sheath resistivity internodes
-r_my = 1254e6*ohm*node_surface_aria
+##### cell membrane conductivity internodes
+r_mem = 10*kohm*cm**2
+##### cell membrane conductivity internodes
+r_my = 0.1*kohm*cm**2
 
 ##### initialize
 g_m = np.zeros_like(structure)*msiemens/cm**2
-##### calculate values
-g_m[structure == 1] = 1/r_my
+##### axonal internodes
+g_m[structure == 1] = 1/(r_mem + myelin_layers*r_my)
 
 # =============================================================================
 # Axoplasmatic resistances
@@ -217,7 +221,7 @@ R_a = (compartment_lengths*rho_in) / ((compartment_center_diameters*0.5)**2*np.p
 # =============================================================================
 # Noise term
 # =============================================================================
-k_noise = 0.0002*uA/np.sqrt(mS)
+k_noise = 0.0005*uA/np.sqrt(mS)
 noise_term = np.sqrt(A_surface*gamma_Na*rho_Na)
 
 # =============================================================================
