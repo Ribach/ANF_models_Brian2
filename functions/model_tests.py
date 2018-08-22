@@ -69,7 +69,7 @@ def get_single_node_response(model,
         ##### define neuron and state monitor
         if not isinstance(model, (list,)):
             model = [model]
-        neuron, param_string = model[0].set_up_model(dt = dt, model = model[0], model_name = "model[0]")
+        neuron, param_string, model[0] = model[0].set_up_model(dt = dt, model = model[0], model_name = "model[0]")
         exec(param_string)
         M = StateMonitor(neuron, 'v', record=True)
         store('initialized')
@@ -82,9 +82,12 @@ def get_single_node_response(model,
         length_param_1 = len(param_1_ratios)
         # save the original value of the parameter
         param_1_original_value = np.zeros_like(model)
-        for ii in range(0,len(model)):
-            param_1_original_value[ii] = eval(f"model[ii].{param_1}")
-
+        if param_2 == "model":
+            for ii in range(0,len(model)):
+                param_1_original_value[ii] = eval(f"model[ii].{param_1}")
+        else:
+            param_1_original_value = [eval(f"model[0].{param_1}")]
+        
     elif param_1 == "model":
         # get display name for plots and dataframe
         param_1_display_name = "model name"
@@ -198,14 +201,14 @@ def get_single_node_response(model,
                 ##### adjust model parameter
                 exec(f"model[0].{param_1} = param_1_ratios[ii]*param_1_original_value[0]")
                 ##### set up neuron with adjusted model parameter
-                neuron, param_string = model[0].set_up_model(dt = dt, model = model[0], model_name = "model[0]")
+                neuron, param_string, model[0] = model[0].set_up_model(dt = dt, model = model[0], update = True, model_name = "model[0]")
                 exec(param_string)
                 M = StateMonitor(neuron, 'v', record=True)
                 store('initialized')
         
         elif param_1 == "model":
             ##### set up neuron for actual model
-            neuron, param_string = model[ii].set_up_model(dt = dt, model = model[ii], model_name = "model[ii]")
+            neuron, param_string, model[ii] = model[ii].set_up_model(dt = dt, model = model[ii], model_name = "model[ii]")
             exec(param_string)
             M = StateMonitor(neuron, 'v', record=True)
             store('initialized')
@@ -228,14 +231,15 @@ def get_single_node_response(model,
                     ##### adjust model parameter
                     exec(f"model[0].{param_2} = param_2_ratios[jj]*param_2_original_value[0]")
                     ##### set up neuron with adjusted model parameter
-                    neuron, param_string = model[0].set_up_model(dt = dt, model = model[0], model_name = "model[0]")
+                    neuron, param_string, model[0] = model[0].set_up_model(dt = dt, model = model[0], update = True, model_name = "model[0]")
                     exec(param_string)
                     M = StateMonitor(neuron, 'v', record=True)
                     store('initialized')
                else:
+                    ##### adjust model parameter
                     exec(f"model[ii].{param_2} = param_2_ratios[jj]*param_2_original_value[ii]")
                     ##### set up neuron again with adjusted model parameter
-                    neuron, param_string = model[ii].set_up_model(dt = dt, model = model[ii], model_name = "model[ii]")
+                    neuron, param_string, model[ii] = model[ii].set_up_model(dt = dt, model = model[ii], update = True, model_name = "model[ii]")
                     exec(param_string)
                     M = StateMonitor(neuron, 'v', record=True)
                     store('initialized')
@@ -245,7 +249,7 @@ def get_single_node_response(model,
                     ##### adjust model parameter
                     exec(f"model[jj].{param_1} = param_1_ratios[ii]*param_1_original_value[jj]")
                 ##### set up neuron for actual model
-                neuron, param_string = model[jj].set_up_model(dt = dt, model = model[jj], model_name = "model[jj]")
+                neuron, param_string, model[jj] = model[jj].set_up_model(dt = dt, model = model[jj], update = True, model_name = "model[jj]")
                 exec(param_string)
                 M = StateMonitor(neuron, 'v', record=True)
                 store('initialized')
@@ -381,7 +385,7 @@ def get_single_node_response(model,
         
     ##### reset neuron
     for ii in range(0, len(model)):
-        neuron, param_string = model[ii].set_up_model(dt = dt, model = model[ii], model_name = "model[ii]")
+        neuron, param_string, model[ii] = model[ii].set_up_model(dt = dt, model = model[ii], update = True, model_name = "model[ii]")
         exec(param_string)
         M = StateMonitor(neuron, 'v', record=True)
         store('initialized')
@@ -430,7 +434,7 @@ def get_strength_duration_curve(model,
         phase_durations = [phase_durations]
         
     ##### initialize model with given defaultclock dt
-    neuron, param_string = model.set_up_model(dt = dt, model = model)
+    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
     exec(param_string)
     M = StateMonitor(neuron, 'v', record=True)
     store('initialized')
@@ -567,7 +571,7 @@ def get_refractory_curve(model,
     comp_index = np.where(model.structure == 2)[0][10]
     
     ##### initialize model and monitors
-    neuron, param_string = model.set_up_model(dt = dt, model = model)
+    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
     exec(param_string)
     M = StateMonitor(neuron, 'v', record=True)
     store('initialized')
@@ -650,7 +654,7 @@ def get_refractory_curve(model,
     return min_required_amps, threshold
 
 # =============================================================================
-#  Calculate refractory curve
+#  Calculate poststimulus time histogram (PSTH)
 # =============================================================================
 def post_stimulus_time_histogram(model,
                                  dt,
@@ -690,7 +694,7 @@ def post_stimulus_time_histogram(model,
     """
     
     ##### set up the neuron
-    neuron, param_string = model.set_up_model(dt = dt, model = model)
+    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
     
     ##### load the parameters of the differential equations in the workspace
     exec(param_string)

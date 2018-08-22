@@ -10,7 +10,6 @@ import functions.calculations as calc
 # Temperature
 # =============================================================================
 T_celsius = 37
-T_kelvin = zero_celsius + T_celsius*kelvin
 
 # =============================================================================
 # Ionic concentrations
@@ -24,16 +23,6 @@ Leak_ratio = 0.0367
 # Resting potential
 # =============================================================================
 V_res = -79.4*mV *1.035**((T_celsius-6.3)/10)
-
-# =============================================================================
-# Nernst potentials Smit
-# =============================================================================
-##### Nernst potential sodium
-E_Na_Smit = R*T_kelvin/F * log(Na_ratio) - V_res
-##### Nernst potential potassium
-E_K_Smit = R*T_kelvin/F * log(K_ratio) - V_res
-##### Nerst potential for leakage current
-E_L_Smit = R*T_kelvin/F * log(Leak_ratio) - V_res
 
 # =============================================================================
 # Nernst potentials Rattay
@@ -88,7 +77,14 @@ h_init_Rat = 0.6
 #Im = 1*g_Na*m_t**3*h* ((v-V_res)-E_Na) + 0*g_Na*m_p**3*h* ((v-V_res)-E_Na) + g_K*n**4*((v-V_res)-E_K) + g_L*((v-V_res)-E_L) + g_myelin*(-(v-V_res)): amp/meter**2
 
 eqs = '''
-Im = 0.975*g_Na_Smit*m_t_Smit**3*h_Smit*(E_Na_Smit-(v-V_res)) + 0.025*g_Na_Smit*m_p_Smit**3*h_Smit*(E_Na_Smit-(v-V_res)) + g_K_Smit*n_Smit**4*(E_K_Smit-(v-V_res)) + g_L_Smit*(E_L_Smit-(v-V_res)) + g_myelin*(-(v-V_res)) + g_Na_Rat*m_Rat**3*h_Rat*(E_Na_Rat-(v-V_res)) + g_K_Rat*n_Rat**4*(E_K_Rat-(v-V_res)) + g_L_Rat*(E_L_Rat-(v-V_res)): amp/meter**2
+I_Na_persistent_Smit = 0.975*g_Na_Smit*m_t_Smit**3*h_Smit*(E_Na_Smit-(v-V_res)) : amp/meter**2
+I_Na_transient_Smit = 0.025*g_Na_Smit*m_p_Smit**3*h_Smit*(E_Na_Smit-(v-V_res)) : amp/meter**2
+I_K_Smit = g_K_Smit*n_Smit**4*(E_K_Smit-(v-V_res)) : amp/meter**2
+I_L_Smit = g_L_Smit*(E_L_Smit-(v-V_res)) : amp/meter**2
+I_Na_Rat = g_Na_Rat*m_Rat**3*h_Rat*(E_Na_Rat-(v-V_res)) : amp/meter**2
+I_K_Rat = g_K_Rat*n_Rat**4*(E_K_Rat-(v-V_res)) : amp/meter**2
+I_L_Rat = g_L_Rat*(E_L_Rat-(v-V_res)) : amp/meter**2
+Im = I_Na_persistent_Smit + I_Na_transient_Smit + I_K_Smit + I_L_Smit + I_Na_Rat + I_K_Rat + I_L_Rat + g_myelin*(-(v-V_res)): amp/meter**2
 I_stim = stimulus(t,i) : amp (point current)
 dm_t_Smit/dt = alpha_m_t_Smit * (1-m_t_Smit) - beta_m_t_Smit * m_t_Smit : 1
 dm_p_Smit/dt = alpha_m_p_Smit * (1-m_p_Smit) - beta_m_p_Smit * m_p_Smit : 1
@@ -122,101 +118,31 @@ g_myelin_Smit : siemens/meter**2
 '''
 
 # =============================================================================
-#  Structure
+#  Morphologic data
 # =============================================================================
-##### structure of ANF
-# terminal = 0
-# internode = 1
-# node = 2
-# presomatic region = 3
-# Soma = 4
-# postsomatic region = 5)
-
-##### number of segments for presomatic region
+##### structure
 nof_segments_presomatic_region = 5
-##### number of segments for soma
 nof_segments_soma = 20
-##### number of modeled axonal internodes (at least 5)
 nof_axonal_internodes = 10
-##### build structure
-structure = np.array([0] + list(np.tile([1,2],4)) + [1] + list(np.tile([3],nof_segments_presomatic_region)) + list(np.tile([4],nof_segments_soma)) + [5] + list(np.tile([1,2],nof_axonal_internodes)) + [1])
-
-##### indexes presomatic region
-index_presomatic_region = np.argwhere(structure == 3)
-start_index_presomatic_region = int(index_presomatic_region[0])
-##### indexes of soma
-index_soma = np.argwhere(structure == 4)
-start_index_soma = int(index_soma[0])
-end_index_soma = int(index_soma[-1])
-##### further structural data
-nof_comps = len(structure)
-nof_comps_dendrite = len(structure[:start_index_soma])
-nof_comps_axon = len(structure[end_index_soma+1:])
-
-# =============================================================================
-#  Compartment lengths
-# ============================================================================= 
-##### initialize
-compartment_lengths = np.zeros_like(structure)*um
-##### peripheral terminal
-compartment_lengths[np.where(structure == 0)] = 10*um
-##### internodes dendrite
-compartment_lengths[0:start_index_soma][structure[0:start_index_soma] == 1] = [210,440,350,430,360]*um
-##### internodes axon
-compartment_lengths[end_index_soma+1:][structure[end_index_soma+1:] == 1] = 77.4*um
-##### nodes dendrite
-compartment_lengths[0:start_index_soma][structure[0:start_index_soma] == 2] = 2.5*um
-##### nodes axon
-compartment_lengths[end_index_soma+1:][structure[end_index_soma+1:] == 2] = 1.061*um
-##### presomatic region
-compartment_lengths[np.where(structure == 3)] = (100/3)*um
-##### soma
-compartment_lengths[np.where(structure == 4)] = 27*um/nof_segments_soma
-##### postsomatic region
-compartment_lengths[np.where(structure == 5)] = 5*um
-
-# =============================================================================
-#  Compartment middle point distances (needed for plots)
-# ============================================================================= 
-distance_comps_middle = np.zeros_like(compartment_lengths)
-
-for ii in range(0,nof_comps-1):
-    distance_comps_middle[ii+1] = 0.5* compartment_lengths[ii] + 0.5* compartment_lengths[ii+1]
-    
-# =============================================================================
-#  Total length neuron
-# ============================================================================= 
-length_neuron = sum(compartment_lengths)
-
-# =============================================================================
-# Compartment diameters
-# =============================================================================
-##### define values
-dendrite_diameter = 1*um
-soma_diameter = 27*um
-axon_diameter = 2.02*um
-##### initialize
-compartment_diameters = np.zeros(nof_comps+1)*um
-##### dendrite
-compartment_diameters[0:start_index_soma] = dendrite_diameter
-##### soma
-soma_comp_diameters = calc.get_soma_diameters(nof_segments_soma,
-                                                dendrite_diameter,
-                                                soma_diameter,
-                                                axon_diameter)
-
-compartment_diameters[start_index_soma:end_index_soma+2] = soma_comp_diameters
-
-##### axon
-compartment_diameters[end_index_soma+2:] = axon_diameter
+##### lengths
+length_peripheral_terminal = 10*um
+length_internodes_dendrite = [210,440,350,430,360]*um
+length_internodes_axon = 77.4*um
+length_nodes_dendrite = 2.5*um
+length_nodes_axon = 1.061*um
+length_presomatic_region = 100*um
+length_postsomatic_region = 5*um
+##### diameters
+diameter_dendrite = 1*um
+diameter_soma = 27*um
+diameter_axon = 2.02*um
 
 # =============================================================================
 # Myelin data
 # =============================================================================
-myelin_layer_thicknes = 16*nmeter
-myelin_layers_dendrite = 40
-myelin_layers_soma = 3
-myelin_layers_axon = 35
+nof_myelin_layers_dendrite = 40
+nof_myelin_layers_soma = 3
+nof_myelin_layers_axon = 35
 
 # =============================================================================
 # Capacities
@@ -228,19 +154,6 @@ c_mem = 2.8*uF/cm**2
 ##### myelin layer capacity
 c_my = 0.6*uF/cm**2
 
-##### initialize
-c_m = np.zeros_like(structure)*uF/cm**2
-##### all but internodes dendrite
-c_m[0:start_index_soma][structure[0:start_index_soma] != 1] = c_m_layer
-##### dendritic internodes
-c_m[0:start_index_soma][structure[0:start_index_soma] == 1] = c_m_layer/(1+myelin_layers_dendrite)
-##### soma
-c_m[np.where(structure == 4)] = c_m_layer/(1+myelin_layers_soma)
-##### all but internodes axon
-c_m[end_index_soma+1:][structure[end_index_soma+1:] != 1] = c_mem
-##### axonal internodes
-c_m[end_index_soma+1:][structure[end_index_soma+1:] == 1] = 1/(1/c_mem + myelin_layers_axon/c_my)
-
 # =============================================================================
 # Condactivities internodes
 # =============================================================================
@@ -251,37 +164,10 @@ r_mem = 4.871*10**4*ohm*cm**2 * (1/1.3)**((T_celsius-25)/10)
 ##### cell membrane conductivity internodes
 r_my = 104*ohm*cm**2 * (1/1.3)**((T_celsius-25)/10)
 
-##### initialize
-g_m = np.zeros_like(structure)*msiemens/cm**2
-##### dendritic internodes
-g_m[0:start_index_soma][structure[0:start_index_soma] == 1] = g_m_layer/(1+myelin_layers_dendrite)
-##### axonal internodes
-g_m[end_index_soma+1:][structure[end_index_soma+1:] == 1] = 1/(r_mem + myelin_layers_axon*r_my)
-
 # =============================================================================
-# Axoplasmatic resistances
+# Noise factor
 # =============================================================================
-compartment_center_diameters = np.zeros(nof_comps)*um
-compartment_center_diameters = (compartment_diameters[0:-1] + compartment_diameters[1:]) / 2
-                                
-R_a = (compartment_lengths*rho_in) / ((compartment_center_diameters*0.5)**2*np.pi)
-
-# =============================================================================
-# Surface arias
-# =============================================================================
-##### lateral surfaces
-m = [np.sqrt(abs(compartment_diameters[i+1] - compartment_diameters[i])**2 + compartment_lengths[i]**2)
-           for i in range(0,nof_comps)]
-
-##### total surfaces
-A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]
-           for i in range(0,nof_comps)]
-
-# =============================================================================
-# Noise term
-# =============================================================================
-k_noise = 0.0008*uA/np.sqrt(mS)
-noise_term = np.sqrt(A_surface*g_Na_Rat)
+k_noise = 0.0015*uA/np.sqrt(mS)
 
 # =============================================================================
 # Electrode
@@ -294,20 +180,132 @@ electrode_distance = 300*um
 display_name = "Smit et al. 2010"
 
 # =============================================================================
-# Compartments to plot
+# Calculations
 # =============================================================================
-##### get indexes of all compartments that are not segmented
+##### Temperature
+T_kelvin = zero_celsius + T_celsius*kelvin
+
+##### Nernst potentials Smit
+# Nernst potential sodium
+E_Na_Smit = R*T_kelvin/F * np.log(Na_ratio) - V_res
+# Nernst potential potassium
+E_K_Smit = R*T_kelvin/F * np.log(K_ratio) - V_res
+# Nerst potential for leakage current
+E_L_Smit = R*T_kelvin/F * np.log(Leak_ratio) - V_res
+
+##### structure of ANF
+# terminal = 0
+# internode = 1
+# node = 2
+# presomatic region = 3
+# Soma = 4
+# postsomatic region = 5)
+structure = np.array([0] + list(np.tile([1,2],4)) + [1] + list(np.tile([3],nof_segments_presomatic_region)) +
+                     list(np.tile([4],nof_segments_soma)) + [5] + list(np.tile([1,2],nof_axonal_internodes)) + [1])
+# indexes presomatic region
+index_presomatic_region = np.argwhere(structure == 3)
+start_index_presomatic_region = int(index_presomatic_region[0])
+# indexes of soma
+index_soma = np.argwhere(structure == 4)
+start_index_soma = int(index_soma[0])
+end_index_soma = int(index_soma[-1])
+# further structural data
+nof_comps = len(structure)
+nof_comps_dendrite = len(structure[:start_index_soma])
+nof_comps_axon = len(structure[end_index_soma+1:])
+
+#####  Compartment lengths
+# initialize
+compartment_lengths = np.zeros_like(structure)*um
+# peripheral terminal
+compartment_lengths[np.where(structure == 0)] = length_peripheral_terminal
+# internodes dendrite
+compartment_lengths[0:start_index_soma][structure[0:start_index_soma] == 1] = length_internodes_dendrite
+# internodes axon
+compartment_lengths[end_index_soma+1:][structure[end_index_soma+1:] == 1] = length_internodes_axon
+# nodes dendrite
+compartment_lengths[0:start_index_soma][structure[0:start_index_soma] == 2] = length_nodes_dendrite
+# nodes axon
+compartment_lengths[end_index_soma+1:][structure[end_index_soma+1:] == 2] = length_nodes_axon
+# presomatic region
+compartment_lengths[np.where(structure == 3)] = length_presomatic_region/nof_segments_presomatic_region
+# soma
+compartment_lengths[np.where(structure == 4)] = diameter_soma/nof_segments_soma
+# postsomatic region
+compartment_lengths[np.where(structure == 5)] = length_postsomatic_region
+# total length neuron
+length_neuron = sum(compartment_lengths)
+
+##### Compartment diameters
+# initialize
+compartment_diameters = np.zeros(nof_comps+1)*um
+# dendrite
+compartment_diameters[0:start_index_soma] = diameter_dendrite
+# soma
+soma_comp_diameters = calc.get_soma_diameters(nof_segments_soma,
+                                                    diameter_dendrite,
+                                                    diameter_soma,
+                                                    diameter_axon)
+compartment_diameters[start_index_soma:end_index_soma+2] = soma_comp_diameters
+# axon
+compartment_diameters[end_index_soma+2:] = diameter_axon
+
+#####  Compartment middle point distances (needed for plots)
+distance_comps_middle = np.zeros_like(compartment_lengths)
+for ii in range(0,nof_comps-1):
+    distance_comps_middle[ii+1] = 0.5* compartment_lengths[ii] + 0.5* compartment_lengths[ii+1]
+
+##### Capacities
+# initialize
+c_m = np.zeros_like(structure)*uF/cm**2
+# all but internodes dendrite
+c_m[0:start_index_soma][structure[0:start_index_soma] != 1] = c_m_layer
+# dendritic internodes
+c_m[0:start_index_soma][structure[0:start_index_soma] == 1] = c_m_layer/(1+nof_myelin_layers_dendrite)
+# soma
+c_m[np.where(structure == 4)] = c_m_layer/(1+nof_myelin_layers_soma)
+# all but internodes axon
+c_m[end_index_soma+1:][structure[end_index_soma+1:] != 1] = c_mem
+# axonal internodes
+c_m[end_index_soma+1:][structure[end_index_soma+1:] == 1] = 1/(1/c_mem + nof_myelin_layers_axon/c_my)
+
+##### Condactivities internodes
+# initialize
+g_m = np.zeros_like(structure)*msiemens/cm**2
+# dendritic internodes
+g_m[0:start_index_soma][structure[0:start_index_soma] == 1] = g_m_layer/(1+nof_myelin_layers_dendrite)
+# axonal internodes
+g_m[end_index_soma+1:][structure[end_index_soma+1:] == 1] = 1/(r_mem + nof_myelin_layers_axon*r_my)
+
+##### Axoplasmatic resistances
+compartment_center_diameters = np.zeros(nof_comps)*um
+compartment_center_diameters = (compartment_diameters[0:-1] + compartment_diameters[1:]) / 2                                
+R_a = (compartment_lengths*rho_in) / ((compartment_center_diameters*0.5)**2*np.pi)
+
+##### Surface arias
+# lateral surfaces
+m = [np.sqrt(abs(compartment_diameters[i+1] - compartment_diameters[i])**2 + compartment_lengths[i]**2)
+           for i in range(0,nof_comps)]
+# total surfaces
+A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]*0.5
+           for i in range(0,nof_comps)]
+
+##### Noise term
+noise_term = np.sqrt(A_surface*g_Na_Rat)
+
+##### Compartments to plot
+# get indexes of all compartments that are not segmented
 indexes_comps = np.where(np.logical_or(np.logical_or(np.logical_or(structure == 0, structure == 1), structure == 2), structure == 5))
-##### calculate middle compartments of presomatic region and soma
-middle_comp_presomatic_region = int(start_index_presomatic_region + floor((nof_segments_presomatic_region)/2))
-middle_comp_soma = int(start_index_soma + floor((nof_segments_soma)/2))
-##### create array with all compartments to plot
-comps_to_plot = sort(np.append(indexes_comps, [middle_comp_presomatic_region, middle_comp_soma]))
+# calculate middle compartments of presomatic region and soma
+middle_comp_presomatic_region = int(start_index_presomatic_region + np.floor((nof_segments_presomatic_region)/2))
+middle_comp_soma = int(start_index_soma + np.floor((nof_segments_soma)/2))
+# create array with all compartments to plot
+comps_to_plot = np.sort(np.append(indexes_comps, [middle_comp_presomatic_region, middle_comp_soma]))
 
 # =============================================================================
 # Set up the model
 # =============================================================================
-def set_up_model(dt, model, model_name = "model"):
+def set_up_model(dt, model, update = False, model_name = "model"):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -329,6 +327,128 @@ def set_up_model(dt, model, model_name = "model"):
     """
     
     start_scope()
+    
+    ##### Update model parameters (should be done, if original parameters have been changed)
+    if update:
+        ##### Temperature
+        model.T_kelvin = model.zero_celsius + model.T_celsius*kelvin
+        
+        ##### Nernst potentials Smit
+        # Nernst potential sodium
+        model.E_Na_Smit = model.R*model.T_kelvin/model.F * np.log(model.Na_ratio) - model.V_res
+        # Nernst potential potassium
+        model.E_K_Smit = model.R*model.T_kelvin/model.F * np.log(model.K_ratio) - model.V_res
+        # Nerst potential for leakage current
+        model.E_L_Smit = model.R*model.T_kelvin/model.F * np.log(model.Leak_ratio) - model.V_res
+        
+        ##### structure of ANF
+        # terminal = 0
+        # internode = 1
+        # node = 2
+        # presomatic region = 3
+        # Soma = 4
+        # postsomatic region = 5)
+        model.structure = np.array([0] + list(np.tile([1,2],4)) + [1] + list(np.tile([3],model.nof_segments_presomatic_region)) +\
+                             list(np.tile([4],model.nof_segments_soma)) + [5] + list(np.tile([1,2],model.nof_axonal_internodes)) + [1])
+        # indexes presomatic region
+        model.index_presomatic_region = np.argwhere(model.structure == 3)
+        model.start_index_presomatic_region = int(model.index_presomatic_region[0])
+        # indexes of soma
+        model.index_soma = np.argwhere(model.structure == 4)
+        model.start_index_soma = int(model.index_soma[0])
+        model.end_index_soma = int(model.index_soma[-1])
+        # further structural data
+        model.nof_comps = len(model.structure)
+        model.nof_comps_dendrite = len(model.structure[:model.start_index_soma])
+        model.nof_comps_axon = len(model.structure[model.end_index_soma+1:])
+        
+        #####  Compartment lengths
+        # initialize
+        model.compartment_lengths = np.zeros_like(model.structure)*um
+        # peripheral terminal
+        model.compartment_lengths[np.where(model.structure == 0)] = model.length_peripheral_terminal
+        # internodes dendrite
+        model.compartment_lengths[0:model.start_index_soma][model.structure[0:model.start_index_soma] == 1] = model.length_internodes_dendrite
+        # internodes axon
+        model.compartment_lengths[model.end_index_soma+1:][model.structure[model.end_index_soma+1:] == 1] = model.length_internodes_axon
+        # nodes dendrite
+        model.compartment_lengths[0:model.start_index_soma][model.structure[0:model.start_index_soma] == 2] = model.length_nodes_dendrite
+        # nodes axon
+        model.compartment_lengths[model.end_index_soma+1:][model.structure[model.end_index_soma+1:] == 2] = model.length_nodes_axon
+        # presomatic region
+        model.compartment_lengths[np.where(model.structure == 3)] = model.length_presomatic_region/model.nof_segments_presomatic_region
+        # soma
+        model.compartment_lengths[np.where(model.structure == 4)] = model.diameter_soma/model.nof_segments_soma
+        # postsomatic region
+        model.compartment_lengths[np.where(model.structure == 5)] = model.length_postsomatic_region
+        # total length neuron
+        model.length_neuron = sum(model.compartment_lengths)
+        
+        ##### Compartment diameters
+        # initialize
+        model.compartment_diameters = np.zeros(model.nof_comps+1)*um
+        # dendrite
+        model.compartment_diameters[0:model.start_index_soma] = model.diameter_dendrite
+        # soma
+        model.soma_comp_diameters = calc.get_soma_diameters(model.nof_segments_soma,
+                                                            model.diameter_dendrite,
+                                                            model.diameter_soma,
+                                                            model.diameter_axon)
+        model.compartment_diameters[model.start_index_soma:model.end_index_soma+2] = model.soma_comp_diameters
+        # axon
+        model.compartment_diameters[model.end_index_soma+2:] = model.diameter_axon
+        
+        #####  Compartment middle point distances (needed for plots)
+        model.distance_comps_middle = np.zeros_like(model.compartment_lengths)
+        for ii in range(0,model.nof_comps-1):
+            model.distance_comps_middle[ii+1] = 0.5* model.compartment_lengths[ii] + 0.5* model.compartment_lengths[ii+1]
+        
+        ##### Capacities
+        # initialize
+        model.c_m = np.zeros_like(model.structure)*uF/cm**2
+        # all but internodes dendrite
+        model.c_m[0:model.start_index_soma][model.structure[0:model.start_index_soma] != 1] = model.c_m_layer
+        # dendritic internodes
+        model.c_m[0:model.start_index_soma][model.structure[0:model.start_index_soma] == 1] = model.c_m_layer/(1+model.nof_myelin_layers_dendrite)
+        # soma
+        model.c_m[np.where(model.structure == 4)] = model.c_m_layer/(1+model.nof_myelin_layers_soma)
+        # all but internodes axon
+        model.c_m[model.end_index_soma+1:][model.structure[model.end_index_soma+1:] != 1] = model.c_mem
+        # axonal internodes
+        model.c_m[model.end_index_soma+1:][model.structure[model.end_index_soma+1:] == 1] = 1/(1/model.c_mem + model.nof_myelin_layers_axon/model.c_my)
+        
+        ##### Condactivities internodes
+        # initialize
+        model.g_m = np.zeros_like(model.structure)*msiemens/cm**2
+        # dendritic internodes
+        model.g_m[0:model.start_index_soma][model.structure[0:model.start_index_soma] == 1] = model.g_m_layer/(1+model.nof_myelin_layers_dendrite)
+        # axonal internodes
+        model.g_m[model.end_index_soma+1:][model.structure[model.end_index_soma+1:] == 1] = 1/(model.r_mem + model.nof_myelin_layers_axon*model.r_my)
+        
+        ##### Axoplasmatic resistances
+        model.compartment_center_diameters = np.zeros(model.nof_comps)*um
+        model.compartment_center_diameters = (model.compartment_diameters[0:-1] + model.compartment_diameters[1:]) / 2                                
+        model.R_a = (model.compartment_lengths*model.rho_in) / ((model.compartment_center_diameters*0.5)**2*np.pi)
+        
+        ##### Surface arias
+        # lateral surfaces
+        m = [np.sqrt(abs(model.compartment_diameters[i+1] - model.compartment_diameters[i])**2 + model.compartment_lengths[i]**2)
+                   for i in range(0,model.nof_comps)]
+        # total surfaces
+        model.A_surface = [(model.compartment_diameters[i+1] + model.compartment_diameters[i])*np.pi*m[i]*0.5
+                   for i in range(0,model.nof_comps)]
+        
+        ##### Noise term
+        model.noise_term = np.sqrt(model.A_surface*model.g_Na_Rat)
+        
+        ##### Compartments to plot
+        # get indexes of all compartments that are not segmented
+        model.indexes_comps = np.where(np.logical_or(np.logical_or(np.logical_or(model.structure == 0, model.structure == 1), model.structure == 2), model.structure == 5))
+        # calculate middle compartments of presomatic region and soma
+        model.middle_comp_presomatic_region = int(model.start_index_presomatic_region + np.floor((model.nof_segments_presomatic_region)/2))
+        model.middle_comp_soma = int(model.start_index_soma + np.floor((model.nof_segments_soma)/2))
+        # create array with all compartments to plot
+        model.comps_to_plot = np.sort(np.append(model.indexes_comps, [model.middle_comp_presomatic_region, model.middle_comp_soma]))
     
     ##### initialize defaultclock
     defaultclock.dt = dt
@@ -409,4 +529,4 @@ def set_up_model(dt, model, model_name = "model"):
     ##### remove spaces to avoid complications
     param_string = param_string.replace(" ", "")
     
-    return neuron, param_string
+    return neuron, param_string, model

@@ -31,13 +31,13 @@ prefs.codegen.target = "numpy"
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = negm_14
+model = smit_10
 
 ##### initialize clock
 dt = 5*us
 
 ##### set up the neuron
-neuron, param_string = model.set_up_model(dt = dt, model = model)
+neuron, param_string, model = model.set_up_model(dt = dt, model = model)
 
 ##### load the parameters of the differential equations in the workspace
 exec(param_string)
@@ -53,7 +53,7 @@ store('initialized')
 # =============================================================================
 plot_voltage_course_lines = True
 plot_voltage_course_colored = False
-measure_single_node_response = True
+measure_single_node_response = False
 measure_strength_duration_curve = False
 measure_refractory_properties = False
 post_stimulus_time_histogram = False
@@ -120,11 +120,11 @@ if measure_single_node_response:
 
     ##### Possible parameter types are all model attributes, "model", "stim_amp", "phase_duration" and "stochastic_runs"
     voltage_data, node_response_data_summary, time_vector = \
-    test.get_single_node_response(model = [negm_14, rattay_01, smit_10, frijns_05],
+    test.get_single_node_response(model = [smit_09],# rattay_01, smit_10, frijns_05],
                                    dt = dt,
-                                   param_1 = "stim_amp",
+                                   param_1 = "Na_ratio",
                                    param_1_ratios = [0.6, 0.8, 1, 2, 3],
-                                   param_2 = "c_mem",
+                                   param_2 = "phase_duration",
                                    param_2_ratios = [0.6, 0.8, 1, 2, 3],
                                    stimulation_type = "extern",
                                    pulse_form = "bi",
@@ -205,9 +205,9 @@ if post_stimulus_time_histogram:
     ##### calculate bin heigths and edges
     bin_heigths, bin_edges = test.post_stimulus_time_histogram(model = model,
                                                         dt = dt,
-                                                        nof_repeats = 15,
+                                                        nof_repeats = 12,
                                                         pulses_per_second = 1000,
-                                                        stim_duration = 50*ms,
+                                                        stim_duration = 200*ms,
                                                         stim_amp = 10*uA,
                                                         stimulation_type = "extern",
                                                         pulse_form = "bi",

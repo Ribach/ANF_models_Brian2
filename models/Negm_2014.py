@@ -33,71 +33,31 @@ gamma_KLT = 13*psiemens
 gamma_HCN = 13*psiemens
 
 # =============================================================================
-#  Structure
-# =============================================================================
-##### structure of ANF
-# terminal = 0
-# internode = 1
-# node = 2
-# presomatic region = 3
-# Soma = 4
-# postsomatic region = 5)
-
-##### number of segments per internode
-nof_segments_internode = 1
-
-##### build structure
-structure = np.array(list(np.tile([2] + np.tile([1],nof_segments_internode).tolist(),30)) + [2])
-nof_comps = len(structure)
-
-##### number of myelin layers
-myelin_layers = 35
-
-# =============================================================================
-#  Compartment lengths
+#  Morphologic data
 # ============================================================================= 
-##### initialize
-compartment_lengths = np.zeros_like(structure)*um
-##### length internodes
-compartment_lengths[structure == 1] = 300*um / nof_segments_internode
-##### length nodes
-compartment_lengths[structure == 2] = 1.5*um
+##### structure
+nof_internodes = 25
+nof_segments_internode = 1
+nof_myelin_layers = 35
+##### lengths
+length_internodes = 300*um
+length_nodes = 1.5*um
+##### diameters
+diameter_fiber = 1.0*um
 
 # =============================================================================
-# Compartment diameters
+# Conductivity
 # =============================================================================
-##### initialize
-compartment_diameters = np.zeros(nof_comps+1)*um
-##### dendrite
-compartment_diameters[:] = 1.0*um
+##### conductivity of leakage channels
+g_L = (1953.49*Mohm)**-1/(1*um*np.pi*1.5*um)
 
 # =============================================================================
-# Surface arias
+# Numbers of ion channels per aria
 # =============================================================================
-##### lateral surfaces
-m = [np.sqrt(abs(compartment_diameters[i+1] - compartment_diameters[i])**2 + compartment_lengths[i]**2)
-           for i in range(0,nof_comps)]
-
-##### total surfaces
-A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]
-           for i in range(0,nof_comps)]
-
-##### nodal surface
-node_surface_aria = np.array(A_surface)[structure == 2][0]*meter**2
-
-# =============================================================================
-# Conductivities
-# =============================================================================
-# conductivity of leakage channels
-g_L = (1953.49*Mohm)**-1/node_surface_aria
-
-# =============================================================================
-# Numbers of channels per aria
-# =============================================================================
-rho_Na = 1000/node_surface_aria
-rho_K = 166/node_surface_aria
-rho_KLT = 166/node_surface_aria
-rho_HCN = 100/node_surface_aria
+rho_Na = 1000/(1*um*np.pi*1.5*um)
+rho_K = 166/(1*um*np.pi*1.5*um)
+rho_KLT = 166/(1*um*np.pi*1.5*um)
+rho_HCN = 100/(1*um*np.pi*1.5*um)
 
 # =============================================================================
 # Resistivities
@@ -116,15 +76,6 @@ h_init = 0.747
 w_init = 0.5127
 z_init = 0.6615
 r_init = 0.1453
-
-# =============================================================================
-# Reverse potential of leakage channels
-# =============================================================================
-# The reverse potential of the leakage channels is calculated by using
-# I_Na + I_K + I_KLT + I_HCN * I_L = 0 with v = V_res and the initial values for
-# the gating variables.
-E_L = -(gamma_Na*rho_Na*m_init**3*h_init*E_Na +  gamma_K*rho_K*n_init**4*(E_K+V_res) +\
-        gamma_KLT*rho_KLT*w_init**4*z_init*E_K + gamma_HCN*rho_HCN*r_init*E_HCN) / g_L
 
 # =============================================================================
 # Differential equations
@@ -170,32 +121,12 @@ g_myelin : siemens/meter**2
 '''
 
 # =============================================================================
-#  Compartment middle point distances (needed for plots)
-# ============================================================================= 
-distance_comps_middle = np.zeros_like(compartment_lengths)
-
-for ii in range(0,nof_comps-1):
-    distance_comps_middle[ii+1] = 0.5* compartment_lengths[ii] + 0.5* compartment_lengths[ii+1]
-    
-# =============================================================================
-#  Total length neuron
-# ============================================================================= 
-length_neuron = sum(compartment_lengths)
-
-# =============================================================================
 # Capacities
 # =============================================================================
-##### cell membrane capacitiy one layer
-c_mem = 0.1*pF/node_surface_aria
+##### cell membrane capacity
+c_mem = 0.1*pF/(1*um*np.pi*1.5*um)
 ##### myelin layer capacity
-c_my = 0.02*pF/node_surface_aria
-
-##### initialize
-c_m = np.zeros_like(structure)*uF/cm**2
-##### all but internodes axon
-c_m[structure == 2] = c_mem
-##### axonal internodes
-c_m[structure == 1] = 1/(1/c_mem + myelin_layers/c_my)
+c_my = 0.02*pF/(1*um*np.pi*1.5*um)
 
 # =============================================================================
 # Condactivities internodes
@@ -205,24 +136,10 @@ r_mem = 10*kohm*cm**2
 ##### cell membrane conductivity internodes
 r_my = 0.1*kohm*cm**2
 
-##### initialize
-g_m = np.zeros_like(structure)*msiemens/cm**2
-##### axonal internodes
-g_m[structure == 1] = 1/(r_mem + myelin_layers*r_my)
-
 # =============================================================================
-# Axoplasmatic resistances
+# Noise factor
 # =============================================================================
-compartment_center_diameters = np.zeros(nof_comps)*um
-compartment_center_diameters = (compartment_diameters[0:-1] + compartment_diameters[1:]) / 2
-                                
-R_a = (compartment_lengths*rho_in) / ((compartment_center_diameters*0.5)**2*np.pi)
-
-# =============================================================================
-# Noise term
-# =============================================================================
-k_noise = 0.0005*uA/np.sqrt(mS)
-noise_term = np.sqrt(A_surface*gamma_Na*rho_Na)
+k_noise = 0.001*uA/np.sqrt(mS)
 
 # =============================================================================
 # Electrode
@@ -235,19 +152,88 @@ electrode_distance = 300*um
 display_name = "Negm and Bruce 2014"
 
 # =============================================================================
-# Compartments to plot
+# Calculations
 # =============================================================================
-##### get indexes of all compartments that are not segmented
+#####  Structure of ANF
+# terminal = 0
+# internode = 1
+# node = 2
+# presomatic region = 3
+# Soma = 4
+# postsomatic region = 5
+structure = np.array(list(np.tile([2] + np.tile([1],nof_segments_internode).tolist(),nof_internodes)) + [2])
+nof_comps = len(structure)
+
+##### compartment lengths
+# initialize
+compartment_lengths = np.zeros_like(structure)*um
+# length internodes
+compartment_lengths[structure == 1] = length_internodes / nof_segments_internode
+# length nodes
+compartment_lengths[structure == 2] = length_nodes
+# total length neuron
+length_neuron = sum(compartment_lengths)
+
+##### Compartment diameters
+# initialize
+compartment_diameters = np.zeros(nof_comps+1)*um
+# same diameter for whole fiber
+compartment_diameters[:] = diameter_fiber
+
+##### Surface arias
+# lateral surfaces
+m = [np.sqrt(abs(compartment_diameters[i+1] - compartment_diameters[i])**2 + compartment_lengths[i]**2)
+           for i in range(0,nof_comps)]
+# total surfaces
+A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]*0.5
+           for i in range(0,nof_comps)]
+
+##### Reverse potential of leakage channels
+# The reverse potential of the leakage channels is calculated by using
+# I_Na + I_K + I_KLT + I_HCN * I_L = 0 with v = V_res and the initial values for
+# the gating variables.
+E_L = -(gamma_Na*rho_Na*m_init**3*h_init*E_Na +  gamma_K*rho_K*n_init**4*(E_K+V_res) +
+        gamma_KLT*rho_KLT*w_init**4*z_init*E_K + gamma_HCN*rho_HCN*r_init*E_HCN) / g_L
+        
+#####  Compartment middle point distances (needed for plots)
+distance_comps_middle = np.zeros_like(compartment_lengths)
+for ii in range(0,nof_comps-1):
+    distance_comps_middle[ii+1] = 0.5* compartment_lengths[ii] + 0.5* compartment_lengths[ii+1]
+
+##### Capacities
+# initialize
+c_m = np.zeros_like(structure)*uF/cm**2
+# all but internodes axon
+c_m[structure == 2] = c_mem
+# axonal internodes
+c_m[structure == 1] = 1/(1/c_mem + nof_myelin_layers/c_my)
+
+##### Condactivities internodes
+# initialize
+g_m = np.zeros_like(structure)*msiemens/cm**2
+# axonal internodes
+g_m[structure == 1] = 1/(r_mem + nof_myelin_layers*r_my)
+
+##### Axoplasmatic resistances
+compartment_center_diameters = np.zeros(nof_comps)*um
+compartment_center_diameters = (compartment_diameters[0:-1] + compartment_diameters[1:]) / 2
+R_a = (compartment_lengths*rho_in) / ((compartment_center_diameters*0.5)**2*np.pi)
+
+##### Noise term
+noise_term = np.sqrt(A_surface*gamma_Na*rho_Na)
+
+##### Compartments to plot
+# get indexes of all compartments that are not segmented
 indexes_comps = np.where(structure == 2)[0]
-##### calculate middle compartments of internodes
+# calculate middle compartments of internodes
 middle_comps_internodes = np.ceil(indexes_comps[:-1] + nof_segments_internode/2).astype(int)
-##### create array with all compartments to plot
+# create array with all compartments to plot
 comps_to_plot = np.sort(np.append(indexes_comps, middle_comps_internodes))
 
 # =============================================================================
 # Set up the model
 # =============================================================================
-def set_up_model(dt, model, model_name = "model"):
+def set_up_model(dt, model, update = False, model_name = "model"):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -270,6 +256,84 @@ def set_up_model(dt, model, model_name = "model"):
     
     start_scope()
     
+    ##### Update model parameters (should be done, if original parameters have been changed)
+    if update:
+        #####  Structure of ANF
+        # terminal = 0
+        # internode = 1
+        # node = 2
+        # presomatic region = 3
+        # Soma = 4
+        # postsomatic region = 5
+        model.structure = np.array(list(np.tile([2] + np.tile([1],model.nof_segments_internode).tolist(),model.nof_internodes)) + [2])
+        model.nof_comps = len(model.structure)
+        
+        ##### compartment lengths
+        # initialize
+        model.compartment_lengths = np.zeros_like(structure)*um
+        # length internodes
+        model.compartment_lengths[model.structure == 1] = model.length_internodes / model.nof_segments_internode
+        # length nodes
+        model.compartment_lengths[model.structure == 2] = model.length_nodes
+        # total length neuron
+        model.length_neuron = sum(model.compartment_lengths)
+        
+        ##### Compartment diameters
+        # initialize
+        model.compartment_diameters = np.zeros(model.nof_comps+1)*um
+        # same diameter for whole fiber
+        model.compartment_diameters[:] = model.diameter_fiber
+        
+        ##### Surface arias
+        # lateral surfaces
+        m = [np.sqrt(abs(model.compartment_diameters[i+1] - model.compartment_diameters[i])**2 + model.compartment_lengths[i]**2)
+                   for i in range(0,model.nof_comps)]
+        # total surfaces
+        model.A_surface = [(model.compartment_diameters[i+1] + model.compartment_diameters[i])*np.pi*m[i]*0.5
+                   for i in range(0,model.nof_comps)]
+    
+        ##### Reverse potential of leakage channels
+        # The reverse potential of the leakage channels is calculated by using
+        # I_Na + I_K + I_KLT + I_HCN * I_L = 0 with v = V_res and the initial values for
+        # the gating variables.
+        model.E_L = -(model.gamma_Na*rho_Na*model.m_init**3*model.h_init*model.E_Na +  model.gamma_K*rho_K*model.n_init**4*(model.E_K+model.V_res) +\
+                      model.gamma_KLT*rho_KLT*model.w_init**4*model.z_init*model.E_K + model.gamma_HCN*rho_HCN*model.r_init*model.E_HCN) / g_L
+                
+        #####  Compartment middle point distances (needed for plots)
+        model.distance_comps_middle = np.zeros_like(model.compartment_lengths)
+        for ii in range(0,model.nof_comps-1):
+            model.distance_comps_middle[ii+1] = 0.5* model.compartment_lengths[ii] + 0.5* model.compartment_lengths[ii+1]
+        
+        ##### Capacities
+        # initialize
+        model.c_m = np.zeros_like(model.structure)*uF/cm**2
+        # all but internodes axon
+        model.c_m[model.structure == 2] = model.c_mem
+        # axonal internodes
+        model.c_m[model.structure == 1] = 1/(1/model.c_mem + model.nof_myelin_layers/c_my)
+        
+        ##### Condactivities internodes
+        # initialize
+        model.g_m = np.zeros_like(model.structure)*msiemens/cm**2
+        # axonal internodes
+        model.g_m[model.structure == 1] = 1/(model.r_mem + model.nof_myelin_layers*model.r_my)
+        
+        ##### Axoplasmatic resistances
+        model.compartment_center_diameters = np.zeros(model.nof_comps)*um
+        model.compartment_center_diameters = (model.compartment_diameters[0:-1] + model.compartment_diameters[1:]) / 2
+        model.R_a = (model.compartment_lengths*model.rho_in) / ((model.compartment_center_diameters*0.5)**2*np.pi)
+        
+        ##### Noise term
+        model.noise_term = np.sqrt(model.A_surface*model.gamma_Na*model.rho_Na)
+        
+        ##### Compartments to plot
+        # get indexes of all compartments that are not segmented
+        model.indexes_comps = np.where(model.structure == 2)[0]
+        # calculate middle compartments of internodes
+        model.middle_comps_internodes = np.ceil(model.indexes_comps[:-1] + model.nof_segments_internode/2).astype(int)
+        # create array with all compartments to plot
+        model.comps_to_plot = np.sort(np.append(model.indexes_comps, model.middle_comps_internodes))
+            
     ##### initialize defaultclock
     defaultclock.dt = dt
 
@@ -327,4 +391,4 @@ def set_up_model(dt, model, model_name = "model"):
     ##### remove spaces to avoid complications
     param_string = param_string.replace(" ", "")
     
-    return neuron, param_string
+    return neuron, param_string, model
