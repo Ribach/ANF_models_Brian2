@@ -83,28 +83,28 @@ def get_stimulus_current(model,
     nof_timesteps = int(np.ceil(runtime/dt))
     
     ##### initialize current stimulus vector
-    I_elec = np.zeros((1,nof_timesteps))*mA
+    I_elec = np.zeros(nof_timesteps)*mA
     
     ##### create current vector for one pulse
     if pulse_form == "mono":
         timesteps_pulse = int(duration_mono/dt)
-        I_pulse = np.zeros((1,timesteps_pulse))*mA
+        I_pulse = np.zeros(timesteps_pulse)*mA
         I_pulse[:] = amp_mono
     else:
         timesteps_pulse = int(sum(durations_bi)/dt)
-        I_pulse = np.zeros((1,timesteps_pulse))*mA
+        I_pulse = np.zeros(timesteps_pulse)*mA
         end_index_first_phase = round(durations_bi[0]/dt)
         start_index_second_phase = round(end_index_first_phase + durations_bi[1]/dt)
-        I_pulse[0,:end_index_first_phase] = amps_bi[0]
-        I_pulse[0,start_index_second_phase:] = amps_bi[1]
+        I_pulse[:end_index_first_phase] = amps_bi[0]
+        I_pulse[start_index_second_phase:] = amps_bi[1]
     
     ##### Fill stimulus current vector
     if nof_pulses == 1:
-        I_elec[0,round(time_before/dt):round(time_before/dt)+timesteps_pulse] = I_pulse
+        I_elec[round(time_before/dt):round(time_before/dt)+timesteps_pulse] = I_pulse
     elif nof_pulses > 1:
-        I_inter_pulse_gap = np.zeros((1,round(inter_pulse_gap/dt)))*amp
+        I_inter_pulse_gap = np.zeros(round(inter_pulse_gap/dt))*amp
         I_pulse_train = np.append(np.tile(np.append(I_pulse, I_inter_pulse_gap), nof_pulses-1),I_pulse)*amp
-        I_elec[0,round(time_before/dt):round(time_before/dt)+len(I_pulse_train)] = I_pulse_train
+        I_elec[round(time_before/dt):round(time_before/dt)+len(I_pulse_train)] = I_pulse_train
         
     ##### number of compartments
     nof_comps = len(model.compartment_lengths)
@@ -113,30 +113,34 @@ def get_stimulus_current(model,
     if stimulation_type == "extern":
         
         # calculate electrode distance for all compartments (center)
-        distance_x = np.zeros((1,nof_comps))
+        distance_x = np.zeros(nof_comps)
         
         if stimulated_compartment > 0:
+            # loop over all compartments before the stimulated one
             for ii in range(stimulated_compartment-1,-1,-1):
-                distance_x[0,ii] = 0.5* model.compartment_lengths[stimulated_compartment] + np.sum(model.compartment_lengths[stimulated_compartment-1:ii:-1]) + 0.5* model.compartment_lengths[ii]
+                distance_x[ii] = 0.5* model.compartment_lengths[stimulated_compartment] + \
+                np.sum(model.compartment_lengths[stimulated_compartment-1:ii:-1]) + 0.5* model.compartment_lengths[ii]
         
         if stimulated_compartment < nof_comps:
+            # loop over all compartments after the stimulated one
             for ii in range(stimulated_compartment+1,nof_comps,1):
-                distance_x[0,ii] = 0.5* model.compartment_lengths[stimulated_compartment] + np.sum(model.compartment_lengths[stimulated_compartment+1:ii:1]) + 0.5* model.compartment_lengths[ii]
+                distance_x[ii] = 0.5* model.compartment_lengths[stimulated_compartment] + \
+                np.sum(model.compartment_lengths[stimulated_compartment+1:ii:1]) + 0.5* model.compartment_lengths[ii]
                 
         distance = np.sqrt((distance_x*meter)**2 + model.electrode_distance**2)
         
         # calculate axoplasmatic resistances (always for the two halfs of neightbouring compartments)
-        R_a = np.zeros((1,nof_comps))*ohm
+        R_a = np.zeros(nof_comps)*ohm
         
         if stimulated_compartment > 0:
             for i in range(0,stimulated_compartment):
-                R_a[0,i] = 0.5* model.R_a[i] + 0.5* model.R_a[i+1]
+                R_a[i] = 0.5* model.R_a[i] + 0.5* model.R_a[i+1]
                 
-        R_a[0,stimulated_compartment] = model.R_a[stimulated_compartment]
+        R_a[stimulated_compartment] = model.R_a[stimulated_compartment]
         
         if stimulated_compartment < nof_comps:
             for i in range(stimulated_compartment+1,nof_comps):
-                R_a[0,i] = 0.5* model.R_a[i-1] + 0.5* model.R_a[i]
+                R_a[i] = 0.5* model.R_a[i-1] + 0.5* model.R_a[i]
                 
         # Calculate activation functions
         V_ext = np.zeros((nof_comps,nof_timesteps))*mV
@@ -144,7 +148,7 @@ def get_stimulus_current(model,
         A_ext = np.zeros((nof_comps,nof_timesteps))*mV
         
         for ii in range(0,nof_timesteps):
-            V_ext[:,ii] = (model.rho_out*I_elec[0,ii]) / (4*np.pi*distance)
+            V_ext[:,ii] = (model.rho_out*I_elec[ii]) / (4*np.pi*distance)
             E_ext[0:-1,ii] = -np.diff(V_ext[:,ii])
             A_ext[1:-1,ii] = -np.diff(E_ext[0:-1,ii])
         

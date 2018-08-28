@@ -31,7 +31,7 @@ prefs.codegen.target = "numpy"
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = smit_10
+model = rattay_01
 
 ##### initialize clock
 dt = 5*us
@@ -51,8 +51,8 @@ store('initialized')
 # =============================================================================
 # Simulations to be done / Plots to be shown
 # =============================================================================
-plot_voltage_course_lines = True
-plot_voltage_course_colored = False
+plot_voltage_course_lines = False
+plot_voltage_course_colored = True
 measure_single_node_response = False
 measure_strength_duration_curve = False
 measure_refractory_properties = False
@@ -69,7 +69,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 stimulation_type = "extern",
                                                 pulse_form = "bi",
                                                 stimulated_compartment = 4,
-                                                nof_pulses = 6,
+                                                nof_pulses = 100,
                                                 time_before = 0*ms,
                                                 time_after = 1*ms,
                                                 add_noise = True,
@@ -77,10 +77,10 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 amp_mono = -2*uA,
                                                 duration_mono = 200*us,
                                                 ##### biphasic stimulation
-                                                amps_bi = [-2,2]*uA,
-                                                durations_bi = [100,0,100]*us,
+                                                amps_bi = [-5,5]*uA,
+                                                durations_bi = [40,0,40]*us,
                                                 ##### multiple pulses / pulse trains
-                                                inter_pulse_gap = 800*us)
+                                                inter_pulse_gap = 420*us)
     
     ##### get TimedArray of stimulus currents
     stimulus = TimedArray(np.transpose(I_stim), dt = dt)
@@ -120,12 +120,12 @@ if measure_single_node_response:
 
     ##### Possible parameter types are all model attributes, "model", "stim_amp", "phase_duration" and "stochastic_runs"
     voltage_data, node_response_data_summary, time_vector = \
-    test.get_single_node_response(model = [smit_09],# rattay_01, smit_10, frijns_05],
+    test.get_single_node_response(model = [negm_14, rattay_01, smit_10, frijns_05],
                                    dt = dt,
-                                   param_1 = "Na_ratio",
+                                   param_1 = "length_internodes",
                                    param_1_ratios = [0.6, 0.8, 1, 2, 3],
-                                   param_2 = "phase_duration",
-                                   param_2_ratios = [0.6, 0.8, 1, 2, 3],
+                                   param_2 = "nof_segments_internode",
+                                   param_2_ratios = [1,3,5,10,20,50],
                                    stimulation_type = "extern",
                                    pulse_form = "bi",
                                    time_after_stimulation = 1.5*ms,
@@ -200,18 +200,18 @@ if measure_refractory_properties:
 if post_stimulus_time_histogram:
     
     ##### define bin_width
-    bin_width = 2*ms
+    bin_width = 1*ms
     
     ##### calculate bin heigths and edges
     bin_heigths, bin_edges = test.post_stimulus_time_histogram(model = model,
-                                                        dt = dt,
-                                                        nof_repeats = 12,
-                                                        pulses_per_second = 1000,
-                                                        stim_duration = 200*ms,
-                                                        stim_amp = 10*uA,
+                                                        dt = 2*us,
+                                                        nof_repeats = 50,
+                                                        pulses_per_second = 2000,
+                                                        stim_duration = 300*ms,
+                                                        stim_amp = 1.5*uA,
                                                         stimulation_type = "extern",
                                                         pulse_form = "bi",
-                                                        phase_duration = 20*us,
+                                                        phase_duration = 40*us,
                                                         bin_width = bin_width)
     
     ##### plot post_stimulus_time_histogram
