@@ -209,8 +209,9 @@ def single_node_response_voltage_course(voltage_data):
 #  Strength duration curve
 # =============================================================================
 def strength_duration_curve(plot_name,
-                            durations,
-                            stimulus_amps):
+                            threshold_matrix,
+                            rheobase = 0,
+                            chronaxie = 0):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -232,10 +233,16 @@ def strength_duration_curve(plot_name,
     current vector
         Gives back a vector of currents for each timestep
     """
+    
+    threshold_matrix = threshold_matrix[threshold_matrix["threshold"].notnull()]
         
     plt.close(plot_name)
     strength_duration_curve = plt.figure(plot_name)
-    plt.plot(durations[np.where(stimulus_amps != 0)]/us, stimulus_amps[np.where(stimulus_amps != 0)]/uA, "#000000")
+    plt.plot(threshold_matrix["phase duration"]*1e6, threshold_matrix["threshold"]*1e6, label = '_nolegend_')
+    if not rheobase == 0 and not chronaxie == 0:
+        plt.hlines(y=rheobase/uA, xmin=-0, xmax=max(threshold_matrix["phase duration"]/us), linestyles="dashed", label = f"rheobase: {round(rheobase/uA, 2)} uA")
+        plt.scatter(x=chronaxie/us, y=2*rheobase/uA, label = f"chronaxie: {round(chronaxie/us)} us")
+        plt.legend()
     plt.xlabel('Stimulus duration / us', fontsize=16)
     plt.ylabel('Stimulus amplitude required / uA', fontsize=16)
     plt.show(plot_name)

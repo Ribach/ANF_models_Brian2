@@ -69,7 +69,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 stimulation_type = "extern",
                                                 pulse_form = "bi",
                                                 stimulated_compartment = 4,
-                                                nof_pulses = 100,
+                                                nof_pulses = 1,
                                                 time_before = 0*ms,
                                                 time_after = 1*ms,
                                                 add_noise = True,
@@ -120,12 +120,12 @@ if measure_single_node_response:
 
     ##### Possible parameter types are all model attributes, "model", "stim_amp", "phase_duration" and "stochastic_runs"
     voltage_data, node_response_data_summary, time_vector = \
-    test.get_single_node_response(model = [negm_14, rattay_01, smit_10, frijns_05],
+    test.get_single_node_response(model = [rattay_01, negm_14, smit_10, frijns_05],
                                    dt = dt,
                                    param_1 = "length_internodes",
                                    param_1_ratios = [0.6, 0.8, 1, 2, 3],
                                    param_2 = "nof_segments_internode",
-                                   param_2_ratios = [1,3,5,10,20,50],
+                                   param_2_ratios = [0.6, 0.8, 1, 2, 3],
                                    stimulation_type = "extern",
                                    pulse_form = "bi",
                                    time_after_stimulation = 1.5*ms,

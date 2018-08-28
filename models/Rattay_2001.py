@@ -44,6 +44,7 @@ rho_out = 300*ohm*cm
 nof_myelin_layers_dendrite = 40
 nof_myelin_layers_soma = 3
 nof_myelin_layers_axon = 80
+thicknes_myelin_layer = 8.5*nmeter
 
 # =============================================================================
 # Initial values for gating variables
@@ -174,6 +175,7 @@ length_neuron = sum(compartment_lengths)
 compartment_diameters = np.zeros(nof_comps+1)*um
 # dendrite
 compartment_diameters[0:start_index_soma] = diameter_dendrite
+dendrite_outer_diameter = diameter_dendrite + nof_myelin_layers_dendrite*thicknes_myelin_layer*2
 # soma
 soma_comp_diameters = calc.get_soma_diameters(nof_segments_soma,
                                               diameter_dendrite,
@@ -182,6 +184,7 @@ soma_comp_diameters = calc.get_soma_diameters(nof_segments_soma,
 compartment_diameters[start_index_soma:end_index_soma+2] = soma_comp_diameters
 # axon
 compartment_diameters[end_index_soma+2:] = diameter_axon
+axon_outer_diameter = diameter_axon + nof_myelin_layers_axon*thicknes_myelin_layer*2
 
 #####  Compartment middle point distances (needed for plots)
 distance_comps_middle = np.zeros_like(compartment_lengths)
