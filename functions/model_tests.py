@@ -12,20 +12,122 @@ import functions.stimulation as stim
 import functions.calculations as calc
 
 # =============================================================================
+#  Calculate conduction velocity
+# =============================================================================
+def get_conduction_velocity(model,
+                            dt,
+                            measurement_start_comp = 2,
+                            measurement_end_comp = 6,
+                            stimulation_type = "extern",
+                            pulse_form = "bi",
+                            time_after_stimulation = 1.5*ms,
+                            stimulated_compartment = 2,
+                            stim_amp = 2*uA,
+                            phase_duration = 200*us,
+                            nof_runs = 1):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+    
+    Parameters
+    ----------
+    model : time
+        Lenght of one time step.
+    dt : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    phase_durations : string
+        Describes, which pulses are used; either "mono" or "bi" is possible
+    start_intervall : time
+        Time until (first) pulse starts.
+    delta : time
+        Time which is still simulated after the end of the last pulse
+    stimulation_type : amp/[k_noise]
+        Is multiplied with k_noise.
+    pulse_form : amp/[k_noise]
+        Is multiplied with k_noise.
+    
+    Returns
+    -------
+    current matrix
+        Gives back a vector of currents for each timestep
+    runtime
+        Gives back the duration of the simulation
+    """
+    
+    ##### stochastic runs in case nof_runs > 1
+    add_noise = False
+    if nof_runs > 1: add_noise = True
+    
+    ##### calculate length of neuron part for measurement
+    conduction_length = sum(model.compartment_lengths[measurement_start_comp:measurement_end_comp+1])
+    
+    ##### initialize neuron and state monitor
+    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
+    exec(param_string)
+    M = StateMonitor(neuron, 'v', record=True)
+    store('initialized')
+    
+    ##### initialize vector to save conduction velocities
+    conduction_velocity = [0]*nof_runs
+    
+    ##### stochastic runs
+    for ii in range(0, nof_runs):
+        
+        ##### define how the ANF is stimulated
+        I_stim, runtime = stim.get_stimulus_current(model = model,
+                                                    dt = dt,
+                                                    stimulation_type = stimulation_type,
+                                                    pulse_form = pulse_form,
+                                                    time_after = time_after_stimulation,
+                                                    add_noise = add_noise,
+                                                    stimulated_compartment = stimulated_compartment,
+                                                    ##### monophasic stimulation
+                                                    amp_mono = -stim_amp,
+                                                    duration_mono = phase_duration,
+                                                    ##### biphasic stimulation
+                                                    amps_bi = [-stim_amp/amp,stim_amp/amp]*amp,
+                                                    durations_bi = [phase_duration/second,0,phase_duration/second]*second)
+    
+        ##### get TimedArray of stimulus currents and run simulation
+        stimulus = TimedArray(np.transpose(I_stim), dt=dt)
+        
+        ##### reset state monitor
+        restore('initialized')
+        
+        ##### run simulation
+        run(runtime)
+        
+        ##### calculate point in time at AP start
+        AP_amp_start_comp = max(M.v[measurement_start_comp,:]-model.V_res)
+        AP_time_start_comp = M.t[M.v[measurement_start_comp,:]-model.V_res == AP_amp_start_comp]
+        
+        ##### calculate point in time at AP end
+        AP_amp_end_comp = max(M.v[measurement_end_comp,:]-model.V_res)
+        AP_time_end_comp = M.t[M.v[measurement_end_comp,:]-model.V_res == AP_amp_end_comp]
+        
+        ##### calculate conduction velocity
+        conduction_time = AP_time_end_comp - AP_time_start_comp
+        conduction_velocity[ii] = conduction_length/conduction_time
+        
+    conduction_velocity = round(np.mean(conduction_velocity),3)*meter/second
+        
+    return conduction_velocity
+
+# =============================================================================
 #  Calculate single node respones
 # =============================================================================
 def get_single_node_response(model,
                              dt,
                              param_1,
-                             param_1_ratios,
-                             param_2,
-                             param_2_ratios,
-                             stimulation_type,
-                             pulse_form,
-                             time_after_stimulation,
-                             stim_amp,
-                             phase_duration,
-                             nof_runs):
+                             param_1_ratios = [0.6, 0.8, 1, 2, 3],
+                             param_2 = "stochastic_runs",
+                             param_2_ratios = [0.6, 0.8, 1, 2, 3],
+                             stimulation_type = "extern",
+                             pulse_form = "bi",
+                             time_after_stimulation = 1.5*ms,
+                             stimulated_compartment = 4,
+                             stim_amp = 2*uA,
+                             phase_duration = 100*us,
+                             nof_runs = 1):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
     
@@ -184,7 +286,8 @@ def get_single_node_response(model,
         return
     
     ##### initialize dataframe for measurements
-    col_names = [param_1_display_name, param_2_display_name, "AP height (mV)","AP peak time","AP start time","AP end time","rise time (ms)","fall time (ms)","latency (ms)"]
+    col_names = [param_1_display_name, param_2_display_name, "AP height (mV)","AP peak time","AP peak time (stimulated compartment)",
+                 "AP start time","AP end time","rise time (ms)","fall time (ms)","latency (ms)"]
     node_response_data = pd.DataFrame(np.zeros((length_param_1*length_param_2, len(col_names))), columns = col_names)
     
     ##### initialize matrix for voltage courses
@@ -279,6 +382,7 @@ def get_single_node_response(model,
                                                         pulse_form = pulse_form,
                                                         time_after = time_after_stimulation,
                                                         add_noise = add_noise,
+                                                        stimulated_compartment = stimulated_compartment,
                                                         ##### monophasic stimulation
                                                         amp_mono = -stim_amp,
                                                         duration_mono = phase_duration,
@@ -296,6 +400,7 @@ def get_single_node_response(model,
             run(runtime)
             
             ##### write results in table
+            # calculated AP properties at the compartment specified with comp_index
             AP_amp = max(M.v[comp_index,:]-model_type.V_res)
             AP_time = M.t[M.v[comp_index,:]-model_type.V_res == AP_amp]
             if any(M.t<AP_time):
@@ -306,21 +411,29 @@ def get_single_node_response(model,
                 AP_end_time = M.t[np.where(M.t>AP_time)[0]][np.argmin(abs(M.v[comp_index,np.where(M.t>AP_time)[0]]-model_type.V_res - 0.1*AP_amp))]
             else:
                 AP_end_time = 0*ms
+                
+            # calculate the AP time at the stimulated compartment (for latency measurement)
+            AP_amp_stim_comp = max(M.v[stimulated_compartment,:]-model_type.V_res)
+            AP_time_stim_comp = M.t[M.v[stimulated_compartment,:]-model_type.V_res == AP_amp_stim_comp]
             
+            # fill in the value for parameter 1
             if hasattr(model_type, param_1): node_response_data[param_1_display_name][ii*length_param_2+jj] = param_1_ratios[ii]
             elif param_1 == "model": node_response_data[param_1_display_name][ii*length_param_2+jj] = model_type.display_name
             elif param_1 == "stochastic_runs": node_response_data[param_1_display_name][ii*length_param_2+jj] = ii
             elif param_1 == "stim_amp": node_response_data[param_1_display_name][ii*length_param_2+jj] = round(stim_amp/uA,2)
             elif param_1 == "phase_duration": node_response_data[param_1_display_name][ii*length_param_2+jj] = round(phase_duration/us,2)
             
+            # fill in the value for parameter 2
             if hasattr(model_type, param_2): node_response_data[param_2_display_name][ii*length_param_2+jj] = param_2_ratios[jj]
             elif param_2 == "model": node_response_data[param_2_display_name][ii*length_param_2+jj] = model_type.display_name
             elif param_2 == "stochastic_runs": node_response_data[param_2_display_name][ii*length_param_2+jj] = jj
             elif param_2 == "stim_amp": node_response_data[param_2_display_name][ii*length_param_2+jj] = round(stim_amp/uA,2)
             elif param_2 == "phase_duration": node_response_data[param_2_display_name][ii*length_param_2+jj] = round(phase_duration/us,2)
             
+            # fill in remaining values
             node_response_data["AP height (mV)"][ii*length_param_2+jj] = AP_amp/mV
             node_response_data["AP peak time"][ii*length_param_2+jj] = AP_time/ms
+            node_response_data["AP peak time (stimulated compartment)"][ii*length_param_2+jj] = AP_time_stim_comp/ms
             node_response_data["AP start time"][ii*length_param_2+jj] = AP_start_time/ms
             node_response_data["AP end time"][ii*length_param_2+jj] = AP_end_time/ms
 
@@ -343,7 +456,7 @@ def get_single_node_response(model,
     ##### calculate remaining single node response data
     node_response_data["rise time (ms)"] = node_response_data["AP peak time"] - node_response_data["AP start time"]
     node_response_data["fall time (ms)"] = node_response_data["AP end time"] - node_response_data["AP peak time"]
-    node_response_data["latency (ms)"] = node_response_data["AP peak time"]
+    node_response_data["latency (ms)"] = node_response_data["AP peak time (stimulated compartment)"]
     
     ##### exclude runs where no AP was elicited or where no start or end time could be calculated
     node_response_data = node_response_data[node_response_data["AP height (mV)"] > 60]
@@ -390,7 +503,7 @@ def get_single_node_response(model,
         M = StateMonitor(neuron, 'v', record=True)
         store('initialized')
     
-    return voltage_data, node_response_data_summary, time_vector
+    return voltage_data, node_response_data_summary
 
 # =============================================================================
 #  Calculate thresholds for certain phase durations
@@ -490,7 +603,7 @@ def get_thresholds(model,
             while amp_diff > delta:
                 
                 ##### print progress
-                if print_progress: print(f"Duration: {phase_durations[ii]/us} us; Stimulus amplitde: {np.round(stim_amp/uA,4)} uA")
+                if print_progress: print(f"Duration: {phase_durations[ii]/us} us; Run: {jj+1}; Stimulus amplitde: {np.round(stim_amp/uA,4)} uA")
                 
                 ##### define how the ANF is stimulated
                 I_stim, runtime = stim.get_stimulus_current(model = model,
@@ -525,7 +638,7 @@ def get_thresholds(model,
                     stim_amp = (stim_amp + upper_border)/2
                     
                 amp_diff = upper_border - lower_border
-                            
+                                            
             ##### write values in threshold matrix
             thresholds["phase duration"][ii*nof_runs + jj] = phase_durations[ii]
             thresholds["run"][ii*nof_runs + jj] = jj+1

@@ -119,7 +119,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
 if measure_single_node_response:
 
     ##### Possible parameter types are all model attributes, "model", "stim_amp", "phase_duration" and "stochastic_runs"
-    voltage_data, node_response_data_summary, time_vector = \
+    voltage_data, node_response_data_summary = \
     test.get_single_node_response(model = [rattay_01, negm_14, smit_10, frijns_05],
                                    dt = dt,
                                    param_1 = "length_internodes",
