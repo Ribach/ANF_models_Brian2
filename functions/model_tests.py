@@ -452,6 +452,9 @@ def get_single_node_response(model,
     voltage_data = voltage_data.melt(id_vars = [param_1_display_name, param_2_display_name], var_name = "time")
     voltage_data["time"] = voltage_data["time"]*dt/ms
     voltage_data = voltage_data[voltage_data["value"]!=0]
+    
+    ##### rename columns of voltage data
+    voltage_data = voltage_data.rename(index=str, columns={"time": "time / ms", "value": "membrane potential / mV"})
 
     ##### calculate remaining single node response data
     node_response_data["rise time (ms)"] = node_response_data["AP peak time"] - node_response_data["AP start time"]
@@ -603,7 +606,7 @@ def get_thresholds(model,
             while amp_diff > delta:
                 
                 ##### print progress
-                if print_progress: print(f"Duration: {phase_durations[ii]/us} us; Run: {jj+1}; Stimulus amplitde: {np.round(stim_amp/uA,4)} uA")
+                if print_progress: print(f"Duration: {np.round(phase_durations[ii]/us)} us; Run: {jj+1}; Stimulus amplitde: {np.round(stim_amp/uA,4)} uA")
                 
                 ##### define how the ANF is stimulated
                 I_stim, runtime = stim.get_stimulus_current(model = model,
@@ -719,7 +722,7 @@ def get_chronaxie(model,
     while duration_diff > delta:
         
         ##### print progress
-        if print_progress: print(f"Duration: {phase_duration/us} us")
+        if print_progress: print(f"Duration: {np.round(phase_duration/us)} us")
         
         ##### define how the ANF is stimulated
         I_stim, runtime = stim.get_stimulus_current(model = model,
@@ -757,12 +760,158 @@ def get_chronaxie(model,
     return chronaxie
 
 # =============================================================================
+#  Calculate refractory periods
+# =============================================================================
+def get_refractory_periods(model,
+                           dt,
+                           delta = 1*us,
+                           threshold = 0,
+                           amp_masker = 0,
+                           stimulation_type = "extern",
+                           pulse_form = "mono",
+                           phase_duration = 100*us,
+                           print_progress = True):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    model : time
+        Lenght of one time step.
+    dt : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    phase_durations : string
+        Describes, which pulses are used; either "mono" or "bi" is possible
+    amps_start_intervall : time
+        Time until (first) pulse starts.
+    delta : time
+        Time which is still simulated after the end of the last pulse
+    stimulation_type : amp/[k_noise]
+        Is multiplied with k_noise.
+    pulse_form : amp/[k_noise]
+        Is multiplied with k_noise.
+                
+    Returns
+    -------
+    thresholds matrix
+        Gives back a vector of currents for each timestep
+    """
+        
+    ##### initialize model with given defaultclock dt
+    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
+    exec(param_string)
+    M = StateMonitor(neuron, 'v', record=True)
+    store('initialized')
+    
+    ##### calculate theshold of model
+    if threshold == 0:
+        threshold = get_thresholds(model = model,
+                           dt = dt,
+                           phase_durations = phase_duration,
+                           amps_start_intervall = [0,100]*uA,
+                           delta = 0.05*uA,
+                           stimulation_type = stimulation_type,
+                           pulse_form = pulse_form,
+                           time_after = 1.5*ms,
+                           print_progress = False)
+    
+    ##### amplitude of masker stimulus
+    if amp_masker == 0:
+        amp_masker = 1.5 * threshold
+    
+    ##### minimum and maximum stimulus current amplitudes that are tested
+    stim_amps_min = 0*amp
+    stim_amps_max = threshold * 10
+    
+    ##### compartment for measurements
+    comp_index = np.where(model.structure == 2)[0][10]
+        
+    ##### initializations
+    rrp = 0*second
+    abr = 0*second
+    lower_border = inter_pulse_gap_min
+    upper_border = inter_pulse_gap_max
+    inter_pulse_gap = (inter_pulse_gap_max-inter_pulse_gap_min)/2
+    inter_pulse_gap_diff = upper_border - lower_border
+    
+    ##### adjust stimulus amplitude until required accuracy is obtained
+    while inter_pulse_gap_diff > delta:
+        
+        ##### print progress
+        if print_progress: print(f"Inter pulse gap: {np.round(phase_duration/us)} us")
+        
+        ##### define how the ANF is stimulated
+        I_stim_masker, runtime_masker = stim.get_stimulus_current(model = model,
+                                                                  dt = dt,
+                                                                  stimulation_type = stimulation_type,
+                                                                  pulse_form = pulse_form,
+                                                                  time_before = 0*ms,
+                                                                  time_after = 0*ms,
+                                                                  ##### monophasic stimulation
+                                                                  amp_mono = -amp_masker,
+                                                                  duration_mono = phase_duration,
+                                                                  ##### biphasic stimulation
+                                                                  amps_bi = [-amp_masker/amp,amp_masker/amp]*amp,
+                                                                  durations_bi = [phase_duration/second,0,phase_duration/second]*second)
+ 
+        I_stim_2nd, runtime_2nd = stim.get_stimulus_current(model = model,
+                                                            dt = dt,
+                                                            stimulation_type = stimulation_type,
+                                                            pulse_form = pulse_form,
+                                                            time_before = inter_pulse_intervalls[ii],
+                                                            time_after = 1.5*ms,
+                                                            ##### monophasic stimulation
+                                                            amp_mono = -stim_amp,
+                                                            duration_mono = phase_duration,
+                                                            ##### biphasic stimulation
+                                                            amps_bi = [-stim_amp/amp,stim_amp/amp]*amp,
+                                                            durations_bi = [phase_duration/second,0,phase_duration/second]*second)
+        
+        ##### combine stimuli
+        I_stim = np.concatenate((I_stim_masker, I_stim_2nd), axis = 1)*amp
+        runtime = runtime_masker + runtime_2nd
+        
+        ##### reset state monitor
+        restore('initialized')
+        
+        ##### run simulation
+        run(runtime)
+        
+        ##### test if there were two spikes (one for masker and one for 2. stimulus)
+        nof_spikes = len(peak.indexes(M.v[comp_index,:], thres = model.V_res + 60*mV, thres_abs=True))
+        
+        if nof_spikes > 1:
+            min_amp_spiked = stim_amp
+            upper_border = stim_amp
+            stim_amp = (stim_amp + lower_border)/2
+        else:
+            lower_border = stim_amp
+            stim_amp = (stim_amp + upper_border)/2
+            
+        amp_diff = upper_border - lower_border
+        
+        ##### test if there was a spike
+        if max(M.v[comp_index,:]-model.V_res) > 60*mV:
+            chronaxie = phase_duration
+            upper_border = phase_duration
+            phase_duration = (phase_duration + lower_border)/2
+        else:
+            lower_border = phase_duration
+            phase_duration = (phase_duration + upper_border)/2
+            
+        duration_diff = upper_border - lower_border
+        
+    return chronaxie
+
+# =============================================================================
 #  Calculate refractory curve
 # =============================================================================
 def get_refractory_curve(model,
                          dt,
                          inter_pulse_intervalls,
                          delta,
+                         threshold = 0,
+                         amp_masker = 0,
                          stimulation_type = "extern",
                          pulse_form = "mono",
                          phase_duration = 100*us,
@@ -794,18 +943,20 @@ def get_refractory_curve(model,
     """
     
     ##### calculate theshold of model
-    threshold = get_thresholds(model = model,
-                               dt = dt,
-                               phase_durations = phase_duration,
-                               amps_start_intervall = [0,100]*uA,
-                               delta = 0.05*uA,
-                               stimulation_type = stimulation_type,
-                               pulse_form = pulse_form,
-                               time_after = 1.5*ms,
-                               print_progress = False)
+    if threshold == 0:
+        threshold = get_thresholds(model = model,
+                           dt = dt,
+                           phase_durations = phase_duration,
+                           amps_start_intervall = [0,100]*uA,
+                           delta = 0.05*uA,
+                           stimulation_type = stimulation_type,
+                           pulse_form = pulse_form,
+                           time_after = 1.5*ms,
+                           print_progress = False)
     
     ##### amplitude of masker stimulus (150% of threshold)
-    amp_masker = 1.5 * threshold
+    if amp_masker == 0:
+        amp_masker = 1.5 * threshold
 
     ##### initialize vector for minimum required stimulus current amplitudes
     min_required_amps = np.zeros_like(inter_pulse_intervalls/second)*amp
@@ -885,7 +1036,6 @@ def get_refractory_curve(model,
             ##### test if there were two spikes (one for masker and one for 2. stimulus)
             nof_spikes = len(peak.indexes(M.v[comp_index,:], thres = model.V_res + 60*mV, thres_abs=True))
             
-            ##### test if there was a spike
             if nof_spikes > 1:
                 min_amp_spiked = stim_amp
                 upper_border = stim_amp
@@ -942,6 +1092,9 @@ def post_stimulus_time_histogram(model,
     min_required_amps matrix
         Gives back a vector of currents for each timestep
     """
+    
+    ##### convert inputs to lists
+    if not isinstance(pulses_per_second, (list,)): pulses_per_second = [pulses_per_second]
     
     ##### set up the neuron
     neuron, param_string, model = model.set_up_model(dt = dt, model = model)
