@@ -115,7 +115,8 @@ for ii in range(0,len(threshold)):
                                         dt = dt,
                                         phase_durations = phase_duration[ii],
                                         amps_start_intervall = [0,20]*uA,
-                                        delta = 0.01*uA,
+                                        delta = 0.0001*uA,
+                                        time_after = 3*ms,
                                         stimulation_type = "extern",
                                         pulse_form = pulse_form[ii])["threshold"][0]*amp
 
@@ -149,6 +150,7 @@ for ii in range(0,len(relative_spread)):
                                      phase_durations = phase_duration[ii],
                                      amps_start_intervall = [0,20]*uA,
                                      delta = 0.005*uA,
+                                     time_after = 2*ms,
                                      nof_runs = runs_per_stimulus_type,
                                      stimulation_type = "extern",
                                      pulse_form = pulse_form[ii])
@@ -240,7 +242,7 @@ column_names = ["phase duration (us)", "pulse form", "stimulus amplitude level",
 node_response_data_summary = pd.DataFrame(np.zeros((len(phase_duration*nof_stim_amps), len(column_names))), columns = column_names)
 
 ##### initialize list of datasets to save voltage course data
-voltage_courses = [pd.DataFrame()]*len(phase_duration*nof_stim_amps)
+voltage_courses = [pd.DataFrame()]*len(phase_duration)*nof_stim_amps
 
 ##### loop over all phase durations to test
 for ii in range(0,len(phase_duration)):
@@ -299,7 +301,7 @@ plot.single_node_response_voltage_course(plot_name = f"Voltage courses {model.di
                                          height = 3.5)
 
 # =============================================================================
-# Refractory properties
+# Refractory periods
 # =============================================================================
 ##### define phase durations to test (in us)
 phase_durations_mono = [40,50,100]
@@ -310,11 +312,8 @@ phase_duration = [i*us for i in phase_durations_mono + phase_durations_bi]
 pulse_form = np.repeat(["mono","bi"], (len(phase_durations_mono),len(phase_durations_bi)))
 
 ##### initialize summary dataset
-column_names = ["phase duration (us)", "pulse form", "absolute refractory period", "relative refractory period"]
+column_names = ["phase duration (us)", "pulse form", "absolute refractory period (ms)", "relative refractory period (ms)"]
 refractory_table = pd.DataFrame(np.zeros((len(phase_duration), len(column_names))), columns = column_names)
-
-##### define inter-pulse-intervalls
-inter_pulse_intervalls = np.logspace(-1, 2.6, num=30, base=2)*ms
 
 ##### loop over all phase durations to test
 for ii in range(0,len(phase_duration)):
@@ -334,22 +333,23 @@ for ii in range(0,len(phase_duration)):
     
     refractory_table.loc[ii,"phase duration (us)"] = phase_duration[ii]/us
     refractory_table.loc[ii,"pulse form"] = "monophasic" if pulse_form[ii]=="mono" else "biphasic"
-    refractory_table.loc[ii,"absolute refractory period"] = arp
-    refractory_table.loc[ii,"relative refractory period"] = rrp
+    refractory_table.loc[ii,"absolute refractory period (ms)"] = round(arp/ms, 3)
+    refractory_table.loc[ii,"relative refractory period (ms)"] = round(rrp/ms, 3)
 
-##### generate refractory curve
-threshold = threshold_table["threshold"][threshold_table["pulse form"] == pulse_form[3]]\
-                             [threshold_table["phase duration"]/us == phase_duration[3]/us].iloc[0]  
+# =============================================================================
+# Refractory curve
+# =============================================================================
+##### define inter-pulse-intervalls
+inter_pulse_intervalls = np.logspace(-1, 2.6, num=30, base=2)*ms    
 
+##### get thresholds for second spikes
 min_required_amps, threshold = test.get_refractory_curve(model = model,
                                                          dt = dt,
                                                          inter_pulse_intervalls = inter_pulse_intervalls,
                                                          delta = 0.005*uA,
-                                                         threshold = threshold,
-                                                         amp_masker = 1.5*threshold,
                                                          stimulation_type = "extern",
-                                                         pulse_form = pulse_form[3],
-                                                         phase_duration = phase_duration[3])
+                                                         pulse_form = "mono",
+                                                         phase_duration = 100*us)
 
 ##### plot refractory curve
 refractory_curve = plot.refractory_curve(plot_name = f"Refractory curve {model.display_name}",
@@ -360,26 +360,49 @@ refractory_curve = plot.refractory_curve(plot_name = f"Refractory curve {model.d
 # =============================================================================
 # Post Stimulus Time Histogram
 # =============================================================================
-##### define bin_width
-bin_width = 1*ms
+##### pulse rates to test
+pulses_per_second = [250,1000,5000,10000]
 
-##### calculate bin heigths and edges
-bin_heigths, bin_edges = test.post_stimulus_time_histogram(model = model,
-                                                    dt = 2*us,
-                                                    nof_repeats = 50,
-                                                    pulses_per_second = 2000,
-                                                    stim_duration = 300*ms,
-                                                    stim_amp = 1.5*uA,
-                                                    stimulation_type = "extern",
-                                                    pulse_form = "bi",
-                                                    phase_duration = 40*us,
-                                                    bin_width = bin_width)
+##### phase durations for respective pulse rates
+phase_duration = [40,40,40,20]*us
+
+##### stimulus levels (will be multiplied with the threshold for a certain stimulation) 
+stim_amp_level = [1,1.1,1.2]
+
+##### initialize list of datasets to save bin heights end edges for each type of stimulation
+psth_data = [pd.DataFrame()]*len(pulses_per_second)*len(stim_amp_level)
+
+##### loop over pulse rates and phase duraions
+for ii in range(0,len(pulses_per_second)):
+    
+    ##### look up threshold for actual stimulation
+    threshold = threshold_table["threshold"][threshold_table["pulse form"] == "bi"]\
+                               [threshold_table["phase duration"]/us == phase_duration[ii]/us].iloc[0]
+    
+    ##### loop over stimulus amplitudes
+    for jj in range(0,len(stim_amp_level)):
+                                        
+        ##### calculate bin heigths and edges
+        psth = test.post_stimulus_time_histogram(model = model,
+                                                 dt = dt,
+                                                 nof_repeats = 3,
+                                                 pulses_per_second = pulses_per_second[ii],
+                                                 stim_duration = 50*ms,
+                                                 stim_amp = stim_amp_level[jj]*threshold,
+                                                 stimulation_type = "extern",
+                                                 pulse_form = "bi",
+                                                 phase_duration = phase_duration[ii])
+        
+        ##### write the data in a list of dataframes
+        psth_data[len(stim_amp_level)*ii+jj] = psth
+        psth_data[len(stim_amp_level)*ii+jj]["amplitude"] = f"{stim_amp_level[jj]}*threshold"
+        
+##### combine list entries of psth_data to one dataset
+psth_dataset = pd.concat(psth_data)
 
 ##### plot post_stimulus_time_histogram
 plot.post_stimulus_time_histogram(plot_name = f"PSTH {model.display_name}",
-                                  bin_edges = bin_edges,
-                                  bin_heigths = bin_heigths,
-                                  bin_width = bin_width/ms)
+                                  psth_dataset = psth_dataset)
 
 
 

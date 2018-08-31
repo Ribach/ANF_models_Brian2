@@ -51,7 +51,7 @@ store('initialized')
 # =============================================================================
 # Simulations to be done / Plots to be shown
 # =============================================================================
-plot_voltage_course_lines = False
+plot_voltage_course_lines = True
 plot_voltage_course_colored = True
 measure_single_node_response = False
 measure_strength_duration_curve = False
@@ -77,8 +77,8 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 amp_mono = -2*uA,
                                                 duration_mono = 200*us,
                                                 ##### biphasic stimulation
-                                                amps_bi = [-5,5]*uA,
-                                                durations_bi = [40,0,40]*us,
+                                                amps_bi = [-2,2]*uA,
+                                                durations_bi = [80,0,80]*us,
                                                 ##### multiple pulses / pulse trains
                                                 inter_pulse_gap = 420*us)
     

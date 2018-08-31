@@ -348,7 +348,7 @@ def refractory_curve(plot_name,
     refractory_curve = plt.figure(plot_name)
     plt.plot(inter_pulse_intervalls, thresholds_second_spike, "#000000")
     plt.xlabel('Inter pulse intervall / ms', fontsize=16)
-    plt.ylabel('threshold second stimulus / threshold masker', fontsize=16)
+    plt.ylabel('threshold 2nd stimulus / threshold', fontsize=16)
     plt.show(plot_name)
     
     return refractory_curve
@@ -358,9 +358,7 @@ def refractory_curve(plot_name,
 #  post-stimulus-time-histogram
 # =============================================================================
 def post_stimulus_time_histogram(plot_name,
-                                 bin_edges,
-                                 bin_heigths,
-                                 bin_width):
+                                 psth_dataset):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -382,14 +380,36 @@ def post_stimulus_time_histogram(plot_name,
     current vector
         Gives back a vector of currents for each timestep
     """
-        
-    plt.close(plot_name)
-    post_stimulus_time_histogram = plt.figure(plot_name)
-    plt.bar(bin_edges[:-1]*1000,
-            bin_heigths,
-            width = bin_width)
-    plt.xlabel('Time / ms', fontsize=16)
-    plt.ylabel('Spikes per second', fontsize=16)
-    plt.show(plot_name)
+    
+    psth_dataset["spike times"] = (psth_dataset["spike times"]*1000)
+    nof_bins = round(max(psth_dataset["spike times"]))
+    
+    grid = sns.FacetGrid(psth_dataset, row="amplitude", col="pulse rate", margin_titles=True)
+    grid.map(plt.hist, "spike times", bins = nof_bins)
+    
+#    plt.close(plot_name)
+#    post_stimulus_time_histogram = plt.figure(plot_name)
+#    plt.bar(bin_edges[:-1]*1000,
+#            bin_heigths,
+#            width = bin_width)
+#    plt.xlabel('Time / ms', fontsize=16)
+#    plt.ylabel('Spikes per second', fontsize=16)
+#    plt.show(plot_name)
     
     return post_stimulus_time_histogram
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
