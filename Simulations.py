@@ -70,7 +70,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 pulse_form = "bi",
                                                 stimulated_compartment = 4,
                                                 nof_pulses = 1,
-                                                time_before = 0*ms,
+                                                time_before = 2*ms,
                                                 time_after = 1*ms,
                                                 add_noise = True,
                                                 ##### monophasic stimulation

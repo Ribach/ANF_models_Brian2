@@ -75,8 +75,7 @@ def get_soma_diameters(nof_segments,
 # =============================================================================
 #  Get display name for given parameter
 # =============================================================================
-def get_display_name(name,
-                     values):
+def round_sigfigs(num, sig_figs):
     """This function calculates the stimulus current at the current source for
     a single biphasic pulse stimulus at each point of time
 
@@ -93,8 +92,12 @@ def get_display_name(name,
         Gives back a vector of start and end diameters for each segment of soma
         i.e. a vector of length nof_segments+1
     """
-    
-    len(np.unique(values))
+
+    if num != 0:
+        return round(num, -int(np.floor(np.log10(abs(num))) - (sig_figs - 1)))
+    else:
+        return 0  # Can't take the log of 0
+
     
     
     

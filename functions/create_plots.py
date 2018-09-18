@@ -53,7 +53,6 @@ def voltage_course_lines(plot_name,
     plt.ylabel('Position/mm [major] V/mV [minor]', fontsize=16)
     plt.gca().invert_yaxis() # inverts y-axis => - v_amp_factor*(.... has to be written above
     plt.show(plot_name)
-    #voltage_course.savefig('voltage_course_lines.png')
     
     return voltage_course
 
@@ -190,8 +189,6 @@ def single_node_response_voltage_course(plot_name,
         legend = "full"
     
     ##### plot voltage courses
-    plt.close(plot_name)
-    #single_node_response = plt.figure(plot_name)
     single_node_response = sns.relplot(x="time / ms",
                                        y="membrane potential / mV",
                                        hue=voltage_data.columns.values[1],
@@ -208,10 +205,10 @@ def single_node_response_voltage_course(plot_name,
         _,index = np.unique(voltage_data[voltage_data.columns.values[0]], return_index=True)
         colnames = voltage_data[voltage_data.columns.values[0]][np.sort(index)]
         for ax, title in zip(single_node_response.axes.flat, colnames):
-            ax.set_title(title, fontsize=15) 
-    
-    #plt.show(plot_name)
-    
+            ax.set_title(title, fontsize=15)
+            
+    single_node_response = single_node_response.fig
+        
     return single_node_response
     
 # =============================================================================
@@ -309,7 +306,7 @@ def relative_spread(plot_name,
     plt.xlabel('Phase duration / us', fontsize=16)
     plt.ylabel('Threshold / uA', fontsize=16)
     plt.show(plot_name)
-    
+        
     return relative_spread_plot
 
 # =============================================================================
@@ -355,7 +352,7 @@ def refractory_curve(plot_name,
     
 
 # =============================================================================
-#  post-stimulus-time-histogram
+#  post-stimulus time histogram
 # =============================================================================
 def post_stimulus_time_histogram(plot_name,
                                  psth_dataset):
@@ -387,6 +384,8 @@ def post_stimulus_time_histogram(plot_name,
     grid = sns.FacetGrid(psth_dataset, row="amplitude", col="pulse rate", margin_titles=True)
     grid.map(plt.hist, "spike times", bins = nof_bins)
     
+    post_stimulus_time_histogram = grid.fig
+    
 #    plt.close(plot_name)
 #    post_stimulus_time_histogram = plt.figure(plot_name)
 #    plt.bar(bin_edges[:-1]*1000,
@@ -398,7 +397,42 @@ def post_stimulus_time_histogram(plot_name,
     
     return post_stimulus_time_histogram
 
+# =============================================================================
+#  inter-stimulus intervall histogram
+# =============================================================================
+def inter_stimulus_intervall_histogram(plot_name,
+                                       isi_dataset):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
 
+    Parameters
+    ----------
+    time_vector : integer
+        Number of timesteps of whole simulation.
+    voltage_matrix : time
+        Lenght of one time step.
+    distance_comps_middle : current
+        Amplitude of current stimulus.
+    time_before_pulse : time
+        Time until pulse starts.
+    stimulus_duration : time
+        Duration of stimulus.
+                
+    Returns
+    -------
+    current vector
+        Gives back a vector of currents for each timestep
+    """
+    
+    isi_dataset["spike times"] = (isi_dataset["spike times"]*1000)
+    nof_bins = round(max(isi_dataset["spike times"]))
+    
+    grid = sns.FacetGrid(isi_dataset, row="amplitude", col="pulse rate", margin_titles=True)
+    grid.map(plt.hist, "spike times", bins = nof_bins)
+    
+    inter_stimulus_intervall_histogram = grid.fig
+    
+    return inter_stimulus_intervall_histogram
 
 
 

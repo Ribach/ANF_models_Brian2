@@ -9,11 +9,16 @@ import thorns as th
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import os
+
+##### sets working directory
+os.chdir("C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Python/Models Brian2")
 
 ##### import functions
 import functions.stimulation as stim
 import functions.create_plots as plot
 import functions.model_tests as test
+import functions.calculations as calc
 
 ##### import models
 import models.Rattay_2001 as rattay_01
@@ -75,6 +80,13 @@ chronaxie = test.get_chronaxie(model = model,
 rheobase = np.round(rheobase/nA,1)*nA
 chronaxie = np.round(chronaxie/us,1)*us
 
+##### save values in dataframe
+strength_duration_data = pd.DataFrame(np.array([[rheobase/uA], [chronaxie/us]]).T,
+                                         columns = ["rheobase (uA)", "chronaxie (us)"])
+
+##### Save table as csv    
+strength_duration_data.to_csv(f'test_battery_results/{model.display_name}/Strength_duration_data {model.display_name}.csv', index=False, header=True)
+
 # =============================================================================
 # Get strength-duration curve
 # =============================================================================
@@ -96,6 +108,9 @@ strength_duration_curve = plot.strength_duration_curve(plot_name = f"Strength du
                                                        threshold_matrix = strength_duration_matrix,
                                                        rheobase = rheobase,
                                                        chronaxie = chronaxie)
+
+##### save strength duration curve
+strength_duration_curve.savefig(f"test_battery_results/{model.display_name}/Strength_duration_curve {model.display_name}.png")
 
 # =============================================================================
 # Get thresholds for certain stimulation types and stimulus durations
@@ -127,6 +142,9 @@ threshold_table = pd.DataFrame(
          'threshold': threshold
          })
 
+##### Save table as csv    
+threshold_table.to_csv(f'test_battery_results/{model.display_name}/Threshold_table {model.display_name}.csv', index=False, header=True)
+
 # =============================================================================
 # Get the relative spread of thresholds for certain stimulation types and stimulus durations
 # =============================================================================
@@ -137,7 +155,7 @@ phase_durations_bi = [200,400]
 ##### define test parameters
 phase_duration = [i*us for i in phase_durations_mono + phase_durations_bi]
 pulse_form = np.repeat(["mono","bi"], (len(phase_durations_mono),len(phase_durations_bi)))
-runs_per_stimulus_type = 50
+runs_per_stimulus_type = 5
 
 ##### initialize threshold matrix and relative spread vector
 threshold_matrix = np.zeros((len(phase_duration)*runs_per_stimulus_type,3))
@@ -149,7 +167,7 @@ for ii in range(0,len(relative_spread)):
                                      dt = dt,
                                      phase_durations = phase_duration[ii],
                                      amps_start_intervall = [0,20]*uA,
-                                     delta = 0.005*uA,
+                                     delta = 0.0005*uA,
                                      time_after = 2*ms,
                                      nof_runs = runs_per_stimulus_type,
                                      stimulation_type = "extern",
@@ -173,10 +191,16 @@ relative_spreads = pd.DataFrame(
      'pulse form': pulse_form,
      'relative spread': relative_spread
     })
+
+##### Save table as csv    
+relative_spreads.to_csv(f'test_battery_results/{model.display_name}/Relative_spreads {model.display_name}.csv', index=False, header=True)    
     
 ##### plot relative spreads
 relative_spread_plot = plot.relative_spread(plot_name = f"Relative spreads {model.display_name}",
                                             threshold_matrix = threshold_matrix)
+
+##### save relative spreads plot
+relative_spread_plot.savefig(f"test_battery_results/{model.display_name}/Relative_spreads_plot {model.display_name}.png")
 
 # =============================================================================
 # Measure conduction velocity
@@ -208,6 +232,10 @@ if hasattr(model, "index_soma"):
                                                             measurement_end_comp = node_indexes_axon[-3])
     
     conduction_velocity_axon_ratio = round((conduction_velocity_axon/(meter/second))/(model.axon_outer_diameter/um),2)
+    
+    ##### save values in dataframe
+    conduction_velocity_table = pd.DataFrame(np.array([[conduction_velocity_dendrite], [conduction_velocity_dendrite_ratio], [conduction_velocity_axon], [conduction_velocity_axon_ratio]]).T,
+                                             columns = ["velocity dendrite (m/s)", "velocity/diameter dendrite", "velocity axon (m/s)", "velocity/diameter axon"])
 
 ##### models without a soma 
 else:
@@ -218,6 +246,13 @@ else:
                                                       measurement_end_comp = node_indexes[-3])
    
    conduction_velocity_ratio = round((conduction_velocity/(meter/second))/(model.fiber_outer_diameter/um),2)
+   
+   ##### save values in dataframe
+   conduction_velocity_table = pd.DataFrame(np.array([[conduction_velocity], [conduction_velocity_ratio]]).T,
+                                            columns = ["velocity (m/s)", "velocity/diameter"])
+
+##### Save table as csv    
+conduction_velocity_table.to_csv(f'test_battery_results/{model.display_name}/Conduction_velocity_table {model.display_name}.csv', index=False, header=True)
 
 # =============================================================================
 # Measure single node response properties
@@ -285,8 +320,13 @@ for ii in range(0,len(phase_duration)):
         node_response_data_summary.loc[nof_stim_amps*ii+jj,"stimulus amplitude level"] = "threshold" if jj==0 else f"{jj+1}*threshold"
         node_response_data_summary.loc[nof_stim_amps*ii+jj,["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"]] =\
         node_response_data[["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"]].mean()
+        node_response_data_summary.loc[nof_stim_amps*ii+jj,"latency (ms)"] = node_response_data_summary.loc[nof_stim_amps*ii+jj,"latency (ms)"]
         node_response_data_summary.loc[nof_stim_amps*ii+jj,"jitter (ms)"] = node_response_data["latency (ms)"].std()
         node_response_data_summary.loc[nof_stim_amps*ii+jj,"AP duration (ms)"] = sum(node_response_data_summary.loc[ii,["rise time (ms)", "fall time (ms)"]])
+
+node_response_data_summary["AP height (mV)"] = node_response_data_summary["AP height (mV)"].round(1) 
+node_response_data_summary[["rise time (ms)", "fall time (ms)", "AP duration (ms)"]] = node_response_data_summary[["rise time (ms)", "fall time (ms)", "AP duration (ms)"]].round(3)
+node_response_data_summary[["latency (ms)", "jitter (ms)"]] = node_response_data_summary[["latency (ms)", "jitter (ms)"]].round(4)
 
 ##### combine list entries of voltage courses to one dataset
 voltage_course_dataset = pd.concat(voltage_courses)
@@ -294,18 +334,24 @@ voltage_course_dataset["stimulation info"] = voltage_course_dataset["phase durat
 ["; "] + voltage_course_dataset["stimulus amplitude level"].map(str)
 voltage_course_dataset = voltage_course_dataset[["stimulation info", "run", "time / ms", "membrane potential / mV"]]
 
+##### Save table as csv    
+node_response_data_summary.to_csv(f'test_battery_results/{model.display_name}/Node_response_data_summary {model.display_name}.csv', index=False, header=True)
+
 ##### plot voltage courses of single node
-plot.single_node_response_voltage_course(plot_name = f"Voltage courses {model.display_name}",
-                                         voltage_data = voltage_course_dataset,
-                                         col_wrap = 2,
-                                         height = 3.5)
+single_node_response = plot.single_node_response_voltage_course(plot_name = f"Voltage courses {model.display_name}",
+                                                                voltage_data = voltage_course_dataset,
+                                                                col_wrap = 2,
+                                                                height = 3.5)
+
+###### save voltage courses plot
+single_node_response.savefig(f"test_battery_results/{model.display_name}/Single_node_response {model.display_name}.png")
 
 # =============================================================================
 # Refractory periods
 # =============================================================================
 ##### define phase durations to test (in us)
 phase_durations_mono = [40,50,100]
-phase_durations_bi = [200]
+phase_durations_bi = [50,200]
 
 ##### generate lists with test parameters
 phase_duration = [i*us for i in phase_durations_mono + phase_durations_bi]
@@ -335,6 +381,9 @@ for ii in range(0,len(phase_duration)):
     refractory_table.loc[ii,"pulse form"] = "monophasic" if pulse_form[ii]=="mono" else "biphasic"
     refractory_table.loc[ii,"absolute refractory period (ms)"] = round(arp/ms, 3)
     refractory_table.loc[ii,"relative refractory period (ms)"] = round(rrp/ms, 3)
+    
+    ##### Save table as csv    
+    refractory_table.to_csv(f'test_battery_results/{model.display_name}/Refractory_table {model.display_name}.csv', index=False, header=True)   
 
 # =============================================================================
 # Refractory curve
@@ -356,6 +405,9 @@ refractory_curve = plot.refractory_curve(plot_name = f"Refractory curve {model.d
                                          inter_pulse_intervalls = inter_pulse_intervalls,
                                          stimulus_amps = min_required_amps,
                                          threshold = threshold)
+
+##### save refractory curve
+refractory_curve.savefig(f"test_battery_results/{model.display_name}/Refractory_curve {model.display_name}.png")
 
 # =============================================================================
 # Post Stimulus Time Histogram
@@ -385,9 +437,9 @@ for ii in range(0,len(pulses_per_second)):
         ##### calculate bin heigths and edges
         psth = test.post_stimulus_time_histogram(model = model,
                                                  dt = dt,
-                                                 nof_repeats = 3,
+                                                 nof_repeats = 5,
                                                  pulses_per_second = pulses_per_second[ii],
-                                                 stim_duration = 50*ms,
+                                                 stim_duration = 30*ms,
                                                  stim_amp = stim_amp_level[jj]*threshold,
                                                  stimulation_type = "extern",
                                                  pulse_form = "bi",
@@ -401,12 +453,61 @@ for ii in range(0,len(pulses_per_second)):
 psth_dataset = pd.concat(psth_data)
 
 ##### plot post_stimulus_time_histogram
-plot.post_stimulus_time_histogram(plot_name = f"PSTH {model.display_name}",
-                                  psth_dataset = psth_dataset)
+post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = f"PSTH {model.display_name}",
+                                                                 psth_dataset = psth_dataset)
 
+###### save post_stimulus_time_histogram
+post_stimulus_time_histogram.savefig(f"test_battery_results/{model.display_name}/PSTH {model.display_name}.png")
 
-
-
+## =============================================================================
+## Inter-stimulus intervall Histogram
+## =============================================================================
+###### pulse rates to test
+#pulses_per_second = [150,1000,5000]
+#
+###### phase durations for respective pulse rates
+#phase_duration = [40,40,40]*us
+#
+###### stimulus levels (will be multiplied with the threshold for a certain stimulation) 
+#stim_amp_level = [1,1.1,1.2]
+#
+###### initialize list of datasets to save bin heights end edges for each type of stimulation
+#isi_data = [pd.DataFrame()]*len(pulses_per_second)*len(stim_amp_level)
+#
+###### loop over pulse rates and phase duraions
+#for ii in range(0,len(pulses_per_second)):
+#    
+#    ##### look up threshold for actual stimulation
+#    threshold = threshold_table["threshold"][threshold_table["pulse form"] == "bi"]\
+#                               [threshold_table["phase duration"]/us == phase_duration[ii]/us].iloc[0]
+#    
+#    ##### loop over stimulus amplitudes
+#    for jj in range(0,len(stim_amp_level)):
+#                                        
+#        ##### calculate bin heigths and edges
+#        isi = test.inter_stimulus_intervall_histogram(model = model,
+#                                                      dt = dt,
+#                                                      nof_repeats = 5,
+#                                                      pulses_per_second = pulses_per_second[ii],
+#                                                      stim_duration = 30*ms,
+#                                                      stim_amp = stim_amp_level[jj]*threshold,
+#                                                      stimulation_type = "extern",
+#                                                      pulse_form = "bi",
+#                                                      phase_duration = phase_duration[ii])
+#        
+#        ##### write the data in a list of dataframes
+#        isi_data[len(stim_amp_level)*ii+jj] = isi
+#        isi_data[len(stim_amp_level)*ii+jj]["amplitude"] = f"{stim_amp_level[jj]}*threshold"
+#        
+###### combine list entries of psth_data to one dataset
+#isi_dataset = pd.concat(isi_data)
+#
+###### plot inter_stimulus_intervall_histogram
+#plot.inter_stimulus_intervall_histogram(plot_name = f"ISI {model.display_name}",
+#                                        isi_dataset = isi_dataset)
+#
+####### save inter_stimulus_intervall_histogram
+#inter_stimulus_intervall_histogram.savefig(f"test_battery_results/{model.display_name}/ISI {model.display_name}.png")
 
 
 

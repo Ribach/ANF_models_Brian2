@@ -77,6 +77,7 @@ def get_conduction_velocity(model,
                                                     dt = dt,
                                                     stimulation_type = stimulation_type,
                                                     pulse_form = pulse_form,
+                                                    time_before = 2*ms,
                                                     time_after = time_after_stimulation,
                                                     add_noise = add_noise,
                                                     stimulated_compartment = stimulated_compartment,
@@ -519,6 +520,7 @@ def get_thresholds(model,
                    nof_runs = 1,
                    stimulation_type = "extern",
                    pulse_form = "mono",
+                   time_before = 2*ms,
                    time_after = 2*ms,
                    print_progress = True):
     """This function calculates the stimulus current at the current source for
@@ -579,9 +581,9 @@ def get_thresholds(model,
         
         ##### calculate runtime
         if pulse_form == "mono":
-            runtime = phase_durations[ii] + time_after
+            runtime = time_before + phase_durations[ii] + time_after
         else:
-            runtime = phase_durations[ii]*2 + time_after
+            runtime = time_before + phase_durations[ii]*2 + time_after
         
         ##### calculate number of timesteps
         nof_timesteps = int(np.ceil(runtime/dt))
@@ -613,7 +615,8 @@ def get_thresholds(model,
                                                             dt = dt,
                                                             stimulation_type = stimulation_type,
                                                             pulse_form = pulse_form,
-                                                            add_noise = add_noise,
+                                                            add_noise = False,
+                                                            time_before = time_before,
                                                             time_after = time_after,
                                                             ##### monophasic stimulation
                                                             amp_mono = -stim_amp,
@@ -670,6 +673,7 @@ def get_chronaxie(model,
                   delta,
                   stimulation_type = "extern",
                   pulse_form = "mono",
+                  time_before = 1*ms,
                   time_after = 1.5*ms,
                   print_progress = True):
     """This function calculates the stimulus current at the current source for
@@ -729,6 +733,7 @@ def get_chronaxie(model,
                                                     dt = dt,
                                                     stimulation_type = stimulation_type,
                                                     pulse_form = pulse_form,
+                                                    time_before = time_before,
                                                     time_after = time_after,
                                                     ##### monophasic stimulation
                                                     amp_mono = -2*rheobase,
@@ -770,6 +775,7 @@ def get_refractory_periods(model,
                            stimulation_type = "extern",
                            pulse_form = "mono",
                            phase_duration = 100*us,
+                           time_before = 2*ms,
                            print_progress = True):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
@@ -849,7 +855,7 @@ def get_refractory_periods(model,
                                                                   dt = dt,
                                                                   stimulation_type = stimulation_type,
                                                                   pulse_form = pulse_form,
-                                                                  time_before = 0*ms,
+                                                                  time_before = time_before,
                                                                   time_after = 0*ms,
                                                                   # monophasic stimulation
                                                                   amp_mono = -amp_masker,
@@ -916,7 +922,7 @@ def get_refractory_periods(model,
                                                                   dt = dt,
                                                                   stimulation_type = stimulation_type,
                                                                   pulse_form = pulse_form,
-                                                                  time_before = 0*ms,
+                                                                  time_before = time_before,
                                                                   time_after = 0*ms,
                                                                   # monophasic stimulation
                                                                   amp_mono = -amp_masker,
@@ -978,6 +984,7 @@ def get_refractory_curve(model,
                          stimulation_type = "extern",
                          pulse_form = "mono",
                          phase_duration = 100*us,
+                         time_before = 2*ms,
                          print_progress = True):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
@@ -1061,7 +1068,7 @@ def get_refractory_curve(model,
                                                                       dt = dt,
                                                                       stimulation_type = stimulation_type,
                                                                       pulse_form = pulse_form,
-                                                                      time_before = 0*ms,
+                                                                      time_before = time_before,
                                                                       time_after = 0*ms,
                                                                       ##### monophasic stimulation
                                                                       amp_mono = -amp_masker,
@@ -1153,16 +1160,7 @@ def post_stimulus_time_histogram(model,
     min_required_amps matrix
         Gives back a vector of currents for each timestep
     """
-    
-#     nof_repeats = 3
-#     pulses_per_second = [250,1000,5000,10000]
-#     stim_duration = 50*ms
-#     stim_amp = [2,3,5]*uA
-#     stimulation_type = "extern"
-#     pulse_form = "bi"
-#     phase_duration = [40,40,40,20]*us
-#     further_bin_widths = [4,8,12,12,12,52,100,100]*ms
-    
+        
     ##### set up the neuron
     neuron, param_string, model = model.set_up_model(dt = dt, model = model)
     
@@ -1243,4 +1241,122 @@ def post_stimulus_time_histogram(model,
     psth["stimulus amplitude"] = stim_amp
     
     return psth
+
+# =============================================================================
+#  Calculate inter-stimulus intervall histogram (ISIH)
+# =============================================================================
+def inter_stimulus_intervall_histogram(model,
+                                       dt,
+                                       nof_repeats,
+                                       pulses_per_second,
+                                       stim_duration,
+                                       stim_amp,
+                                       stimulation_type,
+                                       pulse_form,
+                                       phase_duration):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    model : time
+        Lenght of one time step.
+    dt : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    phase_durations : string
+        Describes, which pulses are used; either "mono" or "bi" is possible
+    start_intervall : time
+        Time until (first) pulse starts.
+    delta : time
+        Time which is still simulated after the end of the last pulse
+    stimulation_type : amp/[k_noise]
+        Is multiplied with k_noise.
+    pulse_form : amp/[k_noise]
+        Is multiplied with k_noise.
+                
+    Returns
+    -------
+    min_required_amps matrix
+        Gives back a vector of currents for each timestep
+    """
     
+    ##### set up the neuron
+    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
+    
+    ##### load the parameters of the differential equations in the workspace
+    exec(param_string)
+    
+    ##### initialize monitors
+    M = StateMonitor(neuron, 'v', record=True)
+    
+    ##### save initialization of the monitor(s)
+    store('initialized')
+    
+    ##### compartment for measurements
+    comp_index = np.where(model.structure == 2)[0][10]
+    
+    ##### initialize dataset to save histogram and stimulus information
+    isi = pd.DataFrame()
+
+    ##### calculate nof_pulses
+    nof_pulses = round(pulses_per_second*stim_duration/second)
+        
+    ##### calculate inter_pulse_gap
+    if pulse_form == "mono":
+        inter_pulse_gap = (1e6/pulses_per_second - phase_duration/us)*us
+    else:
+        inter_pulse_gap = (1e6/pulses_per_second - phase_duration*2/us)*us
+        
+    ##### initialize pulse train dataframe
+    spike_times = np.zeros((nof_repeats, nof_pulses*2))
+            
+    ##### loop over number of repeats
+    for ii in range(0, nof_repeats):
+        
+        ##### print progress
+        print(f"Pulse rate: {pulses_per_second} pps; Stimulus Amplitude: {np.round(stim_amp/us,2)} us; Run: {ii+1}/{nof_repeats}")
+        
+        ##### define how the ANF is stimulated
+        I_stim, runtime = stim.get_stimulus_current(model = model,
+                                                    dt = dt,
+                                                    stimulation_type = stimulation_type,
+                                                    pulse_form = pulse_form,
+                                                    nof_pulses = nof_pulses,
+                                                    time_before = 0*ms,
+                                                    time_after = 0*ms,
+                                                    add_noise = True,
+                                                    ##### monophasic stimulation
+                                                    amp_mono = -stim_amp*uA,
+                                                    duration_mono = phase_duration,
+                                                    ##### biphasic stimulation
+                                                    amps_bi = [-stim_amp/uA,0,stim_amp/uA]*uA,
+                                                    durations_bi = [phase_duration/us,0,phase_duration/us]*us,
+                                                    ##### multiple pulses / pulse trains
+                                                    inter_pulse_gap = inter_pulse_gap)
+    
+        ##### get TimedArray of stimulus currents
+        stimulus = TimedArray(np.transpose(I_stim), dt = dt)
+        
+        ##### reset state monitor
+        restore('initialized')
+                
+        ##### run simulation
+        run(runtime)
+        
+        ##### get spike times
+        spikes = M.t[peak.indexes(savgol_filter(M.v[comp_index,:], 51,3)*volt, thres = model.V_res + 60*mV, thres_abs=True)]/second
+        spike_times[ii, 0:len(spikes)] = spikes
+            
+    ##### connect all spike times to one vector
+    spike_times = np.concatenate(spike_times)
+    
+    ##### trim zeros
+    spike_times = spike_times[spike_times != 0]
+    
+    ##### save spike information in dataset
+    psth["spike times"] = spike_times
+    psth["pulse rate"] = pulses_per_second
+    psth["phase duration"] = phase_duration
+    psth["stimulus amplitude"] = stim_amp
+    
+    return isi
