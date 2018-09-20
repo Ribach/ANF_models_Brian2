@@ -39,6 +39,7 @@ gamma_HCN = 13*psiemens
 nof_internodes = 25
 nof_segments_internode = 1
 nof_myelin_layers = 35
+thicknes_myelin_layer = 8.5*nmeter # value form Rattay2001
 ##### lengths
 length_internodes = 300*um
 length_nodes = 1.5*um
@@ -139,7 +140,7 @@ r_my = 0.1*kohm*cm**2
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.0012*uA/np.sqrt(mS)
+k_noise = 0.002*uA/np.sqrt(mS)
 
 # =============================================================================
 # Electrode
@@ -179,6 +180,7 @@ length_neuron = sum(compartment_lengths)
 compartment_diameters = np.zeros(nof_comps+1)*um
 # same diameter for whole fiber
 compartment_diameters[:] = diameter_fiber
+fiber_outer_diameter = diameter_fiber + nof_myelin_layers*thicknes_myelin_layer*2
 
 ##### Surface arias
 # lateral surfaces

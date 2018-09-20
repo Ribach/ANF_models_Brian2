@@ -185,6 +185,7 @@ length_neuron = sum(compartment_lengths)
 compartment_diameters = np.zeros(nof_comps+1)*um
 # dendrite
 compartment_diameters[0:start_index_presomatic_region+1] = diameter_dendrite
+dendrite_outer_diameter = diameter_dendrite / 0.6 # see Gillespie 1983
 # region before soma
 compartment_diameters[start_index_presomatic_region+1:start_index_soma+1] = diameter_somatic_region
 # soma
@@ -193,6 +194,7 @@ compartment_diameters[start_index_soma+1:end_index_soma+1] = diameter_soma
 compartment_diameters[end_index_soma+1] = diameter_somatic_region
 # axon
 compartment_diameters[end_index_soma+2:] = diameter_axon
+axon_outer_diameter = diameter_axon / 0.6 # see Gillespie 1983
 
 #####  Compartment middle point distances (needed for plots)
 distance_comps_middle = np.zeros_like(compartment_lengths)

@@ -63,7 +63,8 @@ rheobase_matrix = test.get_thresholds(model = model,
                                       amps_start_intervall = [0,20]*uA,
                                       delta = 0.0001*uA,
                                       stimulation_type = "extern",
-                                      pulse_form = "mono")
+                                      pulse_form = "mono",
+                                      time_before = 2*ms)
 
 rheobase = rheobase_matrix["threshold"][0]*amp
 
@@ -74,7 +75,8 @@ chronaxie = test.get_chronaxie(model = model,
                                phase_duration_start_intervall = [0,1000]*us,
                                delta = 1*us,
                                stimulation_type = "extern",
-                               pulse_form = "mono")
+                               pulse_form = "mono",
+                               time_before = 2*ms)
 
 ##### round values
 rheobase = np.round(rheobase/nA,1)*nA
@@ -101,7 +103,8 @@ strength_duration_matrix = test.get_thresholds(model = model,
                                                delta = 0.01*uA,
                                                nof_runs = 1,
                                                stimulation_type = "extern",
-                                               pulse_form = "mono")
+                                               pulse_form = "mono",
+                                               time_before = 2*ms)
 
 ##### plot strength duration curve
 strength_duration_curve = plot.strength_duration_curve(plot_name = f"Strength duration curve {model.display_name}",
@@ -129,8 +132,9 @@ for ii in range(0,len(threshold)):
     threshold[ii] = test.get_thresholds(model = model,
                                         dt = dt,
                                         phase_durations = phase_duration[ii],
-                                        amps_start_intervall = [0,20]*uA,
+                                        amps_start_intervall = [0,30]*uA,
                                         delta = 0.0001*uA,
+                                        time_before = 2*ms,
                                         time_after = 3*ms,
                                         stimulation_type = "extern",
                                         pulse_form = pulse_form[ii])["threshold"][0]*amp
@@ -155,7 +159,7 @@ phase_durations_bi = [200,400]
 ##### define test parameters
 phase_duration = [i*us for i in phase_durations_mono + phase_durations_bi]
 pulse_form = np.repeat(["mono","bi"], (len(phase_durations_mono),len(phase_durations_bi)))
-runs_per_stimulus_type = 5
+runs_per_stimulus_type = 50
 
 ##### initialize threshold matrix and relative spread vector
 threshold_matrix = np.zeros((len(phase_duration)*runs_per_stimulus_type,3))
@@ -168,6 +172,7 @@ for ii in range(0,len(relative_spread)):
                                      phase_durations = phase_duration[ii],
                                      amps_start_intervall = [0,20]*uA,
                                      delta = 0.0005*uA,
+                                     time_before = 2*ms,
                                      time_after = 2*ms,
                                      nof_runs = runs_per_stimulus_type,
                                      stimulation_type = "extern",
@@ -269,7 +274,7 @@ pulse_form = np.repeat(["mono","bi"], (len(phase_durations_mono),len(phase_durat
 nof_stim_amps = 2
 
 ##### define number of stochastic runs
-nof_stochastic_runs = 10
+nof_stochastic_runs = 20
 
 ##### initialize summary dataset
 column_names = ["phase duration (us)", "pulse form", "stimulus amplitude level", "AP height (mV)", "rise time (ms)",
@@ -324,18 +329,18 @@ for ii in range(0,len(phase_duration)):
         node_response_data_summary.loc[nof_stim_amps*ii+jj,"jitter (ms)"] = node_response_data["latency (ms)"].std()
         node_response_data_summary.loc[nof_stim_amps*ii+jj,"AP duration (ms)"] = sum(node_response_data_summary.loc[ii,["rise time (ms)", "fall time (ms)"]])
 
-node_response_data_summary["AP height (mV)"] = node_response_data_summary["AP height (mV)"].round(1) 
-node_response_data_summary[["rise time (ms)", "fall time (ms)", "AP duration (ms)"]] = node_response_data_summary[["rise time (ms)", "fall time (ms)", "AP duration (ms)"]].round(3)
-node_response_data_summary[["latency (ms)", "jitter (ms)"]] = node_response_data_summary[["latency (ms)", "jitter (ms)"]].round(4)
+##### round for 3 significant digits
+for ii in ["AP height (mV)", "rise time (ms)", "fall time (ms)", "AP duration (ms)", "latency (ms)", "jitter (ms)"]:
+    node_response_data_summary[ii] = ["%.3g" %node_response_data_summary[ii][jj] for jj in range(0,node_response_data_summary.shape[0])]
+
+##### Save table as csv    
+node_response_data_summary.to_csv(f'test_battery_results/{model.display_name}/Node_response_data_summary {model.display_name}.csv', index=False, header=True)
 
 ##### combine list entries of voltage courses to one dataset
 voltage_course_dataset = pd.concat(voltage_courses)
 voltage_course_dataset["stimulation info"] = voltage_course_dataset["phase duration (us)"].map(str) + [" us; "] + voltage_course_dataset["pulse form"].map(str) +\
 ["; "] + voltage_course_dataset["stimulus amplitude level"].map(str)
 voltage_course_dataset = voltage_course_dataset[["stimulation info", "run", "time / ms", "membrane potential / mV"]]
-
-##### Save table as csv    
-node_response_data_summary.to_csv(f'test_battery_results/{model.display_name}/Node_response_data_summary {model.display_name}.csv', index=False, header=True)
 
 ##### plot voltage courses of single node
 single_node_response = plot.single_node_response_voltage_course(plot_name = f"Voltage courses {model.display_name}",
@@ -395,7 +400,7 @@ inter_pulse_intervalls = np.logspace(-1, 2.6, num=30, base=2)*ms
 min_required_amps, threshold = test.get_refractory_curve(model = model,
                                                          dt = dt,
                                                          inter_pulse_intervalls = inter_pulse_intervalls,
-                                                         delta = 0.005*uA,
+                                                         delta = 0.0001*uA,
                                                          stimulation_type = "extern",
                                                          pulse_form = "mono",
                                                          phase_duration = 100*us)
@@ -419,7 +424,7 @@ pulses_per_second = [250,1000,5000,10000]
 phase_duration = [40,40,40,20]*us
 
 ##### stimulus levels (will be multiplied with the threshold for a certain stimulation) 
-stim_amp_level = [1,1.1,1.2]
+stim_amp_level = [1,1.2,1.5]
 
 ##### initialize list of datasets to save bin heights end edges for each type of stimulation
 psth_data = [pd.DataFrame()]*len(pulses_per_second)*len(stim_amp_level)
@@ -437,9 +442,9 @@ for ii in range(0,len(pulses_per_second)):
         ##### calculate bin heigths and edges
         psth = test.post_stimulus_time_histogram(model = model,
                                                  dt = dt,
-                                                 nof_repeats = 5,
+                                                 nof_repeats = 20,
                                                  pulses_per_second = pulses_per_second[ii],
-                                                 stim_duration = 30*ms,
+                                                 stim_duration = 100*ms,
                                                  stim_amp = stim_amp_level[jj]*threshold,
                                                  stimulation_type = "extern",
                                                  pulse_form = "bi",
