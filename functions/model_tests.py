@@ -187,9 +187,9 @@ def get_single_node_response(model,
         param_1_original_value = np.zeros_like(model)
         if param_2 == "model":
             for ii in range(0,len(model)):
-                param_1_original_value[ii] = eval(f"model[ii].{param_1}")
+                param_1_original_value[ii] = eval("model[ii].{}".format(param_1))
         else:
-            param_1_original_value = [eval(f"model[0].{param_1}")]
+            param_1_original_value = [eval("model[0].{}".format(param_1))]
         
     elif param_1 == "model":
         # get display name for plots and dataframe
@@ -242,9 +242,9 @@ def get_single_node_response(model,
         param_2_original_value = np.zeros_like(model)
         if param_1 == "model":
             for ii in range(0,len(model)):
-                param_2_original_value[ii] = eval(f"model[ii].{param_2}")
+                param_2_original_value[ii] = eval("model[ii].{}".format(param_2))
         else:
-            param_2_original_value = [eval(f"model[0].{param_2}")]
+            param_2_original_value = [eval("model[0].{}".format(param_2))]
 
     elif param_2 == "model":
         # get display name for plots and dataframe
@@ -303,7 +303,7 @@ def get_single_node_response(model,
         if hasattr(model[0], param_1):
             if not param_2 == "model":
                 ##### adjust model parameter
-                exec(f"model[0].{param_1} = param_1_ratios[ii]*param_1_original_value[0]")
+                exec("model[0].{} = param_1_ratios[ii]*param_1_original_value[0]".format(param_1))
                 ##### set up neuron with adjusted model parameter
                 neuron, param_string, model[0] = model[0].set_up_model(dt = dt, model = model[0], update = True, model_name = "model[0]")
                 exec(param_string)
@@ -333,7 +333,7 @@ def get_single_node_response(model,
             if hasattr(model[0], param_2):
                if not param_1 == "model":
                     ##### adjust model parameter
-                    exec(f"model[0].{param_2} = param_2_ratios[jj]*param_2_original_value[0]")
+                    exec("model[0].{} = param_2_ratios[jj]*param_2_original_value[0]".format(param_2))
                     ##### set up neuron with adjusted model parameter
                     neuron, param_string, model[0] = model[0].set_up_model(dt = dt, model = model[0], update = True, model_name = "model[0]")
                     exec(param_string)
@@ -341,7 +341,7 @@ def get_single_node_response(model,
                     store('initialized')
                else:
                     ##### adjust model parameter
-                    exec(f"model[ii].{param_2} = param_2_ratios[jj]*param_2_original_value[ii]")
+                    exec("model[ii].{} = param_2_ratios[jj]*param_2_original_value[ii]".format(param_2))
                     ##### set up neuron again with adjusted model parameter
                     neuron, param_string, model[ii] = model[ii].set_up_model(dt = dt, model = model[ii], update = True, model_name = "model[ii]")
                     exec(param_string)
@@ -351,7 +351,7 @@ def get_single_node_response(model,
             elif param_2 == "model":
                 if hasattr(model[0], param_1):
                     ##### adjust model parameter
-                    exec(f"model[jj].{param_1} = param_1_ratios[ii]*param_1_original_value[jj]")
+                    exec("model[jj].{} = param_1_ratios[ii]*param_1_original_value[jj]".format(param_1))
                 ##### set up neuron for actual model
                 neuron, param_string, model[jj] = model[jj].set_up_model(dt = dt, model = model[jj], update = True, model_name = "model[jj]")
                 exec(param_string)
@@ -439,7 +439,7 @@ def get_single_node_response(model,
             node_response_data["AP end time"][ii*length_param_2+jj] = AP_end_time/ms
 
             ##### print progress
-            print(f"{param_1_display_name}: {ii+1}/{length_param_1}; {param_2_display_name}: {jj+1}/{length_param_2}")
+            print("{param_1_display_name}: {}/{}; {}: {jj+1}/{}".format(ii+1,length_param_1,param_2_display_name,length_param_2))
 
             ##### save voltage course of single compartment for plotting
             voltage_data[length_param_2*ii+jj,0:np.shape(M.v)[1]] = M.v[comp_index, :]/mV
@@ -487,15 +487,15 @@ def get_single_node_response(model,
     if hasattr(model[0], param_1):
         if param_2 == "model":
             for ii in range(0, len(model)):
-                exec(f"model[ii].{param_1} = param_1_original_value[ii]")
+                exec("model[ii].{} = param_1_original_value[ii]".format(param_1))
         else:
-            exec(f"model[0].{param_1} = param_1_original_value[0]")                        
+            exec("model[0].{} = param_1_original_value[0]".format(param_1))
     if hasattr(model[0], param_2):
         if param_1 == "model":
             for ii in range(0, len(model)):
-                exec(f"model[ii].{param_2} = param_2_original_value[ii]")
+                exec("model[ii].{} = param_2_original_value[ii]".format(param_2))
         else:
-            exec(f"model[0].{param_2} = param_2_original_value[0]")
+            exec("model[0].{} = param_2_original_value[0]".format(param_2))
             
     ##### save time_vector
     time_vector = M.t
@@ -608,7 +608,7 @@ def get_thresholds(model,
             while amp_diff > delta:
                 
                 ##### print progress
-                if print_progress: print(f"Duration: {np.round(phase_durations[ii]/us)} us; Run: {jj+1}; Stimulus amplitde: {np.round(stim_amp/uA,4)} uA")
+                if print_progress: print("Duration: {} us; Run: {}; Stimulus amplitde: {} uA".format(np.round(phase_durations[ii]/us),jj+1,np.round(stim_amp/uA,4)))
                 
                 ##### define how the ANF is stimulated
                 I_stim, runtime = stim.get_stimulus_current(model = model,
@@ -726,7 +726,7 @@ def get_chronaxie(model,
     while duration_diff > delta:
         
         ##### print progress
-        if print_progress: print(f"Duration: {np.round(phase_duration/us)} us")
+        if print_progress: print("Duration: {} us".format(np.round(phase_duration/us)))
         
         ##### define how the ANF is stimulated
         I_stim, runtime = stim.get_stimulus_current(model = model,
@@ -802,12 +802,6 @@ def get_refractory_periods(model,
     thresholds matrix
         Gives back a vector of currents for each timestep
     """
-        
-    ##### initialize model with given defaultclock dt
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-    exec(param_string)
-    M = StateMonitor(neuron, 'v', record=True)
-    store('initialized')
     
     ##### calculate theshold of model
     if threshold == 0:
@@ -834,21 +828,27 @@ def get_refractory_periods(model,
     
     ##### thresholds for second spike that define the refractory periods
     stim_amp_arp = 4*threshold
-    stim_amp_rrp = 1.2*threshold    
+    stim_amp_rrp = 1.01*threshold    
 
     ##### get absolute refractory period
     # initializations
     arp = 0*second
-    lower_border = inter_pulse_gap_min
-    upper_border = inter_pulse_gap_max
+    lower_border = inter_pulse_gap_min.copy()
+    upper_border = inter_pulse_gap_max.copy()
     inter_pulse_gap = (inter_pulse_gap_max-inter_pulse_gap_min)/2
     inter_pulse_gap_diff = upper_border - lower_border
+    
+    ##### initialize model with given defaultclock dt
+    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
+    exec(param_string)
+    M = StateMonitor(neuron, 'v', record=True)
+    store('initialized')
     
     # adjust stimulus amplitude until required accuracy is obtained
     while inter_pulse_gap_diff > delta:
         
         # print progress
-        if print_progress: print(f"Inter pulse gap: {np.round(inter_pulse_gap/us)} us")
+        if print_progress: print("Inter pulse gap: {} us".format(np.round(inter_pulse_gap/us)))
         
         # define how the ANF is stimulated
         I_stim_masker, runtime_masker = stim.get_stimulus_current(model = model,
@@ -902,20 +902,20 @@ def get_refractory_periods(model,
             inter_pulse_gap = (inter_pulse_gap + upper_border)/2
             
         inter_pulse_gap_diff = upper_border - lower_border
-        
+                
     ##### get relative refractory period
     # initializations
     rrp = 0*second
-    lower_border = arp
-    upper_border = inter_pulse_gap_max
+    lower_border = arp.copy()
+    upper_border = inter_pulse_gap_max.copy()
     inter_pulse_gap = (inter_pulse_gap_max-inter_pulse_gap_min)/2
     inter_pulse_gap_diff = upper_border - lower_border
     
     # adjust stimulus amplitude until required accuracy is obtained
     while inter_pulse_gap_diff > delta:
-        
+                
         # print progress
-        if print_progress: print(f"Inter pulse gap: {np.round(inter_pulse_gap/us)} us")
+        if print_progress: print("Inter pulse gap: {} us".format(np.round(inter_pulse_gap/us)))
         
         # define how the ANF is stimulated
         I_stim_masker, runtime_masker = stim.get_stimulus_current(model = model,
@@ -969,7 +969,7 @@ def get_refractory_periods(model,
             inter_pulse_gap = (inter_pulse_gap + upper_border)/2
             
         inter_pulse_gap_diff = upper_border - lower_border
-                    
+                            
     return arp, rrp
 
 # =============================================================================
@@ -1037,7 +1037,7 @@ def get_refractory_curve(model,
     stim_amps_max = threshold * 10
     
     ##### start amplitde for first run
-    start_amp = stim_amps_max
+    start_amp = stim_amps_max.copy()
     
     ##### compartment for measurements
     comp_index = np.where(model.structure == 2)[0][10]
@@ -1050,21 +1050,19 @@ def get_refractory_curve(model,
 
     ##### loop over phase durations
     for ii in range(0, len(inter_pulse_intervalls)):
-        
-        print(f"run: {ii}")
-        
+                
         ##### initializations
         min_amp_spiked = 0*amp
-        lower_border = stim_amps_min
-        upper_border = stim_amps_max
-        stim_amp = start_amp
+        lower_border = stim_amps_min.copy()
+        upper_border = stim_amps_max.copy()
+        stim_amp = start_amp.copy()
         amp_diff = upper_border - lower_border
                 
         ##### adjust stimulus amplitude until required accuracy is obtained
         while amp_diff > delta:
             
             ##### print progress
-            if print_progress : print(f"Inter pulse intervall: {round(inter_pulse_intervalls[ii]/us)} us; Amplitude of second stimulus: {np.round(stim_amp/uA,2)} uA")
+            if print_progress : print("Inter pulse intervall: {} us; Amplitude of second stimulus: {} uA".format(round(inter_pulse_intervalls[ii]/us),np.round(stim_amp/uA,2)))
             
             ##### define how the ANF is stimulated
             I_stim_masker, runtime_masker = stim.get_stimulus_current(model = model,
@@ -1203,7 +1201,7 @@ def post_stimulus_time_histogram(model,
     for ii in range(0, nof_repeats):
         
         ##### print progress
-        print(f"Pulse rate: {pulses_per_second} pps; Stimulus Amplitude: {np.round(stim_amp/us,2)} us; Run: {ii+1}/{nof_repeats}")
+        print("Pulse rate: {} pps; Stimulus Amplitude: {} us; Run: {}/{}".format(pulses_per_second,np.round(stim_amp/us,2),ii+1,nof_repeats))
         
         ##### define how the ANF is stimulated
         I_stim, runtime = stim.get_stimulus_current(model = model,
@@ -1322,7 +1320,7 @@ def post_stimulus_time_histogram(model,
 #    for ii in range(0, nof_repeats):
 #        
 #        ##### print progress
-#        print(f"Pulse rate: {pulses_per_second} pps; Stimulus Amplitude: {np.round(stim_amp/us,2)} us; Run: {ii+1}/{nof_repeats}")
+#        print("Pulse rate: {} pps; Stimulus Amplitude: {} us; Run: {}/{}".format(pulses_per_second,np.round(stim_amp/us,2),ii+1,nof_repeats))
 #        
 #        ##### define how the ANF is stimulated
 #        I_stim, runtime = stim.get_stimulus_current(model = model,

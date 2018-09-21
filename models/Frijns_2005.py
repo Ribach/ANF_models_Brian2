@@ -422,15 +422,15 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     neuron.g_myelin = model.g_m
     
     ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
-    param_string = f'''
-    V_res = {model_name}.V_res
-    T_celsius = {model_name}.T_celsius
-    T_kelvin = {model_name}.T_kelvin
-    Na_i = {model_name}.Na_i
-    Na_e = {model_name}.Na_e
-    K_i = {model_name}.K_i
-    K_e = {model_name}.K_e
-    '''
+    param_string = '''
+    V_res = {}.V_res
+    T_celsius = {}.T_celsius
+    T_kelvin = {}.T_kelvin
+    Na_i = {}.Na_i
+    Na_e = {}.Na_e
+    K_i = {}.K_i
+    K_e = {}.K_e
+    '''.format(model_name,model_name,model_name,model_name,model_name,model_name,model_name)
     
     ##### remove spaces to avoid complications
     param_string = param_string.replace(" ", "")

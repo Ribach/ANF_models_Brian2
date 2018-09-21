@@ -328,15 +328,15 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     neuron.g_L[np.where(model.structure == 1)[0]] = 0*msiemens/cm**2
     
     ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
-    param_string = f'''
-    V_res = {model_name}.V_res
-    E_Na = {model_name}.E_Na
-    E_K = {model_name}.E_K
-    E_L = {model_name}.E_L
-    rho_Na = {model_name}.rho_Na
-    rho_Ks = {model_name}.rho_Ks
-    rho_Kf = {model_name}.rho_Kf
-    '''
+    param_string = '''
+    V_res = {}.V_res
+    E_Na = {}.E_Na
+    E_K = {}.E_K
+    E_L = {}.E_L
+    rho_Na = {}.rho_Na
+    rho_Ks = {}.rho_Ks
+    rho_Kf = {}.rho_Kf
+    '''.format(model_name,model_name,model_name,model_name,model_name,model_name,model_name)
     
     ##### remove spaces to avoid complications
     param_string = param_string.replace(" ", "")

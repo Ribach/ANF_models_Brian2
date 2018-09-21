@@ -93,7 +93,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     
     ##### Plot membrane potential of all compartments over time (2 plots)
     if plot_voltage_course_lines:
-        plot.voltage_course_lines(plot_name = f"Voltage course {model.display_name}",
+        plot.voltage_course_lines(plot_name = "Voltage course {}".format(model.display_name)),
                                   time_vector = M.t,
                                   voltage_matrix = M.v,
                                   comps_to_plot = model.comps_to_plot,
@@ -102,7 +102,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                   V_res = model.V_res)
     
     if plot_voltage_course_colored:
-        plot.voltage_course_colors(plot_name = f"Voltage course {model.display_name} (colored)",
+        plot.voltage_course_colors(plot_name = "Voltage course {} (colored)".format(model.display_name),
                                    time_vector = M.t,
                                    voltage_matrix = M.v,
                                    distance_comps_middle = model.distance_comps_middle)
@@ -160,7 +160,7 @@ if measure_strength_duration_curve:
                                                   pulse_form = "bi")
     
     ##### plot strength duration curve
-    plot.strength_duration_curve(plot_name = f"Strength duration curve {model.display_name}",
+    plot.strength_duration_curve(plot_name = "Strength duration curve {}".format(model.display_name),
                                  durations = phase_durations,
                                  stimulus_amps = thresholds)
     
@@ -189,7 +189,7 @@ if measure_refractory_properties:
                                                              phase_duration = 100*us)
     
     ##### plot strength duration curve
-    plot.refractory_curve(plot_name = f"Threshold curve {model.display_name}",
+    plot.refractory_curve(plot_name = "Threshold curve {}".format(),
                           inter_pulse_intervalls = inter_pulse_intervalls,
                           stimulus_amps = min_required_amps,
                           threshold = threshold)
@@ -215,7 +215,7 @@ if post_stimulus_time_histogram:
                                                         bin_width = bin_width)
     
     ##### plot post_stimulus_time_histogram
-    plot.post_stimulus_time_histogram(plot_name = f"PSTH {model.display_name}",
+    plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
                                       bin_edges = bin_edges,
                                       bin_heigths = bin_heigths,
                                       bin_width = bin_width/ms)

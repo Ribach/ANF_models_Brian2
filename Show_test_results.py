@@ -32,12 +32,12 @@ prefs.codegen.target = "numpy"
 model = rattay_01
 
 ##### load datasets
-strength_duration_data = pd.read_csv(f'test_battery_results/{model.display_name}/Strength_duration_data {model.display_name}.csv')
-threshold_table = pd.read_csv(f'test_battery_results/{model.display_name}/Threshold_table {model.display_name}.csv')
-relative_spreads = pd.read_csv(f'test_battery_results/{model.display_name}/Relative_spreads {model.display_name}.csv')
-conduction_velocity_table = pd.read_csv(f'test_battery_results/{model.display_name}/Conduction_velocity_table {model.display_name}.csv')
-node_response_data_summary = pd.read_csv(f'test_battery_results/{model.display_name}/Node_response_data_summary {model.display_name}.csv')
-refractory_table = pd.read_csv(f'test_battery_results/{model.display_name}/Refractory_table {model.display_name}.csv')
+strength_duration_data = pd.read_csv("test_battery_results/{}/Strength_duration_data {}.csv".format(model.display_name,model.display_name))
+threshold_table = pd.read_csv("test_battery_results/{}/Threshold_table {}.csv".format(model.display_name,model.display_name))
+relative_spreads = pd.read_csv("test_battery_results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
+conduction_velocity_table = pd.read_csv("test_battery_results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name))
+node_response_data_summary = pd.read_csv("test_battery_results/{}/Node_response_data_summary {}.csv".format(model.display_name,model.display_name))
+refractory_table = pd.read_csv("test_battery_results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name))
 
 # =============================================================================
 # Add experimental results to tables
@@ -63,7 +63,7 @@ if hasattr(model, "index_soma"):
         dendrite_ratio = 4.6
     else:
         dendrite_ratio = 5.66
-    conduction_velocity_table["Boyd and Kalu 1979"] = ["-",f"{dendrite_ratio}","-","-"]
+    conduction_velocity_table["Boyd and Kalu 1979"] = ["-","{}".format(dendrite_ratio),"-","-"]
     conduction_velocity_table["Czèh et al 1976"] = ["-","-","v_ax = 0.9*v_den-6.9*m/s","-"]
 
 else:
@@ -72,7 +72,7 @@ else:
         dendrite_ratio = 4.6
     else:
         dendrite_ratio = 5.66
-    conduction_velocity_table["Boyd and Kalu 1979"] = ["-",f"{dendrite_ratio}"]
+    conduction_velocity_table["Boyd and Kalu 1979"] = ["-","{}".format(dendrite_ratio)]
 
 ##### Latency and jitter
 latency_jitter = node_response_data_summary[["phase duration (us)", "pulse form", "stimulus amplitude level", "latency (ms)",  "jitter (ms)"]]

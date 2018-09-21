@@ -281,172 +281,194 @@
 
     
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}95}]:} \PY{k+kn}{from} \PY{n+nn}{IPython}\PY{n+nn}{.}\PY{n+nn}{display} \PY{k}{import} \PY{n}{HTML}
-         
-         \PY{n}{HTML}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}\PYZsq{}\PYZsq{}}\PY{l+s+s1}{\PYZlt{}script\PYZgt{}}
-         \PY{l+s+s1}{code\PYZus{}show=true; }
-         \PY{l+s+s1}{function code\PYZus{}toggle() }\PY{l+s+s1}{\PYZob{}}
-         \PY{l+s+s1}{ if (code\PYZus{}show)}\PY{l+s+s1}{\PYZob{}}
-         \PY{l+s+s1}{ \PYZdl{}(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{div.input}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{).hide();}
-         \PY{l+s+s1}{ \PYZcb{} else }\PY{l+s+s1}{\PYZob{}}
-         \PY{l+s+s1}{ \PYZdl{}(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{div.input}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{).show();}
-         \PY{l+s+s1}{ \PYZcb{}}
-         \PY{l+s+s1}{ code\PYZus{}show = !code\PYZus{}show}
-         \PY{l+s+s1}{\PYZcb{} }
-         \PY{l+s+s1}{\PYZdl{}( document ).ready(code\PYZus{}toggle);}
-         \PY{l+s+s1}{\PYZlt{}/script\PYZgt{}}
-         \PY{l+s+s1}{Show/hide the code by clicking here \PYZlt{}a href=}\PY{l+s+s1}{\PYZdq{}}\PY{l+s+s1}{javascript:code\PYZus{}toggle()}\PY{l+s+s1}{\PYZdq{}}\PY{l+s+s1}{\PYZgt{}here\PYZlt{}/a\PYZgt{}.}\PY{l+s+s1}{\PYZsq{}\PYZsq{}\PYZsq{}}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}116}]:} \PY{k+kn}{from} \PY{n+nn}{IPython}\PY{n+nn}{.}\PY{n+nn}{display} \PY{k}{import} \PY{n}{HTML}
+          
+          \PY{n}{HTML}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}\PYZsq{}\PYZsq{}}\PY{l+s+s1}{\PYZlt{}script\PYZgt{}}
+          \PY{l+s+s1}{code\PYZus{}show=true; }
+          \PY{l+s+s1}{function code\PYZus{}toggle() }\PY{l+s+s1}{\PYZob{}}
+          \PY{l+s+s1}{ if (code\PYZus{}show)}\PY{l+s+s1}{\PYZob{}}
+          \PY{l+s+s1}{ \PYZdl{}(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{div.input}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{).hide();}
+          \PY{l+s+s1}{ \PYZcb{} else }\PY{l+s+s1}{\PYZob{}}
+          \PY{l+s+s1}{ \PYZdl{}(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{div.input}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{).show();}
+          \PY{l+s+s1}{ \PYZcb{}}
+          \PY{l+s+s1}{ code\PYZus{}show = !code\PYZus{}show}
+          \PY{l+s+s1}{\PYZcb{} }
+          \PY{l+s+s1}{\PYZdl{}( document ).ready(code\PYZus{}toggle);}
+          \PY{l+s+s1}{\PYZlt{}/script\PYZgt{}}
+          \PY{l+s+s1}{Show/hide the code by clicking \PYZlt{}a href=}\PY{l+s+s1}{\PYZdq{}}\PY{l+s+s1}{javascript:code\PYZus{}toggle()}\PY{l+s+s1}{\PYZdq{}}\PY{l+s+s1}{\PYZgt{}here\PYZlt{}/a\PYZgt{}.}\PY{l+s+s1}{\PYZsq{}\PYZsq{}\PYZsq{}}\PY{p}{)}
 \end{Verbatim}
 
 
 \begin{Verbatim}[commandchars=\\\{\}]
-{\color{outcolor}Out[{\color{outcolor}95}]:} <IPython.core.display.HTML object>
+{\color{outcolor}Out[{\color{outcolor}116}]:} <IPython.core.display.HTML object>
 \end{Verbatim}
             
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}92}]:} \PY{o}{\PYZpc{}}\PY{k}{matplotlib} inline
-         
-         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} don\PYZsq{}t show warnings}
-         \PY{k+kn}{import} \PY{n+nn}{warnings}
-         \PY{n}{warnings}\PY{o}{.}\PY{n}{simplefilter}\PY{p}{(}\PY{n}{action}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ignore}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{category}\PY{o}{=}\PY{n+ne}{FutureWarning}\PY{p}{)}
-         
-         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} import packages}
-         \PY{k+kn}{from} \PY{n+nn}{brian2} \PY{k}{import} \PY{o}{*}
-         \PY{k+kn}{from} \PY{n+nn}{brian2}\PY{n+nn}{.}\PY{n+nn}{units}\PY{n+nn}{.}\PY{n+nn}{constants} \PY{k}{import} \PY{n}{zero\PYZus{}celsius}\PY{p}{,} \PY{n}{gas\PYZus{}constant} \PY{k}{as} \PY{n}{R}\PY{p}{,} \PY{n}{faraday\PYZus{}constant} \PY{k}{as} \PY{n}{F}
-         \PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
-         \PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k}{as} \PY{n+nn}{pd}
-         \PY{n}{pd}\PY{o}{.}\PY{n}{set\PYZus{}option}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{display.width}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+m+mi}{115}\PY{p}{)}
-         \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
-         \PY{k+kn}{import} \PY{n+nn}{os}
-         \PY{k+kn}{from} \PY{n+nn}{IPython}\PY{n+nn}{.}\PY{n+nn}{display} \PY{k}{import} \PY{n}{Markdown} \PY{k}{as} \PY{n}{md}
-         
-         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} sets working directory}
-         \PY{n}{os}\PY{o}{.}\PY{n}{chdir}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Python/Models Brian2}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
-         
-         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} import models}
-         \PY{k+kn}{import} \PY{n+nn}{models}\PY{n+nn}{.}\PY{n+nn}{Rattay\PYZus{}2001} \PY{k}{as} \PY{n+nn}{rattay\PYZus{}01}
-         \PY{k+kn}{import} \PY{n+nn}{models}\PY{n+nn}{.}\PY{n+nn}{Frijns\PYZus{}1994} \PY{k}{as} \PY{n+nn}{frijns\PYZus{}94}
-         \PY{k+kn}{import} \PY{n+nn}{models}\PY{n+nn}{.}\PY{n+nn}{Frijns\PYZus{}2005} \PY{k}{as} \PY{n+nn}{frijns\PYZus{}05}
-         \PY{k+kn}{import} \PY{n+nn}{models}\PY{n+nn}{.}\PY{n+nn}{Smit\PYZus{}2009} \PY{k}{as} \PY{n+nn}{smit\PYZus{}09}
-         \PY{k+kn}{import} \PY{n+nn}{models}\PY{n+nn}{.}\PY{n+nn}{Smit\PYZus{}2010} \PY{k}{as} \PY{n+nn}{smit\PYZus{}10}
-         \PY{k+kn}{import} \PY{n+nn}{models}\PY{n+nn}{.}\PY{n+nn}{Imennov\PYZus{}2009} \PY{k}{as} \PY{n+nn}{imennov\PYZus{}09}
-         \PY{k+kn}{import} \PY{n+nn}{models}\PY{n+nn}{.}\PY{n+nn}{Negm\PYZus{}2014} \PY{k}{as} \PY{n+nn}{negm\PYZus{}14}
-         
-         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} makes code faster and prevents warning}
-         \PY{n}{prefs}\PY{o}{.}\PY{n}{codegen}\PY{o}{.}\PY{n}{target} \PY{o}{=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{numpy}\PY{l+s+s2}{\PYZdq{}}
-         
-         \PY{c+c1}{\PYZsh{} =============================================================================}
-         \PY{c+c1}{\PYZsh{} Load data}
-         \PY{c+c1}{\PYZsh{} =============================================================================}
-         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} choose model}
-         \PY{n}{model} \PY{o}{=} \PY{n}{rattay\PYZus{}01}
-         
-         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} load datasets}
-         \PY{n}{strength\PYZus{}duration\PYZus{}data} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{n}{f}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{/Strength\PYZus{}duration\PYZus{}data }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{threshold\PYZus{}table} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{n}{f}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{/Threshold\PYZus{}table }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{relative\PYZus{}spreads} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{n}{f}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{/Relative\PYZus{}spreads }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{conduction\PYZus{}velocity\PYZus{}table} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{n}{f}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{/Conduction\PYZus{}velocity\PYZus{}table }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{node\PYZus{}response\PYZus{}data\PYZus{}summary} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{n}{f}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{/Node\PYZus{}response\PYZus{}data\PYZus{}summary }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         \PY{n}{refractory\PYZus{}table} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{n}{f}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{/Refractory\PYZus{}table }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
-         
-         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} get plot links}
-         \PY{n}{strength\PYZus{}duration\PYZus{}curve\PYZus{}link} \PY{o}{=} \PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{/Strength\PYZus{}duration\PYZus{}curve }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{.png}\PY{l+s+s2}{\PYZdq{}}
-         \PY{n}{relative\PYZus{}spread\PYZus{}plot\PYZus{}link} \PY{o}{=} \PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{/Relative\PYZus{}spreads\PYZus{}plot }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{.png}\PY{l+s+s2}{\PYZdq{}}
-         \PY{n}{single\PYZus{}node\PYZus{}response\PYZus{}link} \PY{o}{=} \PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{/Single\PYZus{}node\PYZus{}response }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{.png}\PY{l+s+s2}{\PYZdq{}}
-         \PY{n}{refractory\PYZus{}curve\PYZus{}link} \PY{o}{=} \PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{/Refractory\PYZus{}curve }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{.png}\PY{l+s+s2}{\PYZdq{}}
-         \PY{n}{post\PYZus{}stimulus\PYZus{}time\PYZus{}histogram\PYZus{}link} \PY{o}{=} \PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{/PSTH }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{.png}\PY{l+s+s2}{\PYZdq{}}
-         
-         \PY{c+c1}{\PYZsh{} =============================================================================}
-         \PY{c+c1}{\PYZsh{} Add experimental results to tables}
-         \PY{c+c1}{\PYZsh{} =============================================================================}
-         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} Strength duration data}
-         \PY{n}{strength\PYZus{}duration\PYZus{}data} \PY{o}{=} \PY{n}{strength\PYZus{}duration\PYZus{}data}\PY{o}{.}\PY{n}{transpose}\PY{p}{(}\PY{p}{)}
-         \PY{n}{strength\PYZus{}duration\PYZus{}data} \PY{o}{=} \PY{n}{strength\PYZus{}duration\PYZus{}data}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+m+mi}{0}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
-         \PY{n}{strength\PYZus{}duration\PYZus{}data}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Van den Honert and Stypulkowski 1984}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{95.8}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{247}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         
-         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} Relative spread of thresholds}
-         \PY{n}{relative\PYZus{}spreads} \PY{o}{=} \PY{n}{relative\PYZus{}spreads}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{relative spread}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
-         \PY{n}{relative\PYZus{}spreads}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{experiments}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{6.3}\PY{l+s+s2}{\PYZpc{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{5\PYZhy{}10}\PY{l+s+s2}{\PYZpc{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{12}\PY{l+s+s2}{\PYZpc{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{11}\PY{l+s+s2}{\PYZpc{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         \PY{n}{relative\PYZus{}spreads}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{reference}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Miller et al. 1999}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Dynes 1996}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Javel et al. 1987}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Javel et al. 1987}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         \PY{n}{relative\PYZus{}spreads} \PY{o}{=} \PY{n}{relative\PYZus{}spreads}\PY{o}{.}\PY{n}{set\PYZus{}index}\PY{p}{(}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pulse form}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}
-         
-         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} Conduction velocity}
-         \PY{n}{conduction\PYZus{}velocity\PYZus{}table} \PY{o}{=} \PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{o}{.}\PY{n}{transpose}\PY{p}{(}\PY{p}{)}
-         \PY{n}{conduction\PYZus{}velocity\PYZus{}table} \PY{o}{=} \PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+m+mi}{0}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
-         \PY{k}{if} \PY{n+nb}{hasattr}\PY{p}{(}\PY{n}{model}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{index\PYZus{}soma}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}\PY{p}{:}
-             \PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Hursh 1939}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{6}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-             \PY{k}{if} \PY{n}{model}\PY{o}{.}\PY{n}{diameter\PYZus{}dendrite} \PY{o}{\PYZlt{}} \PY{l+m+mi}{12}\PY{o}{*}\PY{n}{um}\PY{p}{:}
-                 \PY{n}{dendrite\PYZus{}ratio} \PY{o}{=} \PY{l+m+mf}{4.6}
-             \PY{k}{else}\PY{p}{:}
-                 \PY{n}{dendrite\PYZus{}ratio} \PY{o}{=} \PY{l+m+mf}{5.66}
-             \PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Boyd and Kalu 1979}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}dendrite\PYZus{}ratio\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-             \PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Czèh et al 1976}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{v\PYZus{}ax = 0.9*v\PYZus{}den\PYZhy{}6.9*m/s}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         
-         \PY{k}{else}\PY{p}{:}
-             \PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Hursh 1939}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{6}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-             \PY{k}{if} \PY{n}{model}\PY{o}{.}\PY{n}{diameter\PYZus{}fiber} \PY{o}{\PYZlt{}} \PY{l+m+mi}{12}\PY{o}{*}\PY{n}{um}\PY{p}{:}
-                 \PY{n}{dendrite\PYZus{}ratio} \PY{o}{=} \PY{l+m+mf}{4.6}
-             \PY{k}{else}\PY{p}{:}
-                 \PY{n}{dendrite\PYZus{}ratio} \PY{o}{=} \PY{l+m+mf}{5.66}
-             \PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Boyd and Kalu 1979}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}dendrite\PYZus{}ratio\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         
-         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} Latency and jitter}
-         \PY{n}{latency\PYZus{}jitter} \PY{o}{=} \PY{n}{node\PYZus{}response\PYZus{}data\PYZus{}summary}\PY{p}{[}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pulse form}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{stimulus amplitude level}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{latency (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}  \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{jitter (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{]}
-         \PY{n}{latency\PYZus{}jitter} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{latency (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{latency (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{jitter (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{jitter (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
-         \PY{n}{latency\PYZus{}jitter} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{melt}\PY{p}{(}\PY{n}{latency\PYZus{}jitter}\PY{p}{,} \PY{n}{id\PYZus{}vars}\PY{o}{=}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pulse form}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{stimulus amplitude level}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{,} \PY{n}{value\PYZus{}vars}\PY{o}{=}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{latency (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}  \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{jitter (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}
-         \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{value}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{value}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{o}{*}\PY{l+m+mi}{1000}
-         
-         \PY{n}{latency\PYZus{}jitter\PYZus{}th} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{stimulus amplitude level}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{==} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{threshold}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         \PY{n}{latency\PYZus{}jitter\PYZus{}th} \PY{o}{=} \PY{n}{latency\PYZus{}jitter\PYZus{}th}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{value}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model (threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
-         
-         \PY{n}{latency\PYZus{}jitter\PYZus{}2th} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{stimulus amplitude level}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{==} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{2*threshold}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         \PY{n}{latency\PYZus{}jitter\PYZus{}2th} \PY{o}{=} \PY{n}{latency\PYZus{}jitter\PYZus{}2th}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{value}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model (2*threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
-         
-         \PY{n}{latency\PYZus{}jitter} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{o}{.}\PY{n}{drop}\PY{p}{(}\PY{n}{columns} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{stimulus amplitude level}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{value}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}\PY{o}{.}\PY{n}{drop\PYZus{}duplicates}\PY{p}{(}\PY{p}{)}
-         \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model (threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{n}{latency\PYZus{}jitter\PYZus{}th}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model (threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{o}{.}\PY{n}{tolist}\PY{p}{(}\PY{p}{)}
-         \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model (2*threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{n}{latency\PYZus{}jitter\PYZus{}2th}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model (2*threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{o}{.}\PY{n}{tolist}\PY{p}{(}\PY{p}{)}
-         \PY{n}{latency\PYZus{}jitter} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{o}{.}\PY{n}{sort\PYZus{}values}\PY{p}{(}\PY{n}{by}\PY{o}{=}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pulse form}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{,} \PY{n}{ascending} \PY{o}{=} \PY{p}{[}\PY{k+kc}{False}\PY{p}{,} \PY{k+kc}{True}\PY{p}{]}\PY{p}{)}
-         
-         \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Miller et al. 1999}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{650}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{100}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Van den Honert and Stypulkowski 1984 (threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{685}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{352}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Van den Honert and Stypulkowski 1984 (2*threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{352}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{8}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Hartmann and al. 1984}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{300\PYZhy{}400}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Cartee et al. 2000 (threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{440}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{80}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         
-         \PY{n}{latency\PYZus{}jitter} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{o}{.}\PY{n}{set\PYZus{}index}\PY{p}{(}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pulse form}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{variable}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}
-         
-         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} AP shape}
-         \PY{n}{AP\PYZus{}shape} \PY{o}{=} \PY{n}{node\PYZus{}response\PYZus{}data\PYZus{}summary}\PY{p}{[}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{AP height (mV)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{rise time (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{fall time (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{AP duration (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{iloc}\PY{p}{[}\PY{p}{[}\PY{l+m+mi}{5}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{transpose}\PY{p}{(}\PY{p}{)}
-         \PY{n}{AP\PYZus{}shape} \PY{o}{=} \PY{n}{AP\PYZus{}shape}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+m+mi}{5}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
-         
-         \PY{n}{t\PYZus{}rise} \PY{o}{=} \PY{n+nb}{round}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mf}{0.000625}\PY{o}{*}\PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{o}{.}\PY{n}{iloc}\PY{p}{[}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{]} \PY{o}{+} \PY{l+m+mf}{0.14}\PY{p}{,} \PY{l+m+mi}{3}\PY{p}{)}\PY{o}{.}\PY{n}{tolist}\PY{p}{(}\PY{p}{)}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}
-         \PY{n}{t\PYZus{}fall} \PY{o}{=} \PY{n+nb}{round}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mf}{0.002083}\PY{o}{*}\PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{o}{.}\PY{n}{iloc}\PY{p}{[}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{]} \PY{o}{+} \PY{l+m+mf}{0.3933}\PY{p}{,} \PY{l+m+mi}{3}\PY{p}{)}\PY{o}{.}\PY{n}{tolist}\PY{p}{(}\PY{p}{)}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}
-         \PY{n}{AP\PYZus{}duration} \PY{o}{=} \PY{n}{t\PYZus{}rise} \PY{o}{+} \PY{n}{t\PYZus{}fall}
-         \PY{n}{AP\PYZus{}shape}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Paintal 1965}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{t\PYZus{}rise}\PY{p}{,} \PY{n}{t\PYZus{}fall}\PY{p}{,} \PY{n}{AP\PYZus{}duration}\PY{p}{]}
-         
-         \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} Refractory periods}
-         \PY{n}{absolute\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{refractory\PYZus{}table}\PY{o}{.}\PY{n}{drop}\PY{p}{(}\PY{n}{columns} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{relative refractory period (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}
-         \PY{n}{absolute\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{absolute refractory period (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{ARP model (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
-         \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{ARP model (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{ARP model (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{o}{*}\PY{l+m+mi}{1000}
-         \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{ARP Experiments (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{334}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{300}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{500\PYZhy{}700}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{400\PYZhy{}500}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{reference}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Miller et al. 2001}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Stypulkowski and Van den Honert 1984}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Dynes 1996}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Brown and Abbas 1990}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         \PY{n}{absolute\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{ARP Experiments (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{!=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         \PY{n}{absolute\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{o}{.}\PY{n}{set\PYZus{}index}\PY{p}{(}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pulse form}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}
-         
-         \PY{n}{relative\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{refractory\PYZus{}table}\PY{o}{.}\PY{n}{drop}\PY{p}{(}\PY{n}{columns} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{absolute refractory period (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}
-         \PY{n}{relative\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{relative\PYZus{}refractory\PYZus{}periods}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{relative refractory period (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{RRP model (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
-         \PY{n}{relative\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{RRP Experiments (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{3\PYZhy{}4; 4\PYZhy{}5}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{5}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{5}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         \PY{n}{relative\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{reference}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Stypulkowski and Van den Honert 1984; Cartee et al. 2000}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Dynes 1996}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Hartmann et al. 1984}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         \PY{n}{relative\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{relative\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{n}{relative\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{RRP Experiments (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{!=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
-         \PY{n}{relative\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{relative\PYZus{}refractory\PYZus{}periods}\PY{o}{.}\PY{n}{set\PYZus{}index}\PY{p}{(}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pulse form}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}117}]:} \PY{o}{\PYZpc{}}\PY{k}{matplotlib} inline
+          
+          \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} don\PYZsq{}t show warnings}
+          \PY{k+kn}{import} \PY{n+nn}{warnings}
+          \PY{n}{warnings}\PY{o}{.}\PY{n}{simplefilter}\PY{p}{(}\PY{n}{action}\PY{o}{=}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{ignore}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{n}{category}\PY{o}{=}\PY{n+ne}{FutureWarning}\PY{p}{)}
+          
+          \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} import packages}
+          \PY{k+kn}{from} \PY{n+nn}{brian2} \PY{k}{import} \PY{o}{*}
+          \PY{k+kn}{from} \PY{n+nn}{brian2}\PY{n+nn}{.}\PY{n+nn}{units}\PY{n+nn}{.}\PY{n+nn}{constants} \PY{k}{import} \PY{n}{zero\PYZus{}celsius}\PY{p}{,} \PY{n}{gas\PYZus{}constant} \PY{k}{as} \PY{n}{R}\PY{p}{,} \PY{n}{faraday\PYZus{}constant} \PY{k}{as} \PY{n}{F}
+          \PY{k+kn}{import} \PY{n+nn}{numpy} \PY{k}{as} \PY{n+nn}{np}
+          \PY{k+kn}{import} \PY{n+nn}{pandas} \PY{k}{as} \PY{n+nn}{pd}
+          \PY{n}{pd}\PY{o}{.}\PY{n}{set\PYZus{}option}\PY{p}{(}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{display.width}\PY{l+s+s1}{\PYZsq{}}\PY{p}{,} \PY{l+m+mi}{115}\PY{p}{)}
+          \PY{k+kn}{import} \PY{n+nn}{matplotlib}\PY{n+nn}{.}\PY{n+nn}{pyplot} \PY{k}{as} \PY{n+nn}{plt}
+          \PY{k+kn}{import} \PY{n+nn}{os}
+          \PY{k+kn}{from} \PY{n+nn}{IPython}\PY{n+nn}{.}\PY{n+nn}{display} \PY{k}{import} \PY{n}{Markdown} \PY{k}{as} \PY{n}{md}
+          
+          \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} sets working directory}
+          \PY{n}{os}\PY{o}{.}\PY{n}{chdir}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Python/Models Brian2}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}
+          
+          \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} import models}
+          \PY{k+kn}{import} \PY{n+nn}{models}\PY{n+nn}{.}\PY{n+nn}{Rattay\PYZus{}2001} \PY{k}{as} \PY{n+nn}{rattay\PYZus{}01}
+          \PY{k+kn}{import} \PY{n+nn}{models}\PY{n+nn}{.}\PY{n+nn}{Frijns\PYZus{}1994} \PY{k}{as} \PY{n+nn}{frijns\PYZus{}94}
+          \PY{k+kn}{import} \PY{n+nn}{models}\PY{n+nn}{.}\PY{n+nn}{Frijns\PYZus{}2005} \PY{k}{as} \PY{n+nn}{frijns\PYZus{}05}
+          \PY{k+kn}{import} \PY{n+nn}{models}\PY{n+nn}{.}\PY{n+nn}{Smit\PYZus{}2009} \PY{k}{as} \PY{n+nn}{smit\PYZus{}09}
+          \PY{k+kn}{import} \PY{n+nn}{models}\PY{n+nn}{.}\PY{n+nn}{Smit\PYZus{}2010} \PY{k}{as} \PY{n+nn}{smit\PYZus{}10}
+          \PY{k+kn}{import} \PY{n+nn}{models}\PY{n+nn}{.}\PY{n+nn}{Imennov\PYZus{}2009} \PY{k}{as} \PY{n+nn}{imennov\PYZus{}09}
+          \PY{k+kn}{import} \PY{n+nn}{models}\PY{n+nn}{.}\PY{n+nn}{Negm\PYZus{}2014} \PY{k}{as} \PY{n+nn}{negm\PYZus{}14}
+          
+          \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} makes code faster and prevents warning}
+          \PY{n}{prefs}\PY{o}{.}\PY{n}{codegen}\PY{o}{.}\PY{n}{target} \PY{o}{=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{numpy}\PY{l+s+s2}{\PYZdq{}}
+          
+          \PY{c+c1}{\PYZsh{} =============================================================================}
+          \PY{c+c1}{\PYZsh{} Load data}
+          \PY{c+c1}{\PYZsh{} =============================================================================}
+          \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} choose model}
+          \PY{n}{model} \PY{o}{=} \PY{n}{rattay\PYZus{}01}
+          
+          \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} load datasets}
+          \PY{n}{strength\PYZus{}duration\PYZus{}data} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{n}{f}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{/Strength\PYZus{}duration\PYZus{}data }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+          \PY{n}{threshold\PYZus{}table} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{n}{f}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{/Threshold\PYZus{}table }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+          \PY{n}{relative\PYZus{}spreads} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{n}{f}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{/Relative\PYZus{}spreads }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+          \PY{n}{conduction\PYZus{}velocity\PYZus{}table} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{n}{f}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{/Conduction\PYZus{}velocity\PYZus{}table }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+          \PY{n}{node\PYZus{}response\PYZus{}data\PYZus{}summary} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{n}{f}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{/Node\PYZus{}response\PYZus{}data\PYZus{}summary }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+          \PY{n}{refractory\PYZus{}table} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{read\PYZus{}csv}\PY{p}{(}\PY{n}{f}\PY{l+s+s1}{\PYZsq{}}\PY{l+s+s1}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{/Refractory\PYZus{}table }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s1}{.csv}\PY{l+s+s1}{\PYZsq{}}\PY{p}{)}
+          
+          \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} get plot links}
+          \PY{n}{strength\PYZus{}duration\PYZus{}curve\PYZus{}link} \PY{o}{=} \PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{/Strength\PYZus{}duration\PYZus{}curve }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{.png}\PY{l+s+s2}{\PYZdq{}}
+          \PY{n}{relative\PYZus{}spread\PYZus{}plot\PYZus{}link} \PY{o}{=} \PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{/Relative\PYZus{}spreads\PYZus{}plot }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{.png}\PY{l+s+s2}{\PYZdq{}}
+          \PY{n}{single\PYZus{}node\PYZus{}response\PYZus{}link} \PY{o}{=} \PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{/Single\PYZus{}node\PYZus{}response }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{.png}\PY{l+s+s2}{\PYZdq{}}
+          \PY{n}{refractory\PYZus{}curve\PYZus{}link} \PY{o}{=} \PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{/Refractory\PYZus{}curve }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{.png}\PY{l+s+s2}{\PYZdq{}}
+          \PY{n}{post\PYZus{}stimulus\PYZus{}time\PYZus{}histogram\PYZus{}link} \PY{o}{=} \PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{test\PYZus{}battery\PYZus{}results/}\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{/PSTH }\PY{l+s+si}{\PYZob{}model.display\PYZus{}name\PYZcb{}}\PY{l+s+s2}{.png}\PY{l+s+s2}{\PYZdq{}}
+          
+          \PY{c+c1}{\PYZsh{} =============================================================================}
+          \PY{c+c1}{\PYZsh{} Add experimental results to tables}
+          \PY{c+c1}{\PYZsh{} =============================================================================}
+          \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} Strength duration data}
+          \PY{n}{strength\PYZus{}duration\PYZus{}data} \PY{o}{=} \PY{n}{strength\PYZus{}duration\PYZus{}data}\PY{o}{.}\PY{n}{transpose}\PY{p}{(}\PY{p}{)}
+          \PY{n}{strength\PYZus{}duration\PYZus{}data} \PY{o}{=} \PY{n}{strength\PYZus{}duration\PYZus{}data}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+m+mi}{0}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
+          \PY{n}{strength\PYZus{}duration\PYZus{}data}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZpc{}.3g}\PY{l+s+s2}{\PYZdq{}} \PY{o}{\PYZpc{}}\PY{k}{strength\PYZus{}duration\PYZus{}data}[\PYZdq{}model\PYZdq{}][i] for i in range(0,2)]
+          \PY{n}{strength\PYZus{}duration\PYZus{}data}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Van den Honert and Stypulkowski 1984}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{95.8}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{247}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          
+          \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} Relative spread of thresholds}
+          \PY{n}{relative\PYZus{}spreads} \PY{o}{=} \PY{n}{relative\PYZus{}spreads}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{relative spread}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
+          \PY{n}{relative\PYZus{}spreads}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{experiments}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{6.3}\PY{l+s+s2}{\PYZpc{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{5\PYZhy{}10}\PY{l+s+s2}{\PYZpc{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{12}\PY{l+s+s2}{\PYZpc{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{11}\PY{l+s+s2}{\PYZpc{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          \PY{n}{relative\PYZus{}spreads}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{reference}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Miller et al. 1999}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Dynes 1996}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Javel et al. 1987}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Javel et al. 1987}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          \PY{n}{relative\PYZus{}spreads} \PY{o}{=} \PY{n}{relative\PYZus{}spreads}\PY{o}{.}\PY{n}{set\PYZus{}index}\PY{p}{(}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pulse form}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}
+          
+          \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} Conduction velocity}
+          \PY{n}{conduction\PYZus{}velocity\PYZus{}table} \PY{o}{=} \PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{o}{.}\PY{n}{transpose}\PY{p}{(}\PY{p}{)}
+          \PY{n}{conduction\PYZus{}velocity\PYZus{}table} \PY{o}{=} \PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+m+mi}{0}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
+          \PY{k}{if} \PY{n+nb}{hasattr}\PY{p}{(}\PY{n}{model}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{index\PYZus{}soma}\PY{l+s+s2}{\PYZdq{}}\PY{p}{)}\PY{p}{:}
+              \PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Hursh 1939}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{6}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+              \PY{k}{if} \PY{n}{model}\PY{o}{.}\PY{n}{diameter\PYZus{}dendrite} \PY{o}{\PYZlt{}} \PY{l+m+mi}{12}\PY{o}{*}\PY{n}{um}\PY{p}{:}
+                  \PY{n}{dendrite\PYZus{}ratio} \PY{o}{=} \PY{l+m+mf}{4.6}
+              \PY{k}{else}\PY{p}{:}
+                  \PY{n}{dendrite\PYZus{}ratio} \PY{o}{=} \PY{l+m+mf}{5.66}
+              \PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Boyd and Kalu 1979}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}dendrite\PYZus{}ratio\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+              \PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Czèh et al 1976}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{v\PYZus{}ax = 0.9*v\PYZus{}den\PYZhy{}6.9*m/s}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          
+          \PY{k}{else}\PY{p}{:}
+              \PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Hursh 1939}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{6}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+              \PY{k}{if} \PY{n}{model}\PY{o}{.}\PY{n}{diameter\PYZus{}fiber} \PY{o}{\PYZlt{}} \PY{l+m+mi}{12}\PY{o}{*}\PY{n}{um}\PY{p}{:}
+                  \PY{n}{dendrite\PYZus{}ratio} \PY{o}{=} \PY{l+m+mf}{4.6}
+              \PY{k}{else}\PY{p}{:}
+                  \PY{n}{dendrite\PYZus{}ratio} \PY{o}{=} \PY{l+m+mf}{5.66}
+              \PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Boyd and Kalu 1979}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{n}{f}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZob{}dendrite\PYZus{}ratio\PYZcb{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          
+          \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} Latency and jitter}
+          \PY{n}{latency\PYZus{}jitter} \PY{o}{=} \PY{n}{node\PYZus{}response\PYZus{}data\PYZus{}summary}\PY{p}{[}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pulse form}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{stimulus amplitude level}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{latency (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}  \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{jitter (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{]}
+          \PY{n}{latency\PYZus{}jitter} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{latency (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{latency (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{jitter (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{jitter (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
+          \PY{n}{latency\PYZus{}jitter} \PY{o}{=} \PY{n}{pd}\PY{o}{.}\PY{n}{melt}\PY{p}{(}\PY{n}{latency\PYZus{}jitter}\PY{p}{,} \PY{n}{id\PYZus{}vars}\PY{o}{=}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pulse form}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{stimulus amplitude level}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{,} \PY{n}{value\PYZus{}vars}\PY{o}{=}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{latency (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}  \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{jitter (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}
+          \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{value}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{value}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{o}{*}\PY{l+m+mi}{1000}
+          \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{value}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZpc{}.3g}\PY{l+s+s2}{\PYZdq{}} \PY{o}{\PYZpc{}}\PY{k}{latency\PYZus{}jitter}[\PYZdq{}value\PYZdq{}][i] for i in range(0,latency\PYZus{}jitter.shape[0])]
+          \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+si}{\PYZpc{}g}\PY{l+s+s2}{ us}\PY{l+s+s2}{\PYZdq{}} \PY{o}{\PYZpc{}}\PY{k}{latency\PYZus{}jitter}[\PYZdq{}phase duration (us)\PYZdq{}][i] for i in range(0,latency\PYZus{}jitter.shape[0])]
+          \PY{n}{latency\PYZus{}jitter} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
+          
+          \PY{n}{latency\PYZus{}jitter\PYZus{}th} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{stimulus amplitude level}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{==} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{threshold}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          \PY{n}{latency\PYZus{}jitter\PYZus{}th} \PY{o}{=} \PY{n}{latency\PYZus{}jitter\PYZus{}th}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{value}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model (threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
+          
+          \PY{n}{latency\PYZus{}jitter\PYZus{}2th} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{stimulus amplitude level}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{==} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{2*threshold}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          \PY{n}{latency\PYZus{}jitter\PYZus{}2th} \PY{o}{=} \PY{n}{latency\PYZus{}jitter\PYZus{}2th}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{value}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model (2*threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
+          
+          \PY{n}{latency\PYZus{}jitter} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{o}{.}\PY{n}{drop}\PY{p}{(}\PY{n}{columns} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{stimulus amplitude level}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{value}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}\PY{o}{.}\PY{n}{drop\PYZus{}duplicates}\PY{p}{(}\PY{p}{)}
+          \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model (threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{n}{latency\PYZus{}jitter\PYZus{}th}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model (threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{o}{.}\PY{n}{tolist}\PY{p}{(}\PY{p}{)}
+          \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model (2*threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{n}{latency\PYZus{}jitter\PYZus{}2th}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model (2*threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{o}{.}\PY{n}{tolist}\PY{p}{(}\PY{p}{)}
+          \PY{n}{latency\PYZus{}jitter} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{o}{.}\PY{n}{sort\PYZus{}values}\PY{p}{(}\PY{n}{by}\PY{o}{=}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pulse form}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{,} \PY{n}{ascending} \PY{o}{=} \PY{p}{[}\PY{k+kc}{False}\PY{p}{,} \PY{k+kc}{True}\PY{p}{]}\PY{p}{)}
+          
+          \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Miller et al. 1999}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{650}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{100}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Van den Honert and Stypulkowski 1984 (threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{685}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{352}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Van den Honert and Stypulkowski 1984 (2*threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{352}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{8}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Hartmann and al. 1984}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{300\PYZhy{}400}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          \PY{n}{latency\PYZus{}jitter}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Cartee et al. 2000 (threshold)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{440}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{80}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          
+          \PY{n}{latency\PYZus{}jitter} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{variable}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{property}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
+          \PY{n}{latency\PYZus{}jitter} \PY{o}{=} \PY{n}{latency\PYZus{}jitter}\PY{o}{.}\PY{n}{set\PYZus{}index}\PY{p}{(}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pulse form}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{property}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}
+          
+          \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} AP shape}
+          \PY{n}{AP\PYZus{}shape} \PY{o}{=} \PY{n}{node\PYZus{}response\PYZus{}data\PYZus{}summary}\PY{p}{[}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{AP height (mV)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{rise time (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{fall time (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{AP duration (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{iloc}\PY{p}{[}\PY{p}{[}\PY{l+m+mi}{5}\PY{p}{]}\PY{p}{]}\PY{o}{.}\PY{n}{transpose}\PY{p}{(}\PY{p}{)}
+          \PY{n}{AP\PYZus{}shape} \PY{o}{=} \PY{n}{AP\PYZus{}shape}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+m+mi}{5}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
+          
+          \PY{n}{t\PYZus{}rise} \PY{o}{=} \PY{n+nb}{round}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mf}{0.000625}\PY{o}{*}\PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{o}{.}\PY{n}{iloc}\PY{p}{[}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{]} \PY{o}{+} \PY{l+m+mf}{0.14}\PY{p}{,} \PY{l+m+mi}{3}\PY{p}{)}\PY{o}{.}\PY{n}{tolist}\PY{p}{(}\PY{p}{)}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}
+          \PY{n}{t\PYZus{}fall} \PY{o}{=} \PY{n+nb}{round}\PY{p}{(}\PY{o}{\PYZhy{}}\PY{l+m+mf}{0.002083}\PY{o}{*}\PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{model}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{o}{.}\PY{n}{iloc}\PY{p}{[}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}\PY{p}{]} \PY{o}{+} \PY{l+m+mf}{0.3933}\PY{p}{,} \PY{l+m+mi}{3}\PY{p}{)}\PY{o}{.}\PY{n}{tolist}\PY{p}{(}\PY{p}{)}\PY{p}{[}\PY{l+m+mi}{0}\PY{p}{]}
+          \PY{n}{AP\PYZus{}duration} \PY{o}{=} \PY{n}{t\PYZus{}rise} \PY{o}{+} \PY{n}{t\PYZus{}fall}
+          \PY{n}{AP\PYZus{}shape}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Paintal 1965}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{n}{t\PYZus{}rise}\PY{p}{,} \PY{n}{t\PYZus{}fall}\PY{p}{,} \PY{n}{AP\PYZus{}duration}\PY{p}{]}
+          
+          \PY{c+c1}{\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{}\PYZsh{} Refractory periods}
+          \PY{n}{absolute\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{refractory\PYZus{}table}\PY{o}{.}\PY{n}{drop}\PY{p}{(}\PY{n}{columns} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{relative refractory period (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}
+          \PY{n}{absolute\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{absolute refractory period (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{ARP model (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
+          \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{ARP model (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{ARP model (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{o}{*}\PY{l+m+mi}{1000}
+          \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{ARP Experiments (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{334}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{300}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{500\PYZhy{}700}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{400\PYZhy{}500}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{reference}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Miller et al. 2001}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Stypulkowski and Van den Honert 1984}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Dynes 1996}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Brown and Abbas 1990}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          \PY{n}{absolute\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{ARP Experiments (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{!=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          \PY{n}{absolute\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{o}{.}\PY{n}{set\PYZus{}index}\PY{p}{(}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pulse form}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}
+          
+          \PY{n}{relative\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{refractory\PYZus{}table}\PY{o}{.}\PY{n}{drop}\PY{p}{(}\PY{n}{columns} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{absolute refractory period (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}
+          \PY{n}{relative\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{relative\PYZus{}refractory\PYZus{}periods}\PY{o}{.}\PY{n}{rename}\PY{p}{(}\PY{n}{index} \PY{o}{=} \PY{n+nb}{str}\PY{p}{,} \PY{n}{columns}\PY{o}{=}\PY{p}{\PYZob{}}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{relative refractory period (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{:}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{RRP model (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{\PYZcb{}}\PY{p}{)}
+          \PY{n}{relative\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{RRP Experiments (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{3\PYZhy{}4; 4\PYZhy{}5}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{5}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{5}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          \PY{n}{relative\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{reference}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{=} \PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Stypulkowski and Van den Honert 1984; Cartee et al. 2000}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Dynes 1996}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{Hartmann et al. 1984}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          \PY{n}{relative\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{relative\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{n}{relative\PYZus{}refractory\PYZus{}periods}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{RRP Experiments (ms)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]} \PY{o}{!=} \PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZhy{}}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}
+          \PY{n}{relative\PYZus{}refractory\PYZus{}periods} \PY{o}{=} \PY{n}{relative\PYZus{}refractory\PYZus{}periods}\PY{o}{.}\PY{n}{set\PYZus{}index}\PY{p}{(}\PY{p}{[}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{phase duration (us)}\PY{l+s+s2}{\PYZdq{}}\PY{p}{,}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{pulse form}\PY{l+s+s2}{\PYZdq{}}\PY{p}{]}\PY{p}{)}
 \end{Verbatim}
 
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}79}]:} \PY{n}{md}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZsh{} }\PY{l+s+si}{\PYZpc{}s}\PY{l+s+s2}{: Test battery results}\PY{l+s+s2}{\PYZdq{}}\PY{o}{\PYZpc{}}\PY{p}{(}\PY{n}{model}\PY{o}{.}\PY{n}{display\PYZus{}name}\PY{p}{)}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}118}]:} \PY{o}{\PYZpc{}\PYZpc{}}\PY{k}{HTML}
+          \PYZlt{}style type=\PYZdq{}text/css\PYZdq{}\PYZgt{}
+          table.dataframe td, table.dataframe th \PYZob{}
+              border\PYZhy{}right: 1px  black solid !important;
+              text\PYZhy{}align: center !important;
+            color: black !important;
+          \PYZcb{}
 \end{Verbatim}
 
-\texttt{\color{outcolor}Out[{\color{outcolor}79}]:}
+
+    
+    \begin{verbatim}
+<IPython.core.display.HTML object>
+    \end{verbatim}
+
+    
+    \begin{Verbatim}[commandchars=\\\{\}]
+{\color{incolor}In [{\color{incolor}119}]:} \PY{n}{md}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{\PYZsh{} }\PY{l+s+si}{\PYZpc{}s}\PY{l+s+s2}{: Test battery results}\PY{l+s+s2}{\PYZdq{}}\PY{o}{\PYZpc{}}\PY{p}{(}\PY{n}{model}\PY{o}{.}\PY{n}{display\PYZus{}name}\PY{p}{)}\PY{p}{)}
+\end{Verbatim}
+
+\texttt{\color{outcolor}Out[{\color{outcolor}119}]:}
     
     \section{Rattay et al. 2001: Test battery
 results}\label{rattay-et-al.-2001-test-battery-results}
@@ -456,91 +478,88 @@ results}\label{rattay-et-al.-2001-test-battery-results}
     \subsection{1. Strength duration curve}\label{strength-duration-curve}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}80}]:} \PY{n}{md}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{![title](}\PY{l+s+si}{\PYZpc{}s}\PY{l+s+s2}{)}\PY{l+s+s2}{\PYZdq{}}\PY{o}{\PYZpc{}}\PY{p}{(}\PY{n}{strength\PYZus{}duration\PYZus{}curve\PYZus{}link}\PY{p}{)}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}120}]:} \PY{n}{md}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{![title](}\PY{l+s+si}{\PYZpc{}s}\PY{l+s+s2}{?arg)}\PY{l+s+s2}{\PYZdq{}}\PY{o}{\PYZpc{}}\PY{p}{(}\PY{n}{strength\PYZus{}duration\PYZus{}curve\PYZus{}link}\PY{p}{)}\PY{p}{)}
 \end{Verbatim}
 
-\texttt{\color{outcolor}Out[{\color{outcolor}80}]:}
+\texttt{\color{outcolor}Out[{\color{outcolor}120}]:}
     
     \begin{figure}
 \centering
-\includegraphics{test_battery_results/Rattay et al. 2001/Strength_duration_curve Rattay et al. 2001.png}
+\includegraphics{test_battery_results/Rattay et al. 2001/Strength_duration_curve Rattay et al. 2001.png?arg}
 \caption{title}
 \end{figure}
 
     
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}81}]:} \PY{n+nb}{print}\PY{p}{(}\PY{n}{strength\PYZus{}duration\PYZus{}data}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}121}]:} \PY{n}{strength\PYZus{}duration\PYZus{}data}
 \end{Verbatim}
 
 
-    \begin{Verbatim}[commandchars=\\\{\}]
-                  model Van den Honert and Stypulkowski 1984
-rheobase (uA)     0.303                                 95.8
-chronaxie (us)  155.300                                  247
-
-    \end{Verbatim}
-
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}121}]:}                 model Van den Honert and Stypulkowski 1984
+          rheobase (uA)   0.303                                 95.8
+          chronaxie (us)    155                                  247
+\end{Verbatim}
+            
     \subsection{2. Relative spread of
 thresholds}\label{relative-spread-of-thresholds}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}82}]:} \PY{n}{md}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{![title](}\PY{l+s+si}{\PYZpc{}s}\PY{l+s+s2}{)}\PY{l+s+s2}{\PYZdq{}}\PY{o}{\PYZpc{}}\PY{p}{(}\PY{n}{relative\PYZus{}spread\PYZus{}plot\PYZus{}link}\PY{p}{)}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}122}]:} \PY{n}{md}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{![title](}\PY{l+s+si}{\PYZpc{}s}\PY{l+s+s2}{?arg)}\PY{l+s+s2}{\PYZdq{}}\PY{o}{\PYZpc{}}\PY{p}{(}\PY{n}{relative\PYZus{}spread\PYZus{}plot\PYZus{}link}\PY{p}{)}\PY{p}{)}
 \end{Verbatim}
 
-\texttt{\color{outcolor}Out[{\color{outcolor}82}]:}
+\texttt{\color{outcolor}Out[{\color{outcolor}122}]:}
     
     \begin{figure}
 \centering
-\includegraphics{test_battery_results/Rattay et al. 2001/Relative_spreads_plot Rattay et al. 2001.png}
+\includegraphics{test_battery_results/Rattay et al. 2001/Relative_spreads_plot Rattay et al. 2001.png?arg}
 \caption{title}
 \end{figure}
 
     
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}83}]:} \PY{n+nb}{print}\PY{p}{(}\PY{n}{relative\PYZus{}spreads}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}123}]:} \PY{n}{relative\PYZus{}spreads}
 \end{Verbatim}
 
 
-    \begin{Verbatim}[commandchars=\\\{\}]
-                            model experiments           reference
-phase duration pulse form                                        
-40. us         mono         4.41\%        6.3\%  Miller et al. 1999
-100. us        mono         10.1\%       5-10\%          Dynes 1996
-200. us        bi           8.08\%         12\%   Javel et al. 1987
-0.4 ms         bi          10.41\%         11\%   Javel et al. 1987
-
-    \end{Verbatim}
-
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}123}]:}                             model experiments           reference
+          phase duration pulse form                                        
+          40. us         mono         4.41\%        6.3\%  Miller et al. 1999
+          100. us        mono         10.1\%       5-10\%          Dynes 1996
+          200. us        bi           8.08\%         12\%   Javel et al. 1987
+          0.4 ms         bi          10.41\%         11\%   Javel et al. 1987
+\end{Verbatim}
+            
     \subsection{3. Conduction velocity}\label{conduction-velocity}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}84}]:} \PY{n+nb}{print}\PY{p}{(}\PY{n}{conduction\PYZus{}velocity\PYZus{}table}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}124}]:} \PY{n}{conduction\PYZus{}velocity\PYZus{}table}
 \end{Verbatim}
 
 
-    \begin{Verbatim}[commandchars=\\\{\}]
-                             model Hursh 1939 Boyd and Kalu 1979           Czèh et al 1976
-velocity dendrite (m/s)      6.839          -                  -                         -
-velocity/diameter dendrite   4.070          6                4.6                         -
-velocity axon (m/s)         12.840          -                  -                         -
-velocity/diameter axon       3.820          -                  -  v\_ax = 0.9*v\_den-6.9*m/s
-
-    \end{Verbatim}
-
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}124}]:}                              model Hursh 1939 Boyd and Kalu 1979           Czèh et al 1976
+          velocity dendrite (m/s)      6.839          -                  -                         -
+          velocity/diameter dendrite   4.070          6                4.6                         -
+          velocity axon (m/s)         12.840          -                  -  v\_ax = 0.9*v\_den-6.9*m/s
+          velocity/diameter axon       3.820          -                  -                         -
+\end{Verbatim}
+            
     \subsection{4. Single node response
 properties}\label{single-node-response-properties}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}85}]:} \PY{n}{md}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{![title](}\PY{l+s+si}{\PYZpc{}s}\PY{l+s+s2}{)}\PY{l+s+s2}{\PYZdq{}}\PY{o}{\PYZpc{}}\PY{p}{(}\PY{n}{single\PYZus{}node\PYZus{}response\PYZus{}link}\PY{p}{)}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}125}]:} \PY{n}{md}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{![title](}\PY{l+s+si}{\PYZpc{}s}\PY{l+s+s2}{?arg)}\PY{l+s+s2}{\PYZdq{}}\PY{o}{\PYZpc{}}\PY{p}{(}\PY{n}{single\PYZus{}node\PYZus{}response\PYZus{}link}\PY{p}{)}\PY{p}{)}
 \end{Verbatim}
 
-\texttt{\color{outcolor}Out[{\color{outcolor}85}]:}
+\texttt{\color{outcolor}Out[{\color{outcolor}125}]:}
     
     \begin{figure}
 \centering
-\includegraphics{test_battery_results/Rattay et al. 2001/Single_node_response Rattay et al. 2001.png}
+\includegraphics{test_battery_results/Rattay et al. 2001/Single_node_response Rattay et al. 2001.png?arg}
 \caption{title}
 \end{figure}
 
@@ -549,84 +568,82 @@ properties}\label{single-node-response-properties}
     \subsubsection{4.1 Action potential shape}\label{action-potential-shape}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}86}]:} \PY{n+nb}{print}\PY{p}{(}\PY{n}{AP\PYZus{}shape}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}126}]:} \PY{n}{AP\PYZus{}shape}
 \end{Verbatim}
 
 
-    \begin{Verbatim}[commandchars=\\\{\}]
-                   model Paintal 1965
-AP height (mV)    87.200            -
-rise time (ms)     0.110        0.136
-fall time (ms)     0.196        0.379
-AP duration (ms)   0.307        0.515
-
-    \end{Verbatim}
-
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}126}]:}                       model Paintal 1965
+          AP height (mV)    87.182752            -
+          rise time (ms)     0.111750        0.136
+          fall time (ms)     0.192500        0.379
+          AP duration (ms)   0.304737        0.515
+\end{Verbatim}
+            
     \subsubsection{4.2 Latency and jitter}\label{latency-and-jitter}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}87}]:} \PY{n+nb}{print}\PY{p}{(}\PY{n}{latency\PYZus{}jitter}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}127}]:} \PY{n}{latency\PYZus{}jitter}
 \end{Verbatim}
 
 
-    \begin{Verbatim}[commandchars=\\\{\}]
-                                             model (threshold)  model (2*threshold) Miller et al. 1999  \textbackslash{}
-phase duration (us) pulse form variable                                                                  
-40.0                monophasic latency (us)              533.3                 99.0                650   
-                               jitter (us)               128.8                  3.2                100   
-50.0                monophasic latency (us)              552.0                109.0                  -   
-                               jitter (us)                41.6                  3.2                  -   
-100.0               monophasic latency (us)              460.0                141.5                  -   
-                               jitter (us)                76.0                  3.4                  -   
-200.0               biphasic   latency (us)              483.0                183.5                  -   
-                               jitter (us)               107.4                  4.7                  -   
-
-                                            Van den Honert and Stypulkowski 1984 (threshold)  \textbackslash{}
-phase duration (us) pulse form variable                                                        
-40.0                monophasic latency (us)                                                -   
-                               jitter (us)                                                 -   
-50.0                monophasic latency (us)                                                -   
-                               jitter (us)                                                 -   
-100.0               monophasic latency (us)                                              685   
-                               jitter (us)                                               352   
-200.0               biphasic   latency (us)                                                -   
-                               jitter (us)                                                 -   
-
-                                            Van den Honert and Stypulkowski 1984 (2*threshold)  \textbackslash{}
-phase duration (us) pulse form variable                                                          
-40.0                monophasic latency (us)                                                  -   
-                               jitter (us)                                                   -   
-50.0                monophasic latency (us)                                                  -   
-                               jitter (us)                                                   -   
-100.0               monophasic latency (us)                                                352   
-                               jitter (us)                                                   8   
-200.0               biphasic   latency (us)                                                  -   
-                               jitter (us)                                                   -   
-
-                                            Hartmann and al. 1984 Cartee et al. 2000 (threshold)  
-phase duration (us) pulse form variable                                                           
-40.0                monophasic latency (us)                     -                              -  
-                               jitter (us)                      -                              -  
-50.0                monophasic latency (us)                     -                            440  
-                               jitter (us)                      -                             80  
-100.0               monophasic latency (us)                     -                              -  
-                               jitter (us)                      -                              -  
-200.0               biphasic   latency (us)               300-400                              -  
-                               jitter (us)                      -                              -  
-
-    \end{Verbatim}
-
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}127}]:}                                        model (threshold) model (2*threshold) Miller et al. 1999  \textbackslash{}
+          phase duration pulse form property                                                                
+          100 us         monophasic latency (us)               461                 132                650   
+                                    jitter (us)                121                3.35                100   
+          40 us          monophasic latency (us)               398                93.5                  -   
+                                    jitter (us)                108                2.35                  -   
+          50 us          monophasic latency (us)               360                 100                  -   
+                                    jitter (us)                115                2.29                  -   
+          200 us         biphasic   latency (us)               375                 171                  -   
+                                    jitter (us)               97.7                4.55                  -   
+          
+                                                 Van den Honert and Stypulkowski 1984 (threshold)  \textbackslash{}
+          phase duration pulse form property                                                        
+          100 us         monophasic latency (us)                                                -   
+                                    jitter (us)                                                 -   
+          40 us          monophasic latency (us)                                                -   
+                                    jitter (us)                                                 -   
+          50 us          monophasic latency (us)                                              685   
+                                    jitter (us)                                               352   
+          200 us         biphasic   latency (us)                                                -   
+                                    jitter (us)                                                 -   
+          
+                                                 Van den Honert and Stypulkowski 1984 (2*threshold) Hartmann and al. 1984  \textbackslash{}
+          phase duration pulse form property                                                                                
+          100 us         monophasic latency (us)                                                  -                     -   
+                                    jitter (us)                                                   -                     -   
+          40 us          monophasic latency (us)                                                  -                     -   
+                                    jitter (us)                                                   -                     -   
+          50 us          monophasic latency (us)                                                352                     -   
+                                    jitter (us)                                                   8                     -   
+          200 us         biphasic   latency (us)                                                  -               300-400   
+                                    jitter (us)                                                   -                     -   
+          
+                                                 Cartee et al. 2000 (threshold)  
+          phase duration pulse form property                                     
+          100 us         monophasic latency (us)                              -  
+                                    jitter (us)                               -  
+          40 us          monophasic latency (us)                            440  
+                                    jitter (us)                              80  
+          50 us          monophasic latency (us)                              -  
+                                    jitter (us)                               -  
+          200 us         biphasic   latency (us)                              -  
+                                    jitter (us)                               -  
+\end{Verbatim}
+            
     \subsection{5. Recfractory properties}\label{recfractory-properties}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}88}]:} \PY{n}{md}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{![title](}\PY{l+s+si}{\PYZpc{}s}\PY{l+s+s2}{)}\PY{l+s+s2}{\PYZdq{}}\PY{o}{\PYZpc{}}\PY{p}{(}\PY{n}{refractory\PYZus{}curve\PYZus{}link}\PY{p}{)}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}128}]:} \PY{n}{md}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{![title](}\PY{l+s+si}{\PYZpc{}s}\PY{l+s+s2}{?arg)}\PY{l+s+s2}{\PYZdq{}}\PY{o}{\PYZpc{}}\PY{p}{(}\PY{n}{refractory\PYZus{}curve\PYZus{}link}\PY{p}{)}\PY{p}{)}
 \end{Verbatim}
 
-\texttt{\color{outcolor}Out[{\color{outcolor}88}]:}
+\texttt{\color{outcolor}Out[{\color{outcolor}128}]:}
     
     \begin{figure}
 \centering
-\includegraphics{test_battery_results/Rattay et al. 2001/Refractory_curve Rattay et al. 2001.png}
+\includegraphics{test_battery_results/Rattay et al. 2001/Refractory_curve Rattay et al. 2001.png?arg}
 \caption{title}
 \end{figure}
 
@@ -636,55 +653,53 @@ phase duration (us) pulse form variable
 periods}\label{absolute-refractory-periods}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}89}]:} \PY{n+nb}{print}\PY{p}{(}\PY{n}{absolute\PYZus{}refractory\PYZus{}periods}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}129}]:} \PY{n}{absolute\PYZus{}refractory\PYZus{}periods}
 \end{Verbatim}
 
 
-    \begin{Verbatim}[commandchars=\\\{\}]
-                                ARP model (us) ARP Experiments (us)                             reference
-phase duration (us) pulse form                                                                           
-40.0                monophasic          1393.0                  334                    Miller et al. 2001
-50.0                monophasic          1393.0                  300  Stypulkowski and Van den Honert 1984
-100.0               monophasic          1353.0              500-700                            Dynes 1996
-50.0                biphasic            1383.0              400-500                  Brown and Abbas 1990
-
-    \end{Verbatim}
-
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}129}]:}                                 ARP model (us) ARP Experiments (us)                             reference
+          phase duration (us) pulse form                                                                           
+          40.0                monophasic          1393.0                  334                    Miller et al. 2001
+          50.0                monophasic          1393.0                  300  Stypulkowski and Van den Honert 1984
+          100.0               monophasic          1353.0              500-700                            Dynes 1996
+          50.0                biphasic            1383.0              400-500                  Brown and Abbas 1990
+\end{Verbatim}
+            
     \subsubsection{5.2 Relative refractory
 periods}\label{relative-refractory-periods}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}90}]:} \PY{n+nb}{print}\PY{p}{(}\PY{n}{relative\PYZus{}refractory\PYZus{}periods}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}130}]:} \PY{n}{relative\PYZus{}refractory\PYZus{}periods}
 \end{Verbatim}
 
 
-    \begin{Verbatim}[commandchars=\\\{\}]
-                                RRP model (ms) RRP Experiments (ms)  \textbackslash{}
-phase duration (us) pulse form                                        
-50.0                monophasic           1.478             3-4; 4-5   
-100.0               monophasic           1.468                    5   
-200.0               biphasic             1.188                    5   
-
-                                                                        reference  
-phase duration (us) pulse form                                                     
-50.0                monophasic  Stypulkowski and Van den Honert 1984; Cartee e{\ldots}  
-100.0               monophasic                                         Dynes 1996  
-200.0               biphasic                                 Hartmann et al. 1984  
-
-    \end{Verbatim}
-
+\begin{Verbatim}[commandchars=\\\{\}]
+{\color{outcolor}Out[{\color{outcolor}130}]:}                                 RRP model (ms) RRP Experiments (ms)  \textbackslash{}
+          phase duration (us) pulse form                                        
+          50.0                monophasic           1.478             3-4; 4-5   
+          100.0               monophasic           1.468                    5   
+          200.0               biphasic             1.188                    5   
+          
+                                                                                  reference  
+          phase duration (us) pulse form                                                     
+          50.0                monophasic  Stypulkowski and Van den Honert 1984; Cartee e{\ldots}  
+          100.0               monophasic                                         Dynes 1996  
+          200.0               biphasic                                 Hartmann et al. 1984  
+\end{Verbatim}
+            
     \subsection{6. Post-stimulus time
 histogramm}\label{post-stimulus-time-histogramm}
 
     \begin{Verbatim}[commandchars=\\\{\}]
-{\color{incolor}In [{\color{incolor}91}]:} \PY{n}{md}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{![title](}\PY{l+s+si}{\PYZpc{}s}\PY{l+s+s2}{)}\PY{l+s+s2}{\PYZdq{}}\PY{o}{\PYZpc{}}\PY{p}{(}\PY{n}{post\PYZus{}stimulus\PYZus{}time\PYZus{}histogram\PYZus{}link}\PY{p}{)}\PY{p}{)}
+{\color{incolor}In [{\color{incolor}131}]:} \PY{n}{md}\PY{p}{(}\PY{l+s+s2}{\PYZdq{}}\PY{l+s+s2}{![title](}\PY{l+s+si}{\PYZpc{}s}\PY{l+s+s2}{?arg)}\PY{l+s+s2}{\PYZdq{}}\PY{o}{\PYZpc{}}\PY{p}{(}\PY{n}{post\PYZus{}stimulus\PYZus{}time\PYZus{}histogram\PYZus{}link}\PY{p}{)}\PY{p}{)}
 \end{Verbatim}
 
-\texttt{\color{outcolor}Out[{\color{outcolor}91}]:}
+\texttt{\color{outcolor}Out[{\color{outcolor}131}]:}
     
     \begin{figure}
 \centering
-\includegraphics{test_battery_results/Rattay et al. 2001/PSTH Rattay et al. 2001.png}
+\includegraphics{test_battery_results/Rattay et al. 2001/PSTH Rattay et al. 2001.png?arg}
 \caption{title}
 \end{figure}
 

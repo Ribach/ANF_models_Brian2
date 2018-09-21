@@ -36,7 +36,7 @@ prefs.codegen.target = "numpy"
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = rattay_01
+model = negm_14
 
 ##### initialize clock
 dt = 5*us
@@ -87,7 +87,7 @@ strength_duration_data = pd.DataFrame(np.array([[rheobase/uA], [chronaxie/us]]).
                                          columns = ["rheobase (uA)", "chronaxie (us)"])
 
 ##### Save table as csv    
-strength_duration_data.to_csv(f'test_battery_results/{model.display_name}/Strength_duration_data {model.display_name}.csv', index=False, header=True)
+strength_duration_data.to_csv("test_battery_results/{}/Strength_duration_data {}.csv".format(model.display_name,model.display_name), index=False, header=True)
 
 # =============================================================================
 # Get strength-duration curve
@@ -107,13 +107,13 @@ strength_duration_matrix = test.get_thresholds(model = model,
                                                time_before = 2*ms)
 
 ##### plot strength duration curve
-strength_duration_curve = plot.strength_duration_curve(plot_name = f"Strength duration curve {model.display_name}",
+strength_duration_curve = plot.strength_duration_curve(plot_name = "Strength duration curve {}".format(model.display_name),
                                                        threshold_matrix = strength_duration_matrix,
                                                        rheobase = rheobase,
                                                        chronaxie = chronaxie)
 
 ##### save strength duration curve
-strength_duration_curve.savefig(f"test_battery_results/{model.display_name}/Strength_duration_curve {model.display_name}.png")
+strength_duration_curve.savefig("test_battery_results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name))
 
 # =============================================================================
 # Get thresholds for certain stimulation types and stimulus durations
@@ -147,7 +147,7 @@ threshold_table = pd.DataFrame(
          })
 
 ##### Save table as csv    
-threshold_table.to_csv(f'test_battery_results/{model.display_name}/Threshold_table {model.display_name}.csv', index=False, header=True)
+threshold_table.to_csv("test_battery_results/{}/Threshold_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)
 
 # =============================================================================
 # Get the relative spread of thresholds for certain stimulation types and stimulus durations
@@ -182,7 +182,7 @@ for ii in range(0,len(relative_spread)):
     threshold_matrix[ii*runs_per_stimulus_type:ii*runs_per_stimulus_type+runs_per_stimulus_type] = thresholds
     
     ##### write relative spreads in vector
-    relative_spread[ii] = f'{round(np.std(thresholds["threshold"])/np.mean(thresholds["threshold"])*100, 2)}%'
+    relative_spread[ii] = '{}%'.format(round(np.std(thresholds["threshold"])/np.mean(thresholds["threshold"])*100, 2))
 
 ##### save thresholds in dataframe
 threshold_matrix = pd.DataFrame(threshold_matrix, columns = ["phase duration","run","threshold"])
@@ -198,14 +198,14 @@ relative_spreads = pd.DataFrame(
     })
 
 ##### Save table as csv    
-relative_spreads.to_csv(f'test_battery_results/{model.display_name}/Relative_spreads {model.display_name}.csv', index=False, header=True)    
+relative_spreads.to_csv("test_battery_results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name), index=False, header=True)    
     
 ##### plot relative spreads
-relative_spread_plot = plot.relative_spread(plot_name = f"Relative spreads {model.display_name}",
+relative_spread_plot = plot.relative_spread(plot_name = "Relative spreads {}".format(model.display_name)),
                                             threshold_matrix = threshold_matrix)
 
 ##### save relative spreads plot
-relative_spread_plot.savefig(f"test_battery_results/{model.display_name}/Relative_spreads_plot {model.display_name}.png")
+relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name))
 
 # =============================================================================
 # Measure conduction velocity
@@ -257,7 +257,7 @@ else:
                                             columns = ["velocity (m/s)", "velocity/diameter"])
 
 ##### Save table as csv    
-conduction_velocity_table.to_csv(f'test_battery_results/{model.display_name}/Conduction_velocity_table {model.display_name}.csv', index=False, header=True)
+conduction_velocity_table.to_csv("test_battery_results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)
 
 # =============================================================================
 # Measure single node response properties
@@ -316,13 +316,13 @@ for ii in range(0,len(phase_duration)):
         voltage_courses[nof_stim_amps*ii+jj] = voltage_courses[nof_stim_amps*ii+jj].drop(columns = "stimulus amplitude (uA)")
         voltage_courses[nof_stim_amps*ii+jj]["phase duration (us)"] = round(phase_duration[ii]/us)
         voltage_courses[nof_stim_amps*ii+jj]["pulse form"] = "monophasic" if pulse_form[ii]=="mono" else "biphasic"
-        voltage_courses[nof_stim_amps*ii+jj]["stimulus amplitude level"] = "threshold" if jj==0 else f"{jj+1}*threshold"
+        voltage_courses[nof_stim_amps*ii+jj]["stimulus amplitude level"] = "threshold" if jj==0 else "{}*threshold".format(jj+1)
         
 
         ##### write results in summary table
         node_response_data_summary.loc[nof_stim_amps*ii+jj,"phase duration (us)"] = phase_duration[ii]/us
         node_response_data_summary.loc[nof_stim_amps*ii+jj,"pulse form"] = "monophasic" if pulse_form[ii]=="mono" else "biphasic"
-        node_response_data_summary.loc[nof_stim_amps*ii+jj,"stimulus amplitude level"] = "threshold" if jj==0 else f"{jj+1}*threshold"
+        node_response_data_summary.loc[nof_stim_amps*ii+jj,"stimulus amplitude level"] = "threshold" if jj==0 else "{}*threshold".format(jj+1)
         node_response_data_summary.loc[nof_stim_amps*ii+jj,["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"]] =\
         node_response_data[["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"]].mean()
         node_response_data_summary.loc[nof_stim_amps*ii+jj,"latency (ms)"] = node_response_data_summary.loc[nof_stim_amps*ii+jj,"latency (ms)"]
@@ -334,7 +334,7 @@ for ii in ["AP height (mV)", "rise time (ms)", "fall time (ms)", "AP duration (m
     node_response_data_summary[ii] = ["%.3g" %node_response_data_summary[ii][jj] for jj in range(0,node_response_data_summary.shape[0])]
 
 ##### Save table as csv    
-node_response_data_summary.to_csv(f'test_battery_results/{model.display_name}/Node_response_data_summary {model.display_name}.csv', index=False, header=True)
+node_response_data_summary.to_csv("test_battery_results/{}/Node_response_data_summary {}.csv".format(model.display_name,model.display_name), index=False, header=True)
 
 ##### combine list entries of voltage courses to one dataset
 voltage_course_dataset = pd.concat(voltage_courses)
@@ -343,13 +343,13 @@ voltage_course_dataset["stimulation info"] = voltage_course_dataset["phase durat
 voltage_course_dataset = voltage_course_dataset[["stimulation info", "run", "time / ms", "membrane potential / mV"]]
 
 ##### plot voltage courses of single node
-single_node_response = plot.single_node_response_voltage_course(plot_name = f"Voltage courses {model.display_name}",
+single_node_response = plot.single_node_response_voltage_course(plot_name = "Voltage courses {}".format(model.display_name),
                                                                 voltage_data = voltage_course_dataset,
                                                                 col_wrap = 2,
                                                                 height = 3.5)
 
 ###### save voltage courses plot
-single_node_response.savefig(f"test_battery_results/{model.display_name}/Single_node_response {model.display_name}.png")
+single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name))
 
 # =============================================================================
 # Refractory periods
@@ -388,7 +388,7 @@ for ii in range(0,len(phase_duration)):
     refractory_table.loc[ii,"relative refractory period (ms)"] = round(rrp/ms, 3)
     
     ##### Save table as csv    
-    refractory_table.to_csv(f'test_battery_results/{model.display_name}/Refractory_table {model.display_name}.csv', index=False, header=True)   
+    refractory_table.to_csv("test_battery_results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
 
 # =============================================================================
 # Refractory curve
@@ -406,13 +406,13 @@ min_required_amps, threshold = test.get_refractory_curve(model = model,
                                                          phase_duration = 100*us)
 
 ##### plot refractory curve
-refractory_curve = plot.refractory_curve(plot_name = f"Refractory curve {model.display_name}",
+refractory_curve = plot.refractory_curve(plot_name = "Refractory curve {}".format(model.display_name),
                                          inter_pulse_intervalls = inter_pulse_intervalls,
                                          stimulus_amps = min_required_amps,
                                          threshold = threshold)
 
 ##### save refractory curve
-refractory_curve.savefig(f"test_battery_results/{model.display_name}/Refractory_curve {model.display_name}.png")
+refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name))
 
 # =============================================================================
 # Post Stimulus Time Histogram
@@ -452,17 +452,17 @@ for ii in range(0,len(pulses_per_second)):
         
         ##### write the data in a list of dataframes
         psth_data[len(stim_amp_level)*ii+jj] = psth
-        psth_data[len(stim_amp_level)*ii+jj]["amplitude"] = f"{stim_amp_level[jj]}*threshold"
+        psth_data[len(stim_amp_level)*ii+jj]["amplitude"] = "{}*threshold".format(stim_amp_level[jj])
         
 ##### combine list entries of psth_data to one dataset
 psth_dataset = pd.concat(psth_data)
 
 ##### plot post_stimulus_time_histogram
-post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = f"PSTH {model.display_name}",
+post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
                                                                  psth_dataset = psth_dataset)
 
 ###### save post_stimulus_time_histogram
-post_stimulus_time_histogram.savefig(f"test_battery_results/{model.display_name}/PSTH {model.display_name}.png")
+post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name))
 
 ## =============================================================================
 ## Inter-stimulus intervall Histogram
@@ -502,17 +502,17 @@ post_stimulus_time_histogram.savefig(f"test_battery_results/{model.display_name}
 #        
 #        ##### write the data in a list of dataframes
 #        isi_data[len(stim_amp_level)*ii+jj] = isi
-#        isi_data[len(stim_amp_level)*ii+jj]["amplitude"] = f"{stim_amp_level[jj]}*threshold"
+#        isi_data[len(stim_amp_level)*ii+jj]["amplitude"] = "{}*threshold".format(stim_amp_level[jj])
 #        
 ###### combine list entries of psth_data to one dataset
 #isi_dataset = pd.concat(isi_data)
 #
 ###### plot inter_stimulus_intervall_histogram
-#plot.inter_stimulus_intervall_histogram(plot_name = f"ISI {model.display_name}",
+#plot.inter_stimulus_intervall_histogram(plot_name = "ISI {}".format(model.display_name),
 #                                        isi_dataset = isi_dataset)
 #
 ####### save inter_stimulus_intervall_histogram
-#inter_stimulus_intervall_histogram.savefig(f"test_battery_results/{model.display_name}/ISI {model.display_name}.png")
+#inter_stimulus_intervall_histogram.savefig("test_battery_results/{}/ISI {}.png".format(model.display_name,model.display_name))
 
 
 

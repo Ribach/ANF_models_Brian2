@@ -246,8 +246,8 @@ def strength_duration_curve(plot_name,
     strength_duration_curve = plt.figure(plot_name)
     plt.plot(threshold_matrix["phase duration"]*1e6, threshold_matrix["threshold"]*1e6, label = '_nolegend_')
     if not rheobase == 0 and not chronaxie == 0:
-        plt.hlines(y=rheobase/uA, xmin=-0, xmax=max(threshold_matrix["phase duration"]/us), linestyles="dashed", label = f"rheobase: {round(rheobase/uA, 2)} uA")
-        plt.scatter(x=chronaxie/us, y=2*rheobase/uA, label = f"chronaxie: {round(chronaxie/us)} us")
+        plt.hlines(y=rheobase/uA, xmin=-0, xmax=max(threshold_matrix["phase duration"]/us), linestyles="dashed", label = "rheobase: {} uA".format(round(rheobase/uA, 2)))
+        plt.scatter(x=chronaxie/us, y=2*rheobase/uA, label = "chronaxie: {} us".format(round(chronaxie/us)))
         plt.legend()
     plt.xlabel('Stimulus duration / us', fontsize=16)
     plt.ylabel('Stimulus amplitude required / uA', fontsize=16)
@@ -290,7 +290,7 @@ def relative_spread(plot_name,
     threshold_matrix["threshold"] = round(threshold_matrix["threshold"]*1000000,3)
     
     ##### add pulse form info to phase duration
-    #threshold_matrix["phase duration"] = f'{threshold_matrix["phase duration"]} us'
+    #threshold_matrix["phase duration"] = '{} us'.format(threshold_matrix["phase duration"])
     
     ##### plot thresholds
     plt.close(plot_name)
