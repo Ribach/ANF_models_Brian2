@@ -86,7 +86,7 @@ nof_internodes = 15
 ##### lengths
 length_nodes = 1.061*um
 ##### diameters
-internode_outer_diameter = 15*um
+fiber_outer_diameter = 15*um
 ##### myelin layer thickness
 myelin_layer_thicknes = 16*nmeter
 
@@ -149,7 +149,7 @@ nof_comps = len(structure)
 # initialize
 compartment_lengths = np.zeros_like(structure)*um
 # internodes
-compartment_lengths[np.where(structure == 1)] = 7.9*10**-2*np.log((internode_outer_diameter/cm)/(3.4*10**-4))*cm
+compartment_lengths[np.where(structure == 1)] = 7.9*10**-2*np.log((fiber_outer_diameter/cm)/(3.4*10**-4))*cm
 # nodes
 compartment_lengths[np.where(structure == 2)] = length_nodes
 # total length neuron
@@ -157,15 +157,15 @@ length_neuron = sum(compartment_lengths)
 
 ##### Compartment diameters
 # internode inner diameter
-internode_inner_diameter = 0.63*internode_outer_diameter - 3.4*10**-5*cm
+internode_inner_diameter = 0.63*fiber_outer_diameter - 3.4*10**-5*cm
 # initialize
 compartment_diameters = np.zeros(nof_comps+1)*um
 # internodes
 compartment_diameters[:] = internode_inner_diameter
-# diameter_nodes calculateion in paper: (8.502*10**5*(internode_outer_diameter/cm)**3 - 1.376*10**3*(internode_outer_diameter/cm)**2 + 8.202*10**-1*(internode_outer_diameter/cm) - 3.622*10**-5)*cm
+# diameter_nodes calculateion in paper: (8.502*10**5*(fiber_outer_diameter/cm)**3 - 1.376*10**3*(fiber_outer_diameter/cm)**2 + 8.202*10**-1*(fiber_outer_diameter/cm) - 3.622*10**-5)*cm
 
 ##### Number of myelin layers
-nof_myelin_layers = np.floor(0.5*(internode_outer_diameter-internode_inner_diameter)/myelin_layer_thicknes)
+nof_myelin_layers = np.floor(0.5*(fiber_outer_diameter-internode_inner_diameter)/myelin_layer_thicknes)
 
 #####  Compartment middle point distances (needed for plots)
 distance_comps_middle = np.zeros_like(compartment_lengths)
@@ -258,7 +258,7 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         # initialize
         model.compartment_lengths = np.zeros_like(model.structure)*um
         # internodes
-        model.compartment_lengths[np.where(model.structure == 1)] = 7.9*10**-2*np.log((model.internode_outer_diameter/cm)/(3.4*10**-4))*cm
+        model.compartment_lengths[np.where(model.structure == 1)] = 7.9*10**-2*np.log((model.fiber_outer_diameter/cm)/(3.4*10**-4))*cm
         # nodes
         model.compartment_lengths[np.where(model.structure == 2)] = model.length_nodes
         # total length neuron
@@ -266,15 +266,15 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         
         ##### Compartment diameters
         # internode inner diameter
-        model.internode_inner_diameter = 0.63*model.internode_outer_diameter - 3.4*10**-5*cm
+        model.internode_inner_diameter = 0.63*model.fiber_outer_diameter - 3.4*10**-5*cm
         # initialize
         model.compartment_diameters = np.zeros(model.nof_comps+1)*um
         # internodes
         model.compartment_diameters[:] = model.internode_inner_diameter
-        # diameter_nodes calculateion in paper: (8.502*10**5*(internode_outer_diameter/cm)**3 - 1.376*10**3*(internode_outer_diameter/cm)**2 + 8.202*10**-1*(internode_outer_diameter/cm) - 3.622*10**-5)*cm
+        # diameter_nodes calculateion in paper: (8.502*10**5*(fiber_outer_diameter/cm)**3 - 1.376*10**3*(fiber_outer_diameter/cm)**2 + 8.202*10**-1*(fiber_outer_diameter/cm) - 3.622*10**-5)*cm
         
         ##### Number of myelin layers
-        model.nof_myelin_layers = np.floor(0.5*(model.internode_outer_diameter-model.internode_inner_diameter)/model.myelin_layer_thicknes)
+        model.nof_myelin_layers = np.floor(0.5*(model.fiber_outer_diameter-model.internode_inner_diameter)/model.myelin_layer_thicknes)
         
         #####  Compartment middle point distances (needed for plots)
         model.distance_comps_middle = np.zeros_like(model.compartment_lengths)

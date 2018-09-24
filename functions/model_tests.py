@@ -439,7 +439,7 @@ def get_single_node_response(model,
             node_response_data["AP end time"][ii*length_param_2+jj] = AP_end_time/ms
 
             ##### print progress
-            print("{param_1_display_name}: {}/{}; {}: {jj+1}/{}".format(ii+1,length_param_1,param_2_display_name,length_param_2))
+            print("{}: {}/{}; {}: {}/{}".format(param_1_display_name, ii+1,length_param_1,param_2_display_name,jj+1,length_param_2))
 
             ##### save voltage course of single compartment for plotting
             voltage_data[length_param_2*ii+jj,0:np.shape(M.v)[1]] = M.v[comp_index, :]/mV
@@ -553,10 +553,6 @@ def get_thresholds(model,
     if not isinstance(phase_durations, (list,)) and len(np.shape(phase_durations))==0:
         phase_durations = [phase_durations]
         
-    ##### stochastic runs in case nof_runs > 1
-    add_noise = False
-    if nof_runs > 1: add_noise = True
-        
     ##### initialize model with given defaultclock dt
     neuron, param_string, model = model.set_up_model(dt = dt, model = model)
     exec(param_string)
@@ -599,7 +595,7 @@ def get_thresholds(model,
             amp_diff = upper_border - lower_border
             
             ##### include noise
-            if add_noise:
+            if nof_runs > 1:
                 I_noise = np.transpose(np.transpose(np.random.normal(0, 1, (model.nof_comps,nof_timesteps)))*model.k_noise*model.noise_term)
             else:
                 I_noise = np.zeros((model.nof_comps,nof_timesteps))
@@ -654,7 +650,7 @@ def get_thresholds(model,
             start_amp[min_amp_spiked != 0*amp] = min_amp_spiked
             start_amp[min_amp_spiked == 0*amp] = stim_amps_max
     
-    if add_noise == True:
+    if nof_runs > 1 == True:
         thresholds["run"] = thresholds["run"].astype(int)
     else:
         thresholds = thresholds.drop(columns = "run")
@@ -1105,8 +1101,8 @@ def get_refractory_curve(model,
             run(runtime)
             
 #            plt.figure(ii)
-#            plt.plot(I_stim[comp_index,:]*1e12)
-#            plt.plot(M.v[comp_index,:])
+#            plt.plot(M.t/ms,I_stim[comp_index,:]*1e12)
+#            plt.plot(M.t/ms, M.v[comp_index,:])
 #            plt.show(ii)
             
             ##### test if there were two spikes (one for masker and one for 2. stimulus)

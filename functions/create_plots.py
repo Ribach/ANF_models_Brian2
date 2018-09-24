@@ -340,6 +340,7 @@ def refractory_curve(plot_name,
     
     inter_pulse_intervalls = inter_pulse_intervalls[np.where(stimulus_amps != 0)]/ms
     thresholds_second_spike = np.round(stimulus_amps[np.where(stimulus_amps != 0)]/threshold, 2)
+    thresholds_second_spike = stimulus_amps[np.where(stimulus_amps != 0)]/threshold
         
     plt.close(plot_name)
     refractory_curve = plt.figure(plot_name)

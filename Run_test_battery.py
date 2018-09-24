@@ -11,8 +11,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
-##### sets working directory
-os.chdir("C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Python/Models Brian2")
+##### set working directory to folder of script
+#abspath = os.path.abspath(__file__)
+#dname = os.path.dirname(abspath)
+#os.chdir(dname)
 
 ##### import functions
 import functions.stimulation as stim
@@ -36,7 +38,7 @@ prefs.codegen.target = "numpy"
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = negm_14
+model = frijns_05
 
 ##### initialize clock
 dt = 5*us
@@ -201,7 +203,7 @@ relative_spreads = pd.DataFrame(
 relative_spreads.to_csv("test_battery_results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name), index=False, header=True)    
     
 ##### plot relative spreads
-relative_spread_plot = plot.relative_spread(plot_name = "Relative spreads {}".format(model.display_name)),
+relative_spread_plot = plot.relative_spread(plot_name = "Relative spreads {}".format(model.display_name),
                                             threshold_matrix = threshold_matrix)
 
 ##### save relative spreads plot
@@ -394,7 +396,7 @@ for ii in range(0,len(phase_duration)):
 # Refractory curve
 # =============================================================================
 ##### define inter-pulse-intervalls
-inter_pulse_intervalls = np.logspace(-1, 2.6, num=30, base=2)*ms    
+inter_pulse_intervalls = np.logspace(-1.3, 2.9, num=80, base=2)*ms    
 
 ##### get thresholds for second spikes
 min_required_amps, threshold = test.get_refractory_curve(model = model,
@@ -457,6 +459,9 @@ for ii in range(0,len(pulses_per_second)):
 ##### combine list entries of psth_data to one dataset
 psth_dataset = pd.concat(psth_data)
 
+##### save PSTH dataset to csv
+psth_dataset.to_csv("test_battery_results/{}/PSTH_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
+
 ##### plot post_stimulus_time_histogram
 post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
                                                                  psth_dataset = psth_dataset)
@@ -513,23 +518,3 @@ post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".forma
 #
 ####### save inter_stimulus_intervall_histogram
 #inter_stimulus_intervall_histogram.savefig("test_battery_results/{}/ISI {}.png".format(model.display_name,model.display_name))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

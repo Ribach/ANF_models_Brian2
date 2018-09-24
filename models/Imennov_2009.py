@@ -150,6 +150,7 @@ length_neuron = sum(compartment_lengths)
 compartment_diameters = np.zeros(nof_comps+1)*um
 # same diameter for whole fiber
 compartment_diameters[:] = diameter_fiber
+fiber_outer_diameter = diameter_fiber / 0.6 # see Gillespie 1983
 
 #####  Compartment middle point distances (needed for plots)
 distance_comps_middle = np.zeros_like(compartment_lengths)
