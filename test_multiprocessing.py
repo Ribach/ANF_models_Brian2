@@ -42,7 +42,7 @@ ys = th.util.map(func = mp.get_threshold,
                        'delta' : 0.0005*uA,
                        'pulse_form' : 'mono',
                        'stimulation_type' : 'extern',
-                       'amps_start_intervall' : [0,20]*uA,
+                       'amps_start_interval' : [0,20]*uA,
                        'time_before' : 2*ms,
                        'time_after' : 2*ms,
                        'add_noise' : True}

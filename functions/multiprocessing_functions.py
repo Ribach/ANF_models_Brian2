@@ -29,7 +29,7 @@ def get_threshold(model_name,
                   delta,
                   pulse_form,
                   stimulation_type,
-                  amps_start_intervall,
+                  amps_start_interval,
                   time_before,
                   time_after,
                   add_noise,
@@ -48,8 +48,8 @@ def get_threshold(model_name,
     store('initialized')
     
     ##### minimum and maximum stimulus current amplitudes that are tested
-    stim_amps_min = amps_start_intervall[0]
-    stim_amps_max = amps_start_intervall[1]
+    stim_amps_min = amps_start_interval[0]
+    stim_amps_max = amps_start_interval[1]
     
     ##### compartment for measurements
     comp_index = np.where(model.structure == 2)[0][10]

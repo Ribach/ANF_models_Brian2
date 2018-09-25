@@ -10,9 +10,6 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 
-##### sets working directory
-os.chdir("C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Python/Models Brian2")
-
 ##### import models
 import models.Rattay_2001 as rattay_01
 import models.Frijns_1994 as frijns_94
@@ -29,7 +26,7 @@ prefs.codegen.target = "numpy"
 # Load data
 # =============================================================================
 ##### choose model
-model = rattay_01
+model = frijns_05
 
 ##### load datasets
 strength_duration_data = pd.read_csv("test_battery_results/{}/Strength_duration_data {}.csv".format(model.display_name,model.display_name))

@@ -239,14 +239,13 @@ def strength_duration_curve(plot_name,
     current vector
         Gives back a vector of currents for each timestep
     """
-    
-    threshold_matrix = threshold_matrix[threshold_matrix["threshold"].notnull()]
+    threshold_matrix = threshold_matrix.loc[threshold_matrix["threshold"]/amp != 0]
         
     plt.close(plot_name)
     strength_duration_curve = plt.figure(plot_name)
-    plt.plot(threshold_matrix["phase duration"]*1e6, threshold_matrix["threshold"]*1e6, label = '_nolegend_')
+    plt.plot(threshold_matrix["phase_duration"]/us, threshold_matrix["threshold"]/uA, label = '_nolegend_')
     if not rheobase == 0 and not chronaxie == 0:
-        plt.hlines(y=rheobase/uA, xmin=-0, xmax=max(threshold_matrix["phase duration"]/us), linestyles="dashed", label = "rheobase: {} uA".format(round(rheobase/uA, 2)))
+        plt.hlines(y=rheobase/uA, xmin=-0, xmax=max(threshold_matrix["phase_duration"]/us), linestyles="dashed", label = "rheobase: {} uA".format(round(rheobase/uA, 2)))
         plt.scatter(x=chronaxie/us, y=2*rheobase/uA, label = "chronaxie: {} us".format(round(chronaxie/us)))
         plt.legend()
     plt.xlabel('Stimulus duration / us', fontsize=16)
@@ -282,12 +281,9 @@ def relative_spread(plot_name,
         Gives back a vector of currents for each timestep
     """
     
-    ##### delete column "run"
-    threshold_matrix = threshold_matrix.drop(columns = "run")
-    
     ##### round phase durations and thresholds
-    threshold_matrix["phase duration"] = round(threshold_matrix["phase duration"]*1000000).astype(int)
-    threshold_matrix["threshold"] = round(threshold_matrix["threshold"]*1000000,3)
+    threshold_matrix["phase duration"] = round(threshold_matrix["phase duration"]/second*1000000).astype(int)
+    threshold_matrix["threshold"] = round(threshold_matrix["threshold"]/amp*1000000,3)
     
     ##### add pulse form info to phase duration
     #threshold_matrix["phase duration"] = '{} us'.format(threshold_matrix["phase duration"])
@@ -313,7 +309,7 @@ def relative_spread(plot_name,
 #  refractory curve
 # =============================================================================
 def refractory_curve(plot_name,
-                     inter_pulse_intervalls,
+                     inter_pulse_intervals,
                      stimulus_amps,
                      threshold):
     """This function calculates the stimulus current at the current source for
@@ -338,14 +334,17 @@ def refractory_curve(plot_name,
         Gives back a vector of currents for each timestep
     """
     
-    inter_pulse_intervalls = inter_pulse_intervalls[np.where(stimulus_amps != 0)]/ms
-    thresholds_second_spike = np.round(stimulus_amps[np.where(stimulus_amps != 0)]/threshold, 2)
-    thresholds_second_spike = stimulus_amps[np.where(stimulus_amps != 0)]/threshold
-        
+    ##### remove inter_pulse_intervals where no second spikes were obtained
+    inter_pulse_intervals = inter_pulse_intervals[np.where(stimulus_amps != 0)[0]]/ms
+    
+    ##### calculate the ratio of the threshold of the second spike and the masker
+    thresholds_second_spike = stimulus_amps[np.where(stimulus_amps != 0)[0]]/threshold
+     
+    ###### plot refractory curve
     plt.close(plot_name)
     refractory_curve = plt.figure(plot_name)
-    plt.plot(inter_pulse_intervalls, thresholds_second_spike, "#000000")
-    plt.xlabel('Inter pulse intervall / ms', fontsize=16)
+    plt.plot(inter_pulse_intervals, thresholds_second_spike, "#000000")
+    plt.xlabel('Inter pulse interval / ms', fontsize=16)
     plt.ylabel('threshold 2nd stimulus / threshold', fontsize=16)
     plt.show(plot_name)
     
@@ -399,9 +398,9 @@ def post_stimulus_time_histogram(plot_name,
     return post_stimulus_time_histogram
 
 # =============================================================================
-#  inter-stimulus intervall histogram
+#  inter-stimulus interval histogram
 # =============================================================================
-def inter_stimulus_intervall_histogram(plot_name,
+def inter_stimulus_interval_histogram(plot_name,
                                        isi_dataset):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
@@ -431,9 +430,9 @@ def inter_stimulus_intervall_histogram(plot_name,
     grid = sns.FacetGrid(isi_dataset, row="amplitude", col="pulse rate", margin_titles=True)
     grid.map(plt.hist, "spike times", bins = nof_bins)
     
-    inter_stimulus_intervall_histogram = grid.fig
+    inter_stimulus_interval_histogram = grid.fig
     
-    return inter_stimulus_intervall_histogram
+    return inter_stimulus_interval_histogram
 
 
 
