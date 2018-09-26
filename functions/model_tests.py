@@ -56,7 +56,7 @@ def get_threshold(model_name,
     if pulse_form == "mono":
         runtime = time_before + phase_duration + time_after
     else:
-        runtime = time_before + phase_durations*2 + time_after
+        runtime = time_before + phase_duration*2 + time_after
     
     ##### calculate number of timesteps
     nof_timesteps = int(np.ceil(runtime/dt))

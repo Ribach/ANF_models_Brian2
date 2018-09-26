@@ -378,72 +378,72 @@ def post_stimulus_time_histogram(plot_name,
         Gives back a vector of currents for each timestep
     """
     
-    psth_dataset["spike times"] = (psth_dataset["spike times"]*1000)
-    nof_bins = round(max(psth_dataset["spike times"]))
+    ##### convert spike times to ms
+    psth_dataset["spike times (us)"] = np.ceil(psth_dataset["spike times (us)"]/1000).astype(int)
+    psth_dataset = psth_dataset.rename(index = str, columns={"spike times (us)" : "spike times (ms)"})
     
-    grid = sns.FacetGrid(psth_dataset, row="amplitude", col="pulse rate", margin_titles=True)
-    grid.map(plt.hist, "spike times", bins = nof_bins)
+    ##### get amplitude levels and pulse rates
+    amplitudes = psth_dataset["amplitude"].unique().tolist()
+    pulse_rates = psth_dataset["pulse rate"].unique().tolist()
     
-    post_stimulus_time_histogram = grid.fig
+    ##### get number of different pulse rates and stimulus amplitudes
+    nof_amplitudes = len(amplitudes)
+    nof_pulse_rates = len(pulse_rates)
     
-#    plt.close(plot_name)
-#    post_stimulus_time_histogram = plt.figure(plot_name)
-#    plt.bar(bin_edges[:-1]*1000,
-#            bin_heigths,
-#            width = bin_width)
-#    plt.xlabel('Time / ms', fontsize=16)
-#    plt.ylabel('Spikes per second', fontsize=16)
-#    plt.show(plot_name)
+    ##### get number of runs and bins
+    nof_runs = max(psth_dataset["run"])+1
+    nof_bins = max(psth_dataset["spike times (ms)"])
+
+    ##### get bin edges
+    bin_edges = list(range(nof_bins))
+
+    fig, axes = plt.subplots(nof_amplitudes, nof_pulse_rates, sharex=True, sharey=True, figsize=(2*nof_pulse_rates, 2*nof_amplitudes))
+
+    for ii in range(nof_amplitudes):
+        for jj in range(nof_pulse_rates):
+            
+            #### building a subset of the relevant rows
+            current_data = psth_dataset[psth_dataset["amplitude"] == amplitudes[ii]][psth_dataset["pulse rate"] == pulse_rates[jj]]
+
+            ##### calculating the bin heights
+            bin_heights = [round(sum(current_data["spike times (ms)"] == kk)*1000/nof_runs).astype(int) for kk in range(1,nof_bins+1)]
+            
+            ##### create barplot
+            axes[ii][jj].bar(x = bin_edges, height = bin_heights, width = 1, color = "black")
+            
+            ##### remove top and right lines
+            axes[ii][jj].spines['top'].set_visible(False)
+            axes[ii][jj].spines['right'].set_visible(False)
+            
+            ##### define y-achses range and tick numbers
+            axes[ii][jj].set_ylim([0,1500])
+            axes[ii][jj].set_yticks([0,500,1000])
+            
+            ##### write stimulus amplitude in plots
+            axes[ii][jj].text(np.ceil(nof_bins/2), 1250, "i={}mA".format(current_data["stimulus amplitude (uA)"][0]))
+            
+            ##### remove ticks
+            axes[ii][jj].tick_params(axis = 'both', left = 'off', bottom = 'off')     
+    
+    ##### bring subplots close to each other.
+    fig.subplots_adjust(hspace=0.05, wspace=0.1)
+    
+    ##### use the pulse rates as column titles
+    for ax, columtitle in zip(axes[0], ["{} pps".format(pulse_rates[ii]) for ii in range(nof_pulse_rates)]):
+        ax.set_title(columtitle)
+    
+    ##### use ticks in the leftmost column
+    for ax in axes[:,0]:
+        ax.tick_params(axis = 'both', left = True, bottom = 'off')
+        
+    ##### use ticks in the bottommost row
+    for ax in axes[nof_amplitudes-1]:
+        ax.tick_params(axis = 'both', left = 'off', bottom = True)
+    
+    ##### get labels for the axes
+    fig.text(0.5, 0.02, 'Time after pulse train onset (ms)', ha='center')
+    fig.text(0.02, 0.5, 'Response Rate (spikes/s)', va='center', rotation='vertical')
     
     return post_stimulus_time_histogram
-
-# =============================================================================
-#  inter-stimulus interval histogram
-# =============================================================================
-def inter_stimulus_interval_histogram(plot_name,
-                                       isi_dataset):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
-
-    Parameters
-    ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
-                
-    Returns
-    -------
-    current vector
-        Gives back a vector of currents for each timestep
-    """
-    
-    isi_dataset["spike times"] = (isi_dataset["spike times"]*1000)
-    nof_bins = round(max(isi_dataset["spike times"]))
-    
-    grid = sns.FacetGrid(isi_dataset, row="amplitude", col="pulse rate", margin_titles=True)
-    grid.map(plt.hist, "spike times", bins = nof_bins)
-    
-    inter_stimulus_interval_histogram = grid.fig
-    
-    return inter_stimulus_interval_histogram
-
-
-
-
-
-
-
-
-
-
-
-
 
 

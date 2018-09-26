@@ -499,7 +499,7 @@ phase_duration = [40,40,40,20]*us
 stim_amp_level = [1,1.2,1.5]
 
 ##### number of runs
-nof_runs = 2
+nof_runs = 5
 
 ##### look up thresholds
 thresholds = [threshold_table["threshold"][threshold_table["pulse form"] == "bi"]\
@@ -522,30 +522,43 @@ psth_table = th.util.map(func = test.post_stimulus_time_histogram,
                          cache = "no",
                          kwargs = {"model_name" : model_name,
                                    "dt" : dt,
-                                   "stim_duration" : 10*ms,
+                                   "stim_duration" : 20*ms,
                                    "stimulation_type" : "extern",
                                    "pulse_form" : "bi"})
 
-np.concatenate(psth_table[0])
+##### change index to column
+psth_table.reset_index(inplace=True)
 
-##### combine list entries of psth_data to one dataset
-psth_table.groupby(["phase duration", "pulse form"])
+##### change column names
+psth_table = psth_table.rename(index = str, columns={"phase_duration" : "phase duration (us)",
+                                                     "pulses_per_second" : "pulse rate",
+                                                     "stim_amp" : "stimulus amplitude (uA)",
+                                                     "run_number" : "run",
+                                                     0 : "spike times (us)"})
 
-###### initialize list of datasets to save bin heights end edges for each type of stimulation
-#psth_data = [pd.DataFrame()]*len(pulses_per_second)*len(stim_amp_level)
+##### add row with stimulus amplitude information
+psth_table["amplitude"] = ["{}*threshold".format(stim_amp_level[jj])
+                            for ii in range(0,len(pulses_per_second))
+                            for jj in range(0,len(stim_amp_level))
+                            for kk in range(0,nof_runs)]
 
-##### write the data in a list of dataframes
-psth_data[len(stim_amp_level)*ii+jj] = psth
-psth_data[len(stim_amp_level)*ii+jj]["amplitude"] = "{}*threshold".format(stim_amp_level[jj])
+##### built subset of dataframe
+psth_table = psth_table[["phase duration (us)", "pulse rate", "stimulus amplitude (uA)", "amplitude", "run", "spike times (us)"]]
 
-psth_dataset = pd.concat(psth_data)
+##### split lists in spike times column to multiple rows
+psth_table = calc.explode(psth_table, ["spike times (us)"])
+
+##### change units from second to us and form amp to uA
+psth_table["phase duration (us)"] = round(psth_table["phase duration (us)"]*1e6).astype(int)
+psth_table["stimulus amplitude (uA)"] = round(psth_table["stimulus amplitude (uA)"]*1e6,2)
+psth_table["spike times (us)"] = round(psth_table["spike times (us)"]*1e6).astype(int)
 
 ##### save PSTH dataset to csv
-psth_dataset.to_csv("test_battery_results/{}/PSTH_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
+psth_table.to_csv("test_battery_results/{}/PSTH_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
 
 ##### plot post_stimulus_time_histogram
 post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
-                                                                 psth_dataset = psth_dataset)
+                                                                 psth_dataset = psth_table)
 
 ###### save post_stimulus_time_histogram
 post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name))

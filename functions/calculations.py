@@ -1,5 +1,6 @@
 from brian2 import *
 import numpy as np
+import pandas as pd
 
 # =============================================================================
 #  Get soma diameters to approximate spherical
@@ -73,9 +74,9 @@ def get_soma_diameters(nof_segments,
     return soma_comp_diameters
 
 # =============================================================================
-#  Get display name for given parameter
+#  Split pandas datframe column with lists to multiple rows
 # =============================================================================
-def round_sigfigs(num, sig_figs):
+def explode(df, lst_cols, fill_value=''):
     """This function calculates the stimulus current at the current source for
     a single biphasic pulse stimulus at each point of time
 
@@ -93,11 +94,30 @@ def round_sigfigs(num, sig_figs):
         i.e. a vector of length nof_segments+1
     """
 
-    if num != 0:
-        return round(num, -int(np.floor(np.log10(abs(num))) - (sig_figs - 1)))
-    else:
-        return 0  # Can't take the log of 0
+    # make sure `lst_cols` is a list
+    if lst_cols and not isinstance(lst_cols, list):
+        lst_cols = [lst_cols]
+    # all columns except `lst_cols`
+    idx_cols = df.columns.difference(lst_cols)
 
+    # calculate lengths of lists
+    lens = df[lst_cols[0]].str.len()
+
+    if (lens > 0).all():
+        # ALL lists in cells aren't empty
+        return pd.DataFrame({
+            col:np.repeat(df[col].values, lens)
+            for col in idx_cols
+        }).assign(**{col:np.concatenate(df[col].values) for col in lst_cols}) \
+          .loc[:, df.columns]
+    else:
+        # at least one list in cells is empty
+        return pd.DataFrame({
+            col:np.repeat(df[col].values, lens)
+            for col in idx_cols
+        }).assign(**{col:np.concatenate(df[col].values) for col in lst_cols}) \
+          .append(df.loc[lens==0, idx_cols]).fillna(fill_value) \
+          .loc[:, df.columns]
     
     
     
