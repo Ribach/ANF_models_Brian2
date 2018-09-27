@@ -57,7 +57,6 @@ phase_durations_bi = [20,40,50,200,400]
 ##### define test parameters
 phase_durations = [ii*1e-6 for ii in phase_durations_mono + phase_durations_bi]
 pulse_form = np.repeat(["mono","bi"], (len(phase_durations_mono),len(phase_durations_bi)))
-runs_per_stimulus_type = 2
 
 ##### define varied parameters 
 params = [{"phase_duration" : phase_durations[ii],
@@ -130,7 +129,7 @@ strength_duration_data.to_csv("test_battery_results/{}/Strength_duration_data {}
 # Get strength-duration curve
 # =============================================================================
 ##### define phase durations
-phase_durations = np.round(np.logspace(1, 9, num=20, base=2.0))*us
+phase_durations = np.round(np.logspace(1, 9, num=30, base=2.0))*us
 
 ##### define varied parameter    
 params = {"phase_duration" : phase_durations}
@@ -177,7 +176,7 @@ phase_durations_bi = [200,400]
 ##### define test parameters
 phase_durations = [ii*1e-6 for ii in phase_durations_mono + phase_durations_bi]
 pulse_form = np.repeat(["mono","bi"], (len(phase_durations_mono),len(phase_durations_bi)))
-runs_per_stimulus_type = 2
+runs_per_stimulus_type = 60
 
 ##### define varied parameters 
 params = [{"phase_duration" : phase_durations[ii],
@@ -303,10 +302,10 @@ thresholds = [threshold_table["threshold"][threshold_table["pulse form"] == puls
 
 ##### define stimulus durations to test
 stim_amp_levels = [1,2]
-stim_amps = [ii*jj for ii in thresholds for jj in stim_amp_levels]
+stim_amps = [float(ii*jj) for ii in thresholds for jj in stim_amp_levels]
 
 ##### define number of stochastic runs
-nof_runs = 4
+nof_runs = 40
 
 ##### define varied parameters 
 params = [{"phase_duration" : phase_durations[ii],
@@ -336,7 +335,13 @@ single_node_response_table.reset_index(inplace=True)
 single_node_response_table = single_node_response_table.rename(index = str, columns={"phase_duration" : "phase duration (us)",
                                                                                      "stim_amp" : "stimulus amplitude (uA)",
                                                                                      "pulse_form" : "pulse form",
-                                                                                     "run_number" : "run"})
+                                                                                     "run_number" : "run",
+                                                                                     0 : "AP height (mV)",
+                                                                                     1 : "rise time (us)",
+                                                                                     2 : "fall time (us)",
+                                                                                     3 : "latency (us)",
+                                                                                     4 : "membrane potential (mV)",
+                                                                                     5 : "time (ms)"})
 
 ##### add row with stimulus amplitude information
 single_node_response_table["amplitude level"] = ["{}*threshold".format(stim_amp_levels[jj])
@@ -347,15 +352,15 @@ single_node_response_table["amplitude level"] = ["{}*threshold".format(stim_amp_
 ##### change units from second to us and form amp to uA
 single_node_response_table["phase duration (us)"] = round(single_node_response_table["phase duration (us)"]*1e6).astype(int)
 single_node_response_table["stimulus amplitude (uA)"] = round(single_node_response_table["stimulus amplitude (uA)"]*1e6,2)
+single_node_response_table["AP height (mV)"] = single_node_response_table["AP height (mV)"]*1e3
+single_node_response_table["rise time (us)"] = single_node_response_table["rise time (us)"]*1e6
+single_node_response_table["fall time (us)"] = single_node_response_table["fall time (us)"]*1e6
+single_node_response_table["latency (us)"] = single_node_response_table["latency (us)"]*1e6
 
 ##### adjust pulse form column
 single_node_response_table["pulse form"] = ["monophasic" if single_node_response_table["pulse form"][ii]=="mono" else "biphasic" for ii in range(np.shape(single_node_response_table)[0])]
 
-##### extract AP information and voltage and time courses
-single_node_response_table["AP height (mV)"] = [single_node_response_table[0][ii][0]*1e3 for ii in range(single_node_response_table.shape[0])]
-single_node_response_table["rise time (us)"] = [single_node_response_table[0][ii][1]*1e6 for ii in range(single_node_response_table.shape[0])]
-single_node_response_table["fall time (us)"] = [single_node_response_table[0][ii][2]*1e6 for ii in range(single_node_response_table.shape[0])]
-single_node_response_table["latency (us)"] = [single_node_response_table[0][ii][3]*1e6 for ii in range(single_node_response_table.shape[0])]
+##### calculate AP duration
 single_node_response_table["AP duration (us)"] = single_node_response_table["rise time (us)"] + single_node_response_table["fall time (us)"]
 
 ##### build summary dataframe and exclude data where no action potential was elicited
@@ -380,14 +385,9 @@ for ii in ["AP height (mV)","rise time (us)","fall time (us)","AP duration (us)"
 single_node_response_summary.to_csv("test_battery_results/{}/Single_node_response_summary {}.csv".format(model.display_name,model.display_name), index=False, header=True)
 
 ##### built dataset for voltage courses (to plot them)
-voltage_course_dataset = single_node_response_table[["phase duration (us)","stimulus amplitude (uA)", "amplitude level", "pulse form", "run", 0]]
-
-##### extract voltage course vectors and time vectors
-voltage_course_dataset["membrane potential (mV)"] = [voltage_course_dataset[0][ii][4] for ii in range(voltage_course_dataset.shape[0])]
-voltage_course_dataset["time (ms)"] = [voltage_course_dataset[0][ii][5] for ii in range(voltage_course_dataset.shape[0])]
+voltage_course_dataset = single_node_response_table[["phase duration (us)","stimulus amplitude (uA)", "amplitude level", "pulse form", "run", "membrane potential (mV)", "time (ms)"]]
 
 ##### split lists in membrane potential and time columns to multiple rows
-voltage_course_dataset = voltage_course_dataset.drop(columns = [0])
 voltage_course_dataset = calc.explode(voltage_course_dataset, ["membrane potential (mV)", "time (ms)"])
 
 ##### convert membrane potential to mV and time to ms
@@ -402,6 +402,7 @@ single_node_response = plot.single_node_response_voltage_course(plot_name = "Vol
                                                                 voltage_data = voltage_course_dataset)
 
 ###### save voltage courses plot
+voltage_course_dataset.to_csv("test_battery_results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name), index=False, header=True)
 single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name))
 
 # =============================================================================
@@ -423,8 +424,8 @@ thresholds = [threshold_table["threshold"][threshold_table["pulse form"] == puls
 ##### define varied parameters 
 params = [{"phase_duration" : phase_durations[ii],
            "pulse_form" : pulse_form[ii],
-           "threshold" : thresholds[ii],
-           "amp_masker" : thresholds[ii]*1.5} for ii in range(len(phase_durations))]
+           "threshold" : float(thresholds[ii]),
+           "amp_masker" : float(thresholds[ii]*1.5)} for ii in range(len(phase_durations))]
 
 ##### get refractory periods
 refractory_table = th.util.map(func = test.get_refractory_periods,
@@ -441,14 +442,20 @@ refractory_table.reset_index(inplace=True)
 
 ##### change column names
 refractory_table = refractory_table.rename(index = str, columns={"phase_duration" : "phase duration",
-                                                                 "pulse_form" : "pulse form"})
+                                                                 "pulse_form" : "pulse form",
+                                                                 0 : "absolute refractory period (ms)",
+                                                                 1 : "relative refractory period (ms)"})
 
 ##### extract refractory periods
 refractory_table["absolute refractory period (ms)"] = [round(refractory_table[0][ii][0]/ms, 3) for ii in range(len(phase_durations))]
 refractory_table["relative refractory period (ms)"] = [round(refractory_table[0][ii][1]/ms, 3) for ii in range(len(phase_durations))]
 
-##### add unit to phase duration
-refractory_table["phase duration"] = [ii*second for ii in refractory_table["phase duration"]] 
+##### add units to phase duration
+refractory_table["phase duration"] = [ii*second for ii in refractory_table["phase duration"]]
+
+##### convert refractory periods to ms
+refractory_table["absolute refractory period (ms)"] = refractory_table["absolute refractory period (ms)"]*1e3
+refractory_table["relative refractory period (ms)"] = refractory_table["relative refractory period (ms)"]*1e3
 
 ##### adjust pulse form column
 refractory_table["pulse form"] = ["monophasic" if pulse_form[ii]=="mono" else "biphasic" for ii in range(len(phase_durations))]
@@ -463,7 +470,7 @@ refractory_table.to_csv("test_battery_results/{}/Refractory_table {}.csv".format
 # Refractory curve
 # =============================================================================
 ##### define inter-pulse-intervals
-inter_pulse_intervals = np.logspace(-1.3, 2.9, num=3, base=2)*ms
+inter_pulse_intervals = np.logspace(-1.3, 2.9, num=120, base=2)*1e-3
 
 ##### define stimulation parameters
 phase_duration = 100*us
@@ -471,7 +478,7 @@ pulse_form = "mono"
 
 ##### look up threshold
 threshold = threshold_table["threshold"][threshold_table["pulse form"] == pulse_form]\
-                                         [threshold_table["phase duration"]/us == phase_duration/us].iloc[0]
+                                         [threshold_table["phase duration"]/us == phase_duration/us].iloc[0]*amp
 
 ##### define varied parameter    
 params = {"inter_pulse_interval" : inter_pulse_intervals}
@@ -494,10 +501,8 @@ refractory_curve_table = th.util.map(func = test.get_refractory_curve,
 refractory_curve_table.reset_index(inplace=True)
 
 ##### change column name
-refractory_curve_table = refractory_curve_table.rename(index = str, columns={"inter_pulse_interval" : "interpulse interval"})
-
-##### extract refractory periods
-refractory_curve_table["minimum required amplitude"] = [refractory_curve_table[0][ii][0] for ii in range(len(inter_pulse_intervals))]
+refractory_curve_table = refractory_curve_table.rename(index = str, columns={"inter_pulse_interval" : "interpulse interval",
+                                                                             0 : "minimum required amplitude"})
 
 ##### built subset of dataframe
 refractory_curve_table = refractory_curve_table[["interpulse interval", "minimum required amplitude"]]
@@ -526,7 +531,7 @@ phase_duration = [40,40,40,20]*us
 stim_amp_level = [1,1.2,1.5]
 
 ##### number of runs
-nof_runs = 5
+nof_runs = 120
 
 ##### look up thresholds
 thresholds = [threshold_table["threshold"][threshold_table["pulse form"] == "bi"]\
@@ -536,7 +541,7 @@ thresholds = [threshold_table["threshold"][threshold_table["pulse form"] == "bi"
 ##### define varied parameters 
 params = [{"pulses_per_second" : pulses_per_second[ii],
            "phase_duration" : phase_duration[ii]/second,
-           "stim_amp" : stim_amp_level[jj]*thresholds[ii]/amp,
+           "stim_amp" : stim_amp_level[jj]*thresholds[ii],
            "run_number" : kk}
             for ii in range(len(pulses_per_second))\
             for jj in range(len(stim_amp_level))\

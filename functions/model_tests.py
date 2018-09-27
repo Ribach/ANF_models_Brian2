@@ -660,7 +660,7 @@ def get_refractory_periods(model_name,
             
         inter_pulse_gap_diff = upper_border - lower_border
                             
-    return arp, rrp
+    return float(arp), float(rrp)
 
 # =============================================================================
 #  Calculate refractory curve
@@ -800,7 +800,7 @@ def get_refractory_curve(model_name,
             
         amp_diff = upper_border - lower_border
                 
-    return min_amp_spiked, threshold
+    return float(min_amp_spiked), float(threshold)
 
 # =============================================================================
 #  Calculate poststimulus time histogram (PSTH)
@@ -909,126 +909,6 @@ def post_stimulus_time_histogram(model_name,
     spike_times[0:len(spikes)] = spikes
     
     ##### trim zeros
-    spike_times = spike_times[spike_times != 0]
+    spike_times = spike_times[spike_times != 0].tolist()
     
-    return spike_times
-
-## =============================================================================
-##  Calculate inter-stimulus interval histogram (ISIH)
-## =============================================================================
-#def inter_stimulus_interval_histogram(model,
-#                                       dt,
-#                                       nof_repeats,
-#                                       pulses_per_second,
-#                                       stim_duration,
-#                                       stim_amp,
-#                                       stimulation_type,
-#                                       pulse_form,
-#                                       phase_duration):
-#    """This function calculates the stimulus current at the current source for
-#    a single monophasic pulse stimulus at each point of time
-#
-#    Parameters
-#    ----------
-#    model : time
-#        Lenght of one time step.
-#    dt : string
-#        Describes, how the ANF is stimulated; either "internal" or "external" is possible
-#    phase_durations : string
-#        Describes, which pulses are used; either "mono" or "bi" is possible
-#    start_interval : time
-#        Time until (first) pulse starts.
-#    delta : time
-#        Time which is still simulated after the end of the last pulse
-#    stimulation_type : amp/[k_noise]
-#        Is multiplied with k_noise.
-#    pulse_form : amp/[k_noise]
-#        Is multiplied with k_noise.
-#                
-#    Returns
-#    -------
-#    min_required_amps matrix
-#        Gives back a vector of currents for each timestep
-#    """
-#    
-#    ##### set up the neuron
-#    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-#    
-#    ##### load the parameters of the differential equations in the workspace
-#    exec(param_string)
-#    
-#    ##### initialize monitors
-#    M = StateMonitor(neuron, 'v', record=True)
-#    
-#    ##### save initialization of the monitor(s)
-#    store('initialized')
-#    
-#    ##### compartment for measurements
-#    comp_index = np.where(model.structure == 2)[0][10]
-#    
-#    ##### initialize dataset to save histogram and stimulus information
-#    isi = pd.DataFrame()
-#
-#    ##### calculate nof_pulses
-#    nof_pulses = round(pulses_per_second*stim_duration/second)
-#        
-#    ##### calculate inter_pulse_gap
-#    if pulse_form == "mono":
-#        inter_pulse_gap = (1e6/pulses_per_second - phase_duration/us)*us
-#    else:
-#        inter_pulse_gap = (1e6/pulses_per_second - phase_duration*2/us)*us
-#        
-#    ##### initialize pulse train dataframe
-#    spike_times = np.zeros((nof_repeats, nof_pulses*2))
-#            
-#    ##### loop over number of repeats
-#    for ii in range(0, nof_repeats):
-#        
-#        ##### print progress
-#        print("Pulse rate: {} pps; Stimulus Amplitude: {} us; Run: {}/{}".format(pulses_per_second,np.round(stim_amp/us,2),ii+1,nof_repeats))
-#        
-#        ##### define how the ANF is stimulated
-#        I_stim, runtime = stim.get_stimulus_current(model = model,
-#                                                    dt = dt,
-#                                                    stimulation_type = stimulation_type,
-#                                                    pulse_form = pulse_form,
-#                                                    nof_pulses = nof_pulses,
-#                                                    time_before = 0*ms,
-#                                                    time_after = 0*ms,
-#                                                    add_noise = True,
-#                                                    ##### monophasic stimulation
-#                                                    amp_mono = -stim_amp*uA,
-#                                                    duration_mono = phase_duration,
-#                                                    ##### biphasic stimulation
-#                                                    amps_bi = [-stim_amp/uA,0,stim_amp/uA]*uA,
-#                                                    durations_bi = [phase_duration/us,0,phase_duration/us]*us,
-#                                                    ##### multiple pulses / pulse trains
-#                                                    inter_pulse_gap = inter_pulse_gap)
-#    
-#        ##### get TimedArray of stimulus currents
-#        stimulus = TimedArray(np.transpose(I_stim), dt = dt)
-#        
-#        ##### reset state monitor
-#        restore('initialized')
-#                
-#        ##### run simulation
-#        run(runtime)
-#        
-#        ##### get spike times
-#        spikes = M.t[peak.indexes(savgol_filter(M.v[comp_index,:], 51,3)*volt, thres = model.V_res + 60*mV, thres_abs=True)]/second
-#        spike_times[ii, 0:len(spikes)] = spikes
-#            
-#    ##### connect all spike times to one vector
-#    spike_times = np.concatenate(spike_times)
-#    
-#    ##### trim zeros
-#    spike_times = spike_times[spike_times != 0]
-#    
-#    ##### save spike information in dataset
-#    psth["spike times"] = spike_times
-#    psth["pulse rate"] = pulses_per_second
-#    psth["phase duration"] = phase_duration
-#    psth["stimulus amplitude"] = stim_amp
-#    
-#    return isi
-
+    return spike_times, "Hallo"

@@ -1,0 +1,9 @@
+phase duration,pulse form,threshold
+40,monophasic,1.886
+40,monophasic,1.799
+100,monophasic,0.797
+100,monophasic,0.95
+200,biphasic,0.645
+200,biphasic,0.592
+400,biphasic,0.392
+400,biphasic,0.395
