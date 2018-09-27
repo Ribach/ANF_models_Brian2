@@ -22,7 +22,7 @@ import models.Imennov_2009 as imennov_09
 import models.Negm_2014 as negm_14
 
 # =============================================================================
-# Calculate threshold: multiprocessing function
+# Calculate threshold
 # =============================================================================
 def get_threshold(model_name,
                   dt,
@@ -222,19 +222,18 @@ def get_conduction_velocity(model,
 # =============================================================================
 #  Calculate single node respones
 # =============================================================================
-def get_single_node_response(model,
+def get_single_node_response(model_name,
                              dt,
-                             param_1,
-                             param_1_ratios = [0.6, 0.8, 1, 2, 3],
-                             param_2 = "stochastic_runs",
-                             param_2_ratios = [0.6, 0.8, 1, 2, 3],
+                             stim_amp,
+                             phase_duration,
                              stimulation_type = "extern",
                              pulse_form = "bi",
-                             time_after_stimulation = 1.5*ms,
+                             time_before = 3*ms,
+                             time_after = 2*ms,
                              stimulated_compartment = 4,
-                             stim_amp = 2*uA,
-                             phase_duration = 100*us,
-                             nof_runs = 1):
+                             add_noise = True,
+                             print_progress = True,
+                             run_number = 0):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
     
@@ -263,357 +262,86 @@ def get_single_node_response(model,
         Gives back the duration of the simulation
     """
     
-    ##### initializations
-    add_noise = False
-    if pulse_form == "mono": max_runtime = phase_duration + time_after_stimulation
-    else: max_runtime = phase_duration*2 + time_after_stimulation
-    max_nof_timesteps = int(np.ceil(max_runtime/dt))
+    ##### add quantity to phase_duration
+    phase_duration = float(phase_duration)*second
+    stim_amp = float(stim_amp)*amp
     
-    ##### Test if model entry is a list
-    if param_1 == "model" or param_2 == "model":
-        if not isinstance(model, (list,)):
-            print("model must be a list, if one of the parameters is set to 'model'")
-            return
+    ##### get model
+    model = eval(model_name)
+        
+    ##### initialize model with given defaultclock dt
+    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
+    exec(param_string)
+    M = StateMonitor(neuron, 'v', record=True)
+    store('initialized')
+    
+    ##### compartment for measurements
+    comp_index = np.where(model.structure == 2)[0][10]
+    
+    ##### print progress
+    if print_progress: print("Duration: {} us; Run: {}; Stimulus amplitde: {} uA".format(np.round(phase_duration/us),run_number+1,np.round(stim_amp/uA,4)))
+            
+    ##### define how the ANF is stimulated
+    I_stim, runtime = stim.get_stimulus_current(model = model,
+                                                dt = dt,
+                                                stimulation_type = stimulation_type,
+                                                pulse_form = pulse_form,
+                                                time_before = time_before,
+                                                time_after = time_after,
+                                                stimulated_compartment = stimulated_compartment,
+                                                add_noise = add_noise,
+                                                ##### monophasic stimulation
+                                                amp_mono = -stim_amp,
+                                                duration_mono = phase_duration,
+                                                ##### biphasic stimulation
+                                                amps_bi = [-stim_amp/amp,stim_amp/amp]*amp,
+                                                durations_bi = [phase_duration/second,0,phase_duration/second]*second)
+
+    ##### get TimedArray of stimulus currents and run simulation
+    stimulus = TimedArray(np.transpose(I_stim), dt=dt)
+    
+    ##### reset state monitor
+    restore('initialized')
+    
+    ##### run simulation
+    run(runtime)
+    
+    ##### AP amplitude
+    AP_amp = max(M.v[comp_index,:]-model.V_res)
+    
+    ##### AP time
+    AP_time = M.t[M.v[comp_index,:]-model.V_res == AP_amp]
+    
+    ##### time of AP start (10% of AP height before AP)
+    if any(M.t<AP_time):
+        AP_start_time = M.t[np.argmin(abs(M.v[comp_index,np.where(M.t<AP_time)[0]]-model.V_res - 0.1*AP_amp))]
     else:
-        ##### define neuron and state monitor
-        if not isinstance(model, (list,)):
-            model = [model]
-        neuron, param_string, model[0] = model[0].set_up_model(dt = dt, model = model[0], model_name = "model[0]")
-        exec(param_string)
-        M = StateMonitor(neuron, 'v', record=True)
-        store('initialized')
-         
-    ##### parameter 1
-    if hasattr(model[0], param_1):
-        # get display name for plots and dataframe
-        param_1_display_name = param_1.replace("_", " ") + " ratios"
-        # save the number of observations for parameter 1
-        length_param_1 = len(param_1_ratios)
-        # save the original value of the parameter
-        param_1_original_value = np.zeros_like(model)
-        if param_2 == "model":
-            for ii in range(0,len(model)):
-                param_1_original_value[ii] = eval("model[ii].{}".format(param_1))
-        else:
-            param_1_original_value = [eval("model[0].{}".format(param_1))]
+        AP_start_time = 0*ms
         
-    elif param_1 == "model":
-        # get display name for plots and dataframe
-        param_1_display_name = "model name"
-        # save the number of observations for parameter 1
-        length_param_1 = len(model)
-
-    elif param_1 == "stochastic_runs":
-        # include noise
-        add_noise = True
-        # get display name for plots and dataframe
-        param_1_display_name = "run"
-        # save the number of observations for parameter 1
-        length_param_1 = nof_runs
-    
-    elif param_1 == "stim_amp":
-        # save the original stim_amp value
-        stim_amp_original_value = stim_amp
-        # get display name for plots and dataframe
-        param_1_display_name = "stimulus amplitude (uA)"
-        # save the number of observations for parameter 1
-        length_param_1 = len(param_1_ratios)
-
-    elif param_1 == "phase_duration":
-        # save the original phase duration value
-        phase_duration_original_value = phase_duration
-        # get display name for plots and dataframe
-        param_1_display_name = "phase duration (us)"
-        # save the number of observations for parameter 1
-        length_param_1 = len(param_1_ratios)
-        # calculate maximum timesteps needed
-        if pulse_form == "mono":
-            max_runtime = max(param_1_ratios)*phase_duration_original_value + time_after_stimulation
-        else:
-            max_runtime = max(param_1_ratios)*phase_duration_original_value*2 + time_after_stimulation
-        max_nof_timesteps = int(np.ceil(max_runtime/dt))
-
+    ##### time of AP end (10% of AP height after AP))
+    if any(M.t>AP_time):
+        AP_end_time = M.t[np.where(M.t>AP_time)[0]][np.argmin(abs(M.v[comp_index,np.where(M.t>AP_time)[0]]-model.V_res - 0.1*AP_amp))]
     else:
-        # print error message for wrong entry
-        print("param_1 has to be either a model attribute or one of: 'model', 'stochastic_runs', 'stim_amp' and 'phase_duration")
-        return
-    
-    ##### parameter 2
-    if hasattr(model[0], param_2):
-        # get display name for plots and dataframe
-        param_2_display_name = param_2.replace("_", " ") + " ratios"
-        # save the number of observations for parameter 1
-        length_param_2 = len(param_2_ratios)
-        # save the original value of the parameter
-        param_2_original_value = np.zeros_like(model)
-        if param_1 == "model":
-            for ii in range(0,len(model)):
-                param_2_original_value[ii] = eval("model[ii].{}".format(param_2))
-        else:
-            param_2_original_value = [eval("model[0].{}".format(param_2))]
-
-    elif param_2 == "model":
-        # get display name for plots and dataframe
-        param_2_display_name = "model name"
-        # save the number of observations for parameter 1
-        length_param_2 = len(model)
-
-    elif param_2 == "stochastic_runs":
-        # include noise
-        add_noise = True
-        # get display name for plots and dataframe
-        param_2_display_name = "run"
-        # save the number of observations for parameter 1
-        length_param_2 = nof_runs
+        AP_end_time = 0*ms
         
-    elif param_2 == "stim_amp":
-        # save the original stim_amp value
-        stim_amp_original_value = stim_amp
-        # get display name for plots and dataframe
-        param_2_display_name = "stimulus amplitude (uA)"
-        # save the number of observations for parameter 1
-        length_param_2 = len(param_2_ratios)
+    ##### set AP amplitude to 0 if no start or end time could be measured
+    if AP_start_time == 0*ms or AP_end_time == 0*ms:
+        AP_amp = 0*mV
 
-    elif param_2 == "phase_duration":
-        # save the original phase duration value
-        phase_duration_original_value = phase_duration
-        # get display name for plots and dataframe
-        param_2_display_name = "phase duration (us)"
-        # save the number of observations for parameter 1
-        length_param_2 = len(param_2_ratios)
-        if pulse_form == "mono":
-            max_runtime = max(param_1_ratios)*phase_duration_original_value + time_after_stimulation
-        else:
-            max_runtime = max(param_2_ratios)*phase_duration_original_value*2 + time_after_stimulation
-        max_nof_timesteps = int(np.ceil(max_runtime/dt))
-
-    else:
-        # print error message for wrong entry
-        print("param_2 has to be either a model parameter, or one of: 'model', 'stochastic_runs', 'stim_amp' and 'phase_duration")
-        return
+    ##### calculate the AP time at the stimulated compartment (for latency measurement)
+    AP_amp_stim_comp = max(M.v[stimulated_compartment,:]-model.V_res)
+    AP_time_stim_comp = M.t[M.v[stimulated_compartment,:]-model.V_res == AP_amp_stim_comp]
     
-    ##### initialize dataframe for measurements
-    col_names = [param_1_display_name, param_2_display_name, "AP height (mV)","AP peak time","AP peak time (stimulated compartment)",
-                 "AP start time","AP end time","rise time (ms)","fall time (ms)","latency (ms)"]
-    node_response_data = pd.DataFrame(np.zeros((length_param_1*length_param_2, len(col_names))), columns = col_names)
-    
-    ##### initialize matrix for voltage courses
-    voltage_data = np.zeros((length_param_1*length_param_2,max_nof_timesteps))
-    
-    ##### compartments for measurements
-    comp_index = np.where(model[0].structure == 2)[0][10]
-            
-    ##### loop over parameter 1
-    for ii in range(0, length_param_1):
+    ##### calculate AP properties
+    AP_rise_time = (AP_time - AP_start_time)[0]
+    AP_fall_time = (AP_end_time - AP_time)[0]
+    latency = (AP_time_stim_comp - time_before)[0]
         
-        if hasattr(model[0], param_1):
-            if not param_2 == "model":
-                ##### adjust model parameter
-                exec("model[0].{} = param_1_ratios[ii]*param_1_original_value[0]".format(param_1))
-                ##### set up neuron with adjusted model parameter
-                neuron, param_string, model[0] = model[0].set_up_model(dt = dt, model = model[0], update = True, model_name = "model[0]")
-                exec(param_string)
-                M = StateMonitor(neuron, 'v', record=True)
-                store('initialized')
-        
-        elif param_1 == "model":
-            ##### set up neuron for actual model
-            neuron, param_string, model[ii] = model[ii].set_up_model(dt = dt, model = model[ii], model_name = "model[ii]")
-            exec(param_string)
-            M = StateMonitor(neuron, 'v', record=True)
-            store('initialized')
-            ##### compartments for measurements
-            comp_index = np.where(model[ii].structure == 2)[0][10]
-                    
-        elif param_1 == "stim_amp":
-            ##### set stimulus amplitude for actual iteration
-            stim_amp = stim_amp_original_value*param_1_ratios[ii]
-        
-        elif param_1 == "phase_duration":
-            ##### set phase duration for actual iteration
-            phase_duration = phase_duration_original_value*param_1_ratios[ii]
-        
-        ##### loop over parameter 2
-        for jj in range(0,length_param_2):
-            
-            if hasattr(model[0], param_2):
-               if not param_1 == "model":
-                    ##### adjust model parameter
-                    exec("model[0].{} = param_2_ratios[jj]*param_2_original_value[0]".format(param_2))
-                    ##### set up neuron with adjusted model parameter
-                    neuron, param_string, model[0] = model[0].set_up_model(dt = dt, model = model[0], update = True, model_name = "model[0]")
-                    exec(param_string)
-                    M = StateMonitor(neuron, 'v', record=True)
-                    store('initialized')
-               else:
-                    ##### adjust model parameter
-                    exec("model[ii].{} = param_2_ratios[jj]*param_2_original_value[ii]".format(param_2))
-                    ##### set up neuron again with adjusted model parameter
-                    neuron, param_string, model[ii] = model[ii].set_up_model(dt = dt, model = model[ii], update = True, model_name = "model[ii]")
-                    exec(param_string)
-                    M = StateMonitor(neuron, 'v', record=True)
-                    store('initialized')
-            
-            elif param_2 == "model":
-                if hasattr(model[0], param_1):
-                    ##### adjust model parameter
-                    exec("model[jj].{} = param_1_ratios[ii]*param_1_original_value[jj]".format(param_1))
-                ##### set up neuron for actual model
-                neuron, param_string, model[jj] = model[jj].set_up_model(dt = dt, model = model[jj], update = True, model_name = "model[jj]")
-                exec(param_string)
-                M = StateMonitor(neuron, 'v', record=True)
-                store('initialized')
-                ##### compartments for measurements
-                comp_index = np.where(model[jj].structure == 2)[0][10]
-                            
-            elif param_2 == "stim_amp":
-                ##### set stimulus amplitude for actual iteration
-                stim_amp = stim_amp_original_value*param_2_ratios[jj]
-            
-            elif param_2 == "phase_duration":
-                ##### set phase duration for actual iteration
-                phase_duration = phase_duration_original_value*param_2_ratios[jj]
-                
-            ##### save actual model type in model_type
-            if param_1 == "model":
-                model_type = model[ii]
-            elif param_2 == "model":
-                model_type = model[jj]
-            else:
-                model_type = model[0]
-            
-            ##### define how the ANF is stimulated
-            I_stim, runtime = stim.get_stimulus_current(model = model_type,
-                                                        dt = dt,
-                                                        stimulation_type = stimulation_type,
-                                                        pulse_form = pulse_form,
-                                                        time_after = time_after_stimulation,
-                                                        add_noise = add_noise,
-                                                        stimulated_compartment = stimulated_compartment,
-                                                        ##### monophasic stimulation
-                                                        amp_mono = -stim_amp,
-                                                        duration_mono = phase_duration,
-                                                        ##### biphasic stimulation
-                                                        amps_bi = [-stim_amp/amp,stim_amp/amp]*amp,
-                                                        durations_bi = [phase_duration/second,0,phase_duration/second]*second)
-        
-            ##### get TimedArray of stimulus currents and run simulation
-            stimulus = TimedArray(np.transpose(I_stim), dt=dt)
-            
-            ##### reset state monitor
-            restore('initialized')
-            
-            ##### run simulation
-            run(runtime)
-            
-            ##### write results in table
-            # calculated AP properties at the compartment specified with comp_index
-            AP_amp = max(M.v[comp_index,:]-model_type.V_res)
-            AP_time = M.t[M.v[comp_index,:]-model_type.V_res == AP_amp]
-            if any(M.t<AP_time):
-                AP_start_time = M.t[np.argmin(abs(M.v[comp_index,np.where(M.t<AP_time)[0]]-model_type.V_res - 0.1*AP_amp))]
-            else:
-                AP_start_time = 0*ms
-            if any(M.t>AP_time):
-                AP_end_time = M.t[np.where(M.t>AP_time)[0]][np.argmin(abs(M.v[comp_index,np.where(M.t>AP_time)[0]]-model_type.V_res - 0.1*AP_amp))]
-            else:
-                AP_end_time = 0*ms
-                
-            # calculate the AP time at the stimulated compartment (for latency measurement)
-            AP_amp_stim_comp = max(M.v[stimulated_compartment,:]-model_type.V_res)
-            AP_time_stim_comp = M.t[M.v[stimulated_compartment,:]-model_type.V_res == AP_amp_stim_comp]
-            
-            # fill in the value for parameter 1
-            if hasattr(model_type, param_1): node_response_data[param_1_display_name][ii*length_param_2+jj] = param_1_ratios[ii]
-            elif param_1 == "model": node_response_data[param_1_display_name][ii*length_param_2+jj] = model_type.display_name
-            elif param_1 == "stochastic_runs": node_response_data[param_1_display_name][ii*length_param_2+jj] = ii
-            elif param_1 == "stim_amp": node_response_data[param_1_display_name][ii*length_param_2+jj] = round(stim_amp/uA,2)
-            elif param_1 == "phase_duration": node_response_data[param_1_display_name][ii*length_param_2+jj] = round(phase_duration/us,2)
-            
-            # fill in the value for parameter 2
-            if hasattr(model_type, param_2): node_response_data[param_2_display_name][ii*length_param_2+jj] = param_2_ratios[jj]
-            elif param_2 == "model": node_response_data[param_2_display_name][ii*length_param_2+jj] = model_type.display_name
-            elif param_2 == "stochastic_runs": node_response_data[param_2_display_name][ii*length_param_2+jj] = jj
-            elif param_2 == "stim_amp": node_response_data[param_2_display_name][ii*length_param_2+jj] = round(stim_amp/uA,2)
-            elif param_2 == "phase_duration": node_response_data[param_2_display_name][ii*length_param_2+jj] = round(phase_duration/us,2)
-            
-            # fill in remaining values
-            node_response_data["AP height (mV)"][ii*length_param_2+jj] = AP_amp/mV
-            node_response_data["AP peak time"][ii*length_param_2+jj] = AP_time/ms
-            node_response_data["AP peak time (stimulated compartment)"][ii*length_param_2+jj] = AP_time_stim_comp/ms
-            node_response_data["AP start time"][ii*length_param_2+jj] = AP_start_time/ms
-            node_response_data["AP end time"][ii*length_param_2+jj] = AP_end_time/ms
-
-            ##### print progress
-            print("{}: {}/{}; {}: {}/{}".format(param_1_display_name, ii+1,length_param_1,param_2_display_name,jj+1,length_param_2))
-
-            ##### save voltage course of single compartment for plotting
-            voltage_data[length_param_2*ii+jj,0:np.shape(M.v)[1]] = M.v[comp_index, :]/mV
+    ##### save voltage course of single compartment and corresponding time vector
+    voltage_course = (M.v[comp_index, int(np.floor(time_before/dt)):]/volt).tolist()
+    time_vector = (M.t[int(np.floor(time_before/dt)):]/second).tolist()
     
-    ##### Change voltage_data to dataframe and add parameter information
-    voltage_data = pd.DataFrame(voltage_data)
-    voltage_data[param_1_display_name] = node_response_data[param_1_display_name]
-    voltage_data[param_2_display_name] = node_response_data[param_2_display_name]
-    
-    ##### change structure for seaborn plot
-    voltage_data = voltage_data.melt(id_vars = [param_1_display_name, param_2_display_name], var_name = "time")
-    voltage_data["time"] = voltage_data["time"]*dt/ms
-    voltage_data = voltage_data[voltage_data["value"]!=0]
-    
-    ##### rename columns of voltage data
-    voltage_data = voltage_data.rename(index=str, columns={"time": "time / ms", "value": "membrane potential / mV"})
-
-    ##### calculate remaining single node response data
-    node_response_data["rise time (ms)"] = node_response_data["AP peak time"] - node_response_data["AP start time"]
-    node_response_data["fall time (ms)"] = node_response_data["AP end time"] - node_response_data["AP peak time"]
-    node_response_data["latency (ms)"] = node_response_data["AP peak time (stimulated compartment)"]
-    
-    ##### exclude runs where no AP was elicited or where no start or end time could be calculated
-    node_response_data = node_response_data[node_response_data["AP height (mV)"] > 60]
-    node_response_data = node_response_data[node_response_data["AP start time"] > 0]
-    node_response_data = node_response_data[node_response_data["AP end time"] > 0]
-    
-    ##### sum up relevant single node response properties in dataframe
-    if param_1 == "stochastic_runs":
-        node_response_data[param_1_display_name] = node_response_data[param_1_display_name].astype(int)
-        #node_response_data_summary = node_response_data.groupby([param_2_display_name])["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"].mean().reset_index()
-        #node_response_data_summary["jitter (ms)"] = node_response_data.groupby([param_2_display_name])["latency (ms)"].std()
-
-    elif param_2 == "stochastic_runs":
-        node_response_data[param_2_display_name] = node_response_data[param_2_display_name].astype(int)
-        #node_response_data_summary = node_response_data.groupby([param_1_display_name])["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"].mean().reset_index()
-        #node_response_data_summary["jitter (ms)"] = node_response_data.groupby([param_1_display_name])["latency (ms)"].std()
-        
-    else:
-        node_response_data_summary = node_response_data[[param_1_display_name, param_2_display_name, "AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"]]
-
-    node_response_data_summary = node_response_data[[param_1_display_name, param_2_display_name, "AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"]]
-
-    ##### reset the adjusted parameter
-    if hasattr(model[0], param_1):
-        if param_2 == "model":
-            for ii in range(0, len(model)):
-                exec("model[ii].{} = param_1_original_value[ii]".format(param_1))
-        else:
-            exec("model[0].{} = param_1_original_value[0]".format(param_1))
-    if hasattr(model[0], param_2):
-        if param_1 == "model":
-            for ii in range(0, len(model)):
-                exec("model[ii].{} = param_2_original_value[ii]".format(param_2))
-        else:
-            exec("model[0].{} = param_2_original_value[0]".format(param_2))
-            
-    ##### save time_vector
-    time_vector = M.t
-        
-    ##### reset neuron
-    for ii in range(0, len(model)):
-        neuron, param_string, model[ii] = model[ii].set_up_model(dt = dt, model = model[ii], update = True, model_name = "model[ii]")
-        exec(param_string)
-        M = StateMonitor(neuron, 'v', record=True)
-        store('initialized')
-    
-    return voltage_data, node_response_data_summary
+    return AP_amp/volt, AP_rise_time/second, AP_fall_time/second, latency/second, voltage_course, time_vector
 
 # =============================================================================
 #  Calculate cronaxie for a given rheobase

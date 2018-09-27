@@ -33,7 +33,7 @@ strength_duration_data = pd.read_csv("test_battery_results/{}/Strength_duration_
 threshold_table = pd.read_csv("test_battery_results/{}/Threshold_table {}.csv".format(model.display_name,model.display_name))
 relative_spreads = pd.read_csv("test_battery_results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
 conduction_velocity_table = pd.read_csv("test_battery_results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name))
-node_response_data_summary = pd.read_csv("test_battery_results/{}/Node_response_data_summary {}.csv".format(model.display_name,model.display_name))
+node_response_data_summary = pd.read_csv("test_battery_results/{}/Single_node_response_summary {}.csv".format(model.display_name,model.display_name))
 refractory_table = pd.read_csv("test_battery_results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name))
 
 # =============================================================================
@@ -72,23 +72,25 @@ else:
     conduction_velocity_table["Boyd and Kalu 1979"] = ["-","{}".format(dendrite_ratio)]
 
 ##### Latency and jitter
-latency_jitter = node_response_data_summary[["phase duration (us)", "pulse form", "stimulus amplitude level", "latency (ms)",  "jitter (ms)"]]
-latency_jitter = latency_jitter.rename(index = str, columns={"latency (ms)":"latency (us)", "jitter (ms)":"jitter (us)"})
-latency_jitter = pd.melt(latency_jitter, id_vars=["phase duration (us)", "pulse form", "stimulus amplitude level"], value_vars=["latency (us)",  "jitter (us)"])
-latency_jitter["value"] = latency_jitter["value"]*1000
+latency_jitter = node_response_data_summary[["phase duration (us)", "pulse form", "amplitude level", "latency (us)",  "jitter (us)"]]
+latency_jitter = pd.melt(latency_jitter, id_vars=["phase duration (us)", "pulse form", "amplitude level"], value_vars=["latency (us)",  "jitter (us)"])
 latency_jitter["value"] = ["%.3g" %latency_jitter["value"][i] for i in range(0,latency_jitter.shape[0])]
 latency_jitter["phase duration (us)"] = ["%g us" %latency_jitter["phase duration (us)"][i] for i in range(0,latency_jitter.shape[0])]
 latency_jitter = latency_jitter.rename(index = str, columns={"phase duration (us)":"phase duration"})
 
-latency_jitter_th = latency_jitter[latency_jitter["stimulus amplitude level"] == "threshold"]
+latency_jitter_th = latency_jitter[latency_jitter["amplitude level"] == "1*threshold"]
 latency_jitter_th = latency_jitter_th.rename(index = str, columns={"value":"model (threshold)"})
+latency_jitter_th = latency_jitter_th.drop(columns = ["amplitude level"])
 
-latency_jitter_2th = latency_jitter[latency_jitter["stimulus amplitude level"] == "2*threshold"]
+latency_jitter_2th = latency_jitter[latency_jitter["amplitude level"] == "2*threshold"]
 latency_jitter_2th = latency_jitter_2th.rename(index = str, columns={"value":"model (2*threshold)"})
+latency_jitter_2th = latency_jitter_2th.drop(columns = ["amplitude level"])
 
-latency_jitter = latency_jitter.drop(columns = ["stimulus amplitude level", "value"]).drop_duplicates()
-latency_jitter["model (threshold)"] = latency_jitter_th["model (threshold)"].tolist()
-latency_jitter["model (2*threshold)"] = latency_jitter_2th["model (2*threshold)"].tolist()
+latency_jitter = latency_jitter.drop(columns = ["amplitude level", "value"]).drop_duplicates()
+
+latency_jitter = pd.merge(latency_jitter, latency_jitter_th, on=["phase duration","pulse form","variable"], how = 'left')
+latency_jitter = pd.merge(latency_jitter, latency_jitter_2th, on=["phase duration","pulse form","variable"], how = 'left')
+
 latency_jitter = latency_jitter.sort_values(by=["pulse form", "phase duration"], ascending = [False, True])
 
 latency_jitter["Miller et al. 1999"] = ["650", "100", "-", "-", "-", "-", "-", "-"]
@@ -101,13 +103,13 @@ latency_jitter = latency_jitter.rename(index = str, columns={"variable":"propert
 latency_jitter = latency_jitter.set_index(["phase duration","pulse form", "property"])
 
 ##### AP shape
-AP_shape = node_response_data_summary[["AP height (mV)", "rise time (ms)", "fall time (ms)", "AP duration (ms)"]].iloc[[5]].transpose()
+AP_shape = node_response_data_summary[["AP height (mV)", "rise time (us)", "fall time (us)", "AP duration (us)"]].iloc[[5]].transpose()
 AP_shape = AP_shape.rename(index = str, columns={5:"model"})
 
 t_rise = round(-0.000625*conduction_velocity_table["model"].iloc[[0]] + 0.14, 3).tolist()[0]
 t_fall = round(-0.002083*conduction_velocity_table["model"].iloc[[0]] + 0.3933, 3).tolist()[0]
 AP_duration = t_rise + t_fall
-AP_shape["Paintal 1965"] = ["-", t_rise, t_fall, AP_duration]
+AP_shape["Paintal 1965"] = ["-", int(t_rise*1e3), int(t_fall*1e3), int(AP_duration*1e3)]
 
 ##### Refractory periods
 absolute_refractory_periods = refractory_table.drop(columns = ["relative refractory period (ms)"])

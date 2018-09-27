@@ -144,9 +144,7 @@ def single_node_response_bar_plot(data):
 #  Single node response voltage course plot
 # =============================================================================
 def single_node_response_voltage_course(plot_name,
-                                        voltage_data,
-                                        col_wrap = 0,
-                                        height = 2):
+                                        voltage_data):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -169,47 +167,73 @@ def single_node_response_voltage_course(plot_name,
         Gives back a vector of currents for each timestep
     """
     
-    ##### define number of columns
-    if col_wrap == 0:
-        nof_param_1_values = len(np.unique(voltage_data[voltage_data.columns.values[0]]))
-        col_wrap = 1
-        if nof_param_1_values > 3:
-            col_wrap = 2
+    ##### get amplitude levels and phase durations
+    phase_durations = voltage_data["phase duration (us)"].unique().tolist()
+    amplitudes = voltage_data["amplitude level"].unique().tolist()
     
-        if nof_param_1_values > 7:
-            col_wrap = 3
+    ##### get number of different stimulus amplitudes and phase durations
+    nof_phase_durations = len(phase_durations)
+    nof_amplitudes = len(amplitudes)    
     
-    ##### define color palette and legend
-    nof_param_2_values = len(np.unique(voltage_data[voltage_data.columns.values[1]]))
-    if "run" in voltage_data.columns.values:
-        palette = sns.color_palette("Blues_d", n_colors = nof_param_2_values)
-        legend = False
-    else:
-        palette = sns.color_palette(n_colors = nof_param_2_values)
-        legend = "full"
+    ##### get number of runs
+    nof_runs = max(voltage_data["run"])+1
     
-    ##### plot voltage courses
-    single_node_response = sns.relplot(x="time / ms",
-                                       y="membrane potential / mV",
-                                       hue=voltage_data.columns.values[1],
-                                       col=voltage_data.columns.values[0],
-                                       col_wrap = col_wrap,
-                                       kind="line",
-                                       data=voltage_data,
-                                       height = height,
-                                       legend=legend,
-                                       palette = palette)
-    
-    ##### delete label in certain cases
-    if voltage_data.columns.values[0] in ['model name', 'stimulation info']:
-        _,index = np.unique(voltage_data[voltage_data.columns.values[0]], return_index=True)
-        colnames = voltage_data[voltage_data.columns.values[0]][np.sort(index)]
-        for ax, title in zip(single_node_response.axes.flat, colnames):
-            ax.set_title(title, fontsize=15)
+    ##### get achses ranges
+    y_min = min(voltage_data["membrane potential (mV)"]) - 5
+    y_max = max(voltage_data["membrane potential (mV)"]) + 5
+    x_max = max(voltage_data["time (ms)"])
+
+    ##### create figure
+    fig, axes = plt.subplots(nof_phase_durations, nof_amplitudes, sharex=True, sharey=True, figsize=(3*nof_amplitudes, 3*nof_phase_durations))
+
+    for ii in range(nof_phase_durations):
+        for jj in range(nof_amplitudes):
+            for kk in range(nof_runs):
             
-    single_node_response = single_node_response.fig
+                #### building a subset of the relevant rows
+                current_data = voltage_data[voltage_data["phase duration (us)"] == phase_durations[ii]]\
+                                           [voltage_data["amplitude level"] == amplitudes[jj]]\
+                                           [voltage_data["run"] == kk]
         
-    return single_node_response
+                ##### create plot
+                axes[ii][jj].plot(current_data["time (ms)"], current_data["membrane potential (mV)"], color = "black")
+                
+                ##### remove top and right lines
+                axes[ii][jj].spines['top'].set_visible(False)
+                axes[ii][jj].spines['right'].set_visible(False)
+                
+                ##### define achses ranges
+                axes[ii][jj].set_ylim([y_min,y_max])
+                axes[ii][jj].set_xlim([0,x_max])
+                
+                ##### remove ticks
+                axes[ii][jj].tick_params(axis = 'both', left = 'off', bottom = 'off')
+                
+            ##### add right side y label
+            if jj == nof_amplitudes-1:
+                axes[ii][jj].yaxis.set_label_position("right")
+                axes[ii][jj].set_ylabel("{} ({} us)".format(current_data["pulse form"].iloc[0], phase_durations[ii]), rotation=-90)
+    
+    ##### bring subplots close to each other.
+    fig.subplots_adjust(hspace=0.05, wspace=0.1)
+    
+    ##### use the pulse rates as column titles
+    for ax, columtitle in zip(axes[0], ["i = {}".format(amplitudes[ii]) for ii in range(nof_amplitudes)]):
+        ax.set_title(columtitle, fontsize=13)
+    
+    ##### use ticks in the leftmost column
+    for ax in axes[:,0]:
+        ax.tick_params(axis = 'both', left = True, bottom = 'off')
+        
+    ##### use ticks in the bottommost row
+    for ax in axes[nof_phase_durations-1]:
+        ax.tick_params(axis = 'both', left = 'off', bottom = True)
+    
+    ##### get labels for the axes
+    fig.text(0.5, 0.06, 'Time (ms)', ha='center', fontsize=14)
+    fig.text(0.02, 0.5, 'Membrane potential (mV)', va='center', rotation='vertical', fontsize=14)
+        
+    return fig
     
 # =============================================================================
 #  Strength duration curve
@@ -444,6 +468,6 @@ def post_stimulus_time_histogram(plot_name,
     fig.text(0.5, 0.02, 'Time after pulse train onset (ms)', ha='center')
     fig.text(0.02, 0.5, 'Response Rate (spikes/s)', va='center', rotation='vertical')
     
-    return post_stimulus_time_histogram
+    return fig
 
 

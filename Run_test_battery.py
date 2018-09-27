@@ -61,7 +61,7 @@ runs_per_stimulus_type = 2
 
 ##### define varied parameters 
 params = [{"phase_duration" : phase_durations[ii],
-           "pulse_form" : pulse_form[ii]} for ii in range(0,len(phase_durations))]
+           "pulse_form" : pulse_form[ii]} for ii in range(len(phase_durations))]
 
 ##### get thresholds
 threshold_table = th.util.map(func = test.get_threshold,
@@ -177,12 +177,12 @@ phase_durations_bi = [200,400]
 ##### define test parameters
 phase_durations = [ii*1e-6 for ii in phase_durations_mono + phase_durations_bi]
 pulse_form = np.repeat(["mono","bi"], (len(phase_durations_mono),len(phase_durations_bi)))
-runs_per_stimulus_type = 50
+runs_per_stimulus_type = 2
 
 ##### define varied parameters 
 params = [{"phase_duration" : phase_durations[ii],
            "run_number" : jj,
-           "pulse_form" : pulse_form[ii]} for ii in range(0,len(phase_durations)) for jj in range(0,runs_per_stimulus_type)]
+           "pulse_form" : pulse_form[ii]} for ii in range(len(phase_durations)) for jj in range(runs_per_stimulus_type)]
 
 ##### get thresholds
 relative_spread_plot_table = th.util.map(func = test.get_threshold,
@@ -210,7 +210,7 @@ relative_spread_plot_table = relative_spread_plot_table.rename(index = str, colu
 relative_spread_plot_table["phase duration"] = [ii*second for ii in relative_spread_plot_table["phase duration"]]
 
 ##### adjust pulse form column
-relative_spread_plot_table["pulse form"] = ["monophasic" if pulse_form[ii]=="mono" else "biphasic" for ii in range(0,len(phase_durations))]
+relative_spread_plot_table["pulse form"] = ["monophasic" if relative_spread_plot_table["pulse form"][ii]=="mono" else "biphasic" for ii in range(np.shape(relative_spread_plot_table)[0])]
 
 ##### built subset of dataframe
 relative_spread_plot_table = relative_spread_plot_table[["phase duration", "pulse form", "threshold"]]
@@ -228,7 +228,7 @@ thresholds = relative_spread_plot_table.groupby(["phase duration", "pulse form"]
 relative_spreads = round(thresholds.std()/thresholds.mean()*100, 2)
 relative_spreads.reset_index(inplace=True)
 relative_spreads = relative_spreads.rename(index = str, columns={"threshold" : "relative spread"})
-relative_spreads["relative spread"] = ["{}%".format(relative_spreads["relative spread"][ii]) for ii in range(0,np.shape(relative_spreads)[0])]
+relative_spreads["relative spread"] = ["{}%".format(relative_spreads["relative spread"][ii]) for ii in range(np.shape(relative_spreads)[0])]
 
 ##### Save table as csv    
 relative_spreads.to_csv("test_battery_results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
@@ -293,86 +293,113 @@ phase_durations_mono = [40,50,100]
 phase_durations_bi = [200]
 
 ##### generate lists with test parameters
-phase_duration = [i*us for i in phase_durations_mono + phase_durations_bi]
-pulse_form = np.repeat(["mono","bi"], (len(phase_durations_mono),len(phase_durations_bi)))    
+phase_durations = [ii*1e-6 for ii in phase_durations_mono + phase_durations_bi]
+pulse_form = np.repeat(["mono","bi"], (len(phase_durations_mono),len(phase_durations_bi)))
 
-##### define how many stimulus amplitudes to test
-nof_stim_amps = 2
+##### look up thresholds
+thresholds = [threshold_table["threshold"][threshold_table["pulse form"] == pulse_form[ii]]\
+                                         [threshold_table["phase duration"]/us == (phase_durations_mono + phase_durations_bi)[ii]].iloc[0]\
+                                         for ii in range(len(phase_durations))]/amp
+
+##### define stimulus durations to test
+stim_amp_levels = [1,2]
+stim_amps = [ii*jj for ii in thresholds for jj in stim_amp_levels]
 
 ##### define number of stochastic runs
-nof_stochastic_runs = 20
+nof_runs = 4
 
-##### initialize summary dataset
-column_names = ["phase duration (us)", "pulse form", "stimulus amplitude level", "AP height (mV)", "rise time (ms)",
-                "fall time (ms)", "AP duration (ms)", "latency (ms)", "jitter (ms)"]
-node_response_data_summary = pd.DataFrame(np.zeros((len(phase_duration*nof_stim_amps), len(column_names))), columns = column_names)
+##### define varied parameters 
+params = [{"phase_duration" : phase_durations[ii],
+           "pulse_form" : pulse_form[ii],
+           "stim_amp" : stim_amps[2*ii+jj-1],
+           "run_number" : kk}
+             for ii in range(len(phase_durations))\
+             for jj in stim_amp_levels\
+             for kk in range(nof_runs)]
 
-##### initialize list of datasets to save voltage course data
-voltage_courses = [pd.DataFrame()]*len(phase_duration)*nof_stim_amps
+##### get thresholds
+single_node_response_table = th.util.map(func = test.get_single_node_response,
+                                         space = params,
+                                         backend = backend,
+                                         cache = "no",
+                                         kwargs = {"model_name" : model_name,
+                                                   "dt" : dt,
+                                                   "stimulation_type" : "extern",
+                                                   "time_before" : 3*ms,
+                                                   "time_after" : 2*ms,
+                                                   "add_noise" : True})
 
-##### loop over all phase durations to test
-for ii in range(0,len(phase_duration)):
-    
-    ##### look up threshold for actual stimulation
-    threshold = threshold_table["threshold"][threshold_table["pulse form"] == pulse_form[ii]]\
-                                            [threshold_table["phase duration"]/us == phase_duration[ii]/us].iloc[0]
-    
-    ##### loop over stimulus amplitudes to test
-    for jj in range(0,nof_stim_amps):
-        
-        ##### define stimulus amplitude
-        stim_amp = (jj+1)*threshold                                        
-        
-        ##### measure single node response properties
-        voltage_data, node_response_data = \
-        test.get_single_node_response(model = model,
-                                      dt = dt,
-                                      param_1 = "stim_amp",
-                                      param_1_ratios = [1],
-                                      param_2 = "stochastic_runs",
-                                      stimulation_type = "extern",
-                                      pulse_form = pulse_form[ii],
-                                      time_after_stimulation = 2*ms,
-                                      stim_amp = stim_amp,
-                                      phase_duration = phase_duration[ii],
-                                      nof_runs = nof_stochastic_runs)
-        
-        ##### write voltage dataset in voltage courses list
-        voltage_courses[nof_stim_amps*ii+jj] = voltage_data
-        voltage_courses[nof_stim_amps*ii+jj] = voltage_courses[nof_stim_amps*ii+jj].drop(columns = "stimulus amplitude (uA)")
-        voltage_courses[nof_stim_amps*ii+jj]["phase duration (us)"] = round(phase_duration[ii]/us)
-        voltage_courses[nof_stim_amps*ii+jj]["pulse form"] = "monophasic" if pulse_form[ii]=="mono" else "biphasic"
-        voltage_courses[nof_stim_amps*ii+jj]["stimulus amplitude level"] = "threshold" if jj==0 else "{}*threshold".format(jj+1)
-        
+##### change index to column
+single_node_response_table.reset_index(inplace=True)
 
-        ##### write results in summary table
-        node_response_data_summary.loc[nof_stim_amps*ii+jj,"phase duration (us)"] = phase_duration[ii]/us
-        node_response_data_summary.loc[nof_stim_amps*ii+jj,"pulse form"] = "monophasic" if pulse_form[ii]=="mono" else "biphasic"
-        node_response_data_summary.loc[nof_stim_amps*ii+jj,"stimulus amplitude level"] = "threshold" if jj==0 else "{}*threshold".format(jj+1)
-        node_response_data_summary.loc[nof_stim_amps*ii+jj,["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"]] =\
-        node_response_data[["AP height (mV)", "rise time (ms)", "fall time (ms)", "latency (ms)"]].mean()
-        node_response_data_summary.loc[nof_stim_amps*ii+jj,"latency (ms)"] = node_response_data_summary.loc[nof_stim_amps*ii+jj,"latency (ms)"]
-        node_response_data_summary.loc[nof_stim_amps*ii+jj,"jitter (ms)"] = node_response_data["latency (ms)"].std()
-        node_response_data_summary.loc[nof_stim_amps*ii+jj,"AP duration (ms)"] = sum(node_response_data_summary.loc[ii,["rise time (ms)", "fall time (ms)"]])
+##### change column names
+single_node_response_table = single_node_response_table.rename(index = str, columns={"phase_duration" : "phase duration (us)",
+                                                                                     "stim_amp" : "stimulus amplitude (uA)",
+                                                                                     "pulse_form" : "pulse form",
+                                                                                     "run_number" : "run"})
 
-##### round for 3 significant digits
-for ii in ["AP height (mV)", "rise time (ms)", "fall time (ms)", "AP duration (ms)", "latency (ms)", "jitter (ms)"]:
-    node_response_data_summary[ii] = ["%.3g" %node_response_data_summary[ii][jj] for jj in range(0,node_response_data_summary.shape[0])]
+##### add row with stimulus amplitude information
+single_node_response_table["amplitude level"] = ["{}*threshold".format(stim_amp_levels[jj])
+                                for ii in range(len(phase_durations))
+                                for jj in range(len(stim_amp_levels))
+                                for kk in range(nof_runs)]
+
+##### change units from second to us and form amp to uA
+single_node_response_table["phase duration (us)"] = round(single_node_response_table["phase duration (us)"]*1e6).astype(int)
+single_node_response_table["stimulus amplitude (uA)"] = round(single_node_response_table["stimulus amplitude (uA)"]*1e6,2)
+
+##### adjust pulse form column
+single_node_response_table["pulse form"] = ["monophasic" if single_node_response_table["pulse form"][ii]=="mono" else "biphasic" for ii in range(np.shape(single_node_response_table)[0])]
+
+##### extract AP information and voltage and time courses
+single_node_response_table["AP height (mV)"] = [single_node_response_table[0][ii][0]*1e3 for ii in range(single_node_response_table.shape[0])]
+single_node_response_table["rise time (us)"] = [single_node_response_table[0][ii][1]*1e6 for ii in range(single_node_response_table.shape[0])]
+single_node_response_table["fall time (us)"] = [single_node_response_table[0][ii][2]*1e6 for ii in range(single_node_response_table.shape[0])]
+single_node_response_table["latency (us)"] = [single_node_response_table[0][ii][3]*1e6 for ii in range(single_node_response_table.shape[0])]
+single_node_response_table["AP duration (us)"] = single_node_response_table["rise time (us)"] + single_node_response_table["fall time (us)"]
+
+##### build summary dataframe and exclude data where no action potential was elicited
+single_node_response_summary = single_node_response_table[single_node_response_table["AP height (mV)"] > 60]
+
+##### calculate jitter
+jitter = single_node_response_summary.groupby(["phase duration (us)","stimulus amplitude (uA)","pulse form"])["latency (us)"].std().reset_index()
+jitter = jitter.rename(index = str, columns={"latency (us)" : "jitter (us)"})
+
+##### calculate means of AP characteristics and summarize them in a summary dataframe
+single_node_response_summary = single_node_response_summary.groupby(["phase duration (us)","stimulus amplitude (uA)", "amplitude level", "pulse form"])\
+["AP height (mV)","rise time (us)","fall time (us)","AP duration (us)","latency (us)"].mean().reset_index()
+
+##### add jitter to summary
+single_node_response_summary = pd.merge(single_node_response_summary, jitter, on=["phase duration (us)","stimulus amplitude (uA)","pulse form"])
+
+##### round columns to 3 significant digits
+for ii in ["AP height (mV)","rise time (us)","fall time (us)","AP duration (us)","latency (us)","jitter (us)"]:
+    single_node_response_summary[ii] = ["%.3g" %single_node_response_summary[ii][jj] for jj in range(single_node_response_summary.shape[0])]
 
 ##### Save table as csv    
-node_response_data_summary.to_csv("test_battery_results/{}/Node_response_data_summary {}.csv".format(model.display_name,model.display_name), index=False, header=True)
+single_node_response_summary.to_csv("test_battery_results/{}/Single_node_response_summary {}.csv".format(model.display_name,model.display_name), index=False, header=True)
 
-##### combine list entries of voltage courses to one dataset
-voltage_course_dataset = pd.concat(voltage_courses)
-voltage_course_dataset["stimulation info"] = voltage_course_dataset["phase duration (us)"].map(str) + [" us; "] + voltage_course_dataset["pulse form"].map(str) +\
-["; "] + voltage_course_dataset["stimulus amplitude level"].map(str)
-voltage_course_dataset = voltage_course_dataset[["stimulation info", "run", "time / ms", "membrane potential / mV"]]
+##### built dataset for voltage courses (to plot them)
+voltage_course_dataset = single_node_response_table[["phase duration (us)","stimulus amplitude (uA)", "amplitude level", "pulse form", "run", 0]]
+
+##### extract voltage course vectors and time vectors
+voltage_course_dataset["membrane potential (mV)"] = [voltage_course_dataset[0][ii][4] for ii in range(voltage_course_dataset.shape[0])]
+voltage_course_dataset["time (ms)"] = [voltage_course_dataset[0][ii][5] for ii in range(voltage_course_dataset.shape[0])]
+
+##### split lists in membrane potential and time columns to multiple rows
+voltage_course_dataset = voltage_course_dataset.drop(columns = [0])
+voltage_course_dataset = calc.explode(voltage_course_dataset, ["membrane potential (mV)", "time (ms)"])
+
+##### convert membrane potential to mV and time to ms
+voltage_course_dataset["membrane potential (mV)"] = voltage_course_dataset["membrane potential (mV)"] *1e3
+voltage_course_dataset["time (ms)"] = voltage_course_dataset["time (ms)"] *1e3
+
+##### start time values at zero
+voltage_course_dataset["time (ms)"] = voltage_course_dataset["time (ms)"] - min(voltage_course_dataset["time (ms)"])
 
 ##### plot voltage courses of single node
 single_node_response = plot.single_node_response_voltage_course(plot_name = "Voltage courses {}".format(model.display_name),
-                                                                voltage_data = voltage_course_dataset,
-                                                                col_wrap = 2,
-                                                                height = 3.5)
+                                                                voltage_data = voltage_course_dataset)
 
 ###### save voltage courses plot
 single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name))
@@ -391,13 +418,13 @@ pulse_form = np.repeat(["mono","bi"], (len(phase_durations_mono),len(phase_durat
 ##### look up thresholds
 thresholds = [threshold_table["threshold"][threshold_table["pulse form"] == pulse_form[ii]]\
                                          [threshold_table["phase duration"]/us == (phase_durations_mono + phase_durations_bi)[ii]].iloc[0]\
-                                         for ii in range(0,len(phase_durations))]/amp
+                                         for ii in range(len(phase_durations))]/amp
 
 ##### define varied parameters 
 params = [{"phase_duration" : phase_durations[ii],
            "pulse_form" : pulse_form[ii],
            "threshold" : thresholds[ii],
-           "amp_masker" : thresholds[ii]*1.5} for ii in range(0,len(phase_durations))]
+           "amp_masker" : thresholds[ii]*1.5} for ii in range(len(phase_durations))]
 
 ##### get refractory periods
 refractory_table = th.util.map(func = test.get_refractory_periods,
@@ -417,14 +444,14 @@ refractory_table = refractory_table.rename(index = str, columns={"phase_duration
                                                                  "pulse_form" : "pulse form"})
 
 ##### extract refractory periods
-refractory_table["absolute refractory period (ms)"] = [round(refractory_table[0][ii][0]/ms, 3) for ii in range(0,len(phase_durations))]
-refractory_table["relative refractory period (ms)"] = [round(refractory_table[0][ii][1]/ms, 3) for ii in range(0,len(phase_durations))]
+refractory_table["absolute refractory period (ms)"] = [round(refractory_table[0][ii][0]/ms, 3) for ii in range(len(phase_durations))]
+refractory_table["relative refractory period (ms)"] = [round(refractory_table[0][ii][1]/ms, 3) for ii in range(len(phase_durations))]
 
 ##### add unit to phase duration
 refractory_table["phase duration"] = [ii*second for ii in refractory_table["phase duration"]] 
 
 ##### adjust pulse form column
-refractory_table["pulse form"] = ["monophasic" if pulse_form[ii]=="mono" else "biphasic" for ii in range(0,len(phase_durations))]
+refractory_table["pulse form"] = ["monophasic" if pulse_form[ii]=="mono" else "biphasic" for ii in range(len(phase_durations))]
 
 ##### built subset of dataframe
 refractory_table = refractory_table[["phase duration", "pulse form", "absolute refractory period (ms)","relative refractory period (ms)"]]
@@ -470,7 +497,7 @@ refractory_curve_table.reset_index(inplace=True)
 refractory_curve_table = refractory_curve_table.rename(index = str, columns={"inter_pulse_interval" : "interpulse interval"})
 
 ##### extract refractory periods
-refractory_curve_table["minimum required amplitude"] = [refractory_curve_table[0][ii][0] for ii in range(0,len(inter_pulse_intervals))]
+refractory_curve_table["minimum required amplitude"] = [refractory_curve_table[0][ii][0] for ii in range(len(inter_pulse_intervals))]
 
 ##### built subset of dataframe
 refractory_curve_table = refractory_curve_table[["interpulse interval", "minimum required amplitude"]]
@@ -504,16 +531,16 @@ nof_runs = 5
 ##### look up thresholds
 thresholds = [threshold_table["threshold"][threshold_table["pulse form"] == "bi"]\
                            [threshold_table["phase duration"]/us == phase_duration[ii]/us].iloc[0]\
-                           for ii in range(0,len(phase_duration))]
+                           for ii in range(len(phase_duration))]
 
 ##### define varied parameters 
 params = [{"pulses_per_second" : pulses_per_second[ii],
            "phase_duration" : phase_duration[ii]/second,
            "stim_amp" : stim_amp_level[jj]*thresholds[ii]/amp,
            "run_number" : kk}
-            for ii in range(0,len(pulses_per_second))\
-            for jj in range(0,len(stim_amp_level))\
-            for kk in range(0,nof_runs)]
+            for ii in range(len(pulses_per_second))\
+            for jj in range(len(stim_amp_level))\
+            for kk in range(nof_runs)]
 
 ##### get thresholds
 psth_table = th.util.map(func = test.post_stimulus_time_histogram,
@@ -538,9 +565,9 @@ psth_table = psth_table.rename(index = str, columns={"phase_duration" : "phase d
 
 ##### add row with stimulus amplitude information
 psth_table["amplitude"] = ["{}*threshold".format(stim_amp_level[jj])
-                            for ii in range(0,len(pulses_per_second))
-                            for jj in range(0,len(stim_amp_level))
-                            for kk in range(0,nof_runs)]
+                            for ii in range(len(pulses_per_second))
+                            for jj in range(len(stim_amp_level))
+                            for kk in range(nof_runs)]
 
 ##### built subset of dataframe
 psth_table = psth_table[["phase duration (us)", "pulse rate", "stimulus amplitude (uA)", "amplitude", "run", "spike times (us)"]]
@@ -562,53 +589,3 @@ post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PS
 
 ###### save post_stimulus_time_histogram
 post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name))
-
-## =============================================================================
-## Inter-stimulus interval Histogram
-## =============================================================================
-###### pulse rates to test
-#pulses_per_second = [150,1000,5000]
-#
-###### phase durations for respective pulse rates
-#phase_duration = [40,40,40]*us
-#
-###### stimulus levels (will be multiplied with the threshold for a certain stimulation) 
-#stim_amp_level = [1,1.1,1.2]
-#
-###### initialize list of datasets to save bin heights end edges for each type of stimulation
-#isi_data = [pd.DataFrame()]*len(pulses_per_second)*len(stim_amp_level)
-#
-###### loop over pulse rates and phase duraions
-#for ii in range(0,len(pulses_per_second)):
-#    
-#    ##### look up threshold for actual stimulation
-#    threshold = threshold_table["threshold"][threshold_table["pulse form"] == "bi"]\
-#                               [threshold_table["phase duration"]/us == phase_duration[ii]/us].iloc[0]
-#    
-#    ##### loop over stimulus amplitudes
-#    for jj in range(0,len(stim_amp_level)):
-#                                        
-#        ##### calculate bin heigths and edges
-#        isi = test.inter_stimulus_interval_histogram(model = model,
-#                                                      dt = dt,
-#                                                      nof_repeats = 5,
-#                                                      pulses_per_second = pulses_per_second[ii],
-#                                                      stim_duration = 30*ms,
-#                                                      stim_amp = stim_amp_level[jj]*threshold,
-#                                                      stimulation_type = "extern",
-#                                                      pulse_form = "bi",
-#                                                      phase_duration = phase_duration[ii])
-#        
-#        ##### write the data in a list of dataframes
-#        isi_data[len(stim_amp_level)*ii+jj] = isi
-#        isi_data[len(stim_amp_level)*ii+jj]["amplitude"] = "{}*threshold".format(stim_amp_level[jj])
-#        
-###### combine list entries of psth_data to one dataset
-#isi_dataset = pd.concat(isi_data)
-#
-###### plot inter_stimulus_interval_histogram
-#plot.inter_stimulus_interval_histogram(plot_name = "ISI {}".format(model.display_name),
-#                                        isi_dataset = isi_dataset)
-#
-####### save inter_stimulus_interval_histogram
-#inter_stimulus_interval_histogram.savefig("test_battery_results/{}/ISI {}.png".format(model.display_name,model.display_name))
