@@ -63,6 +63,7 @@ def get_threshold(model_name,
     
     ##### include noise
     if add_noise:
+        np.random.seed()
         I_noise = np.transpose(np.transpose(np.random.normal(0, 1, (model.nof_comps,nof_timesteps)))*model.k_noise*model.noise_term)
     else:
         I_noise = np.zeros((model.nof_comps,nof_timesteps))
@@ -875,7 +876,7 @@ def post_stimulus_time_histogram(model_name,
     spike_times = np.zeros(nof_pulses*2)
     
     ##### print progress
-    print("Pulse rate: {} pps; Stimulus Amplitude: {} us; Run: {}".format(pulses_per_second,np.round(stim_amp/uA,2),run_number))
+    print("Pulse rate: {} pps; Stimulus Amplitude: {} uA; Run: {}".format(pulses_per_second,np.round(stim_amp/uA,2),run_number))
     
     ##### define how the ANF is stimulated
     I_stim, runtime = stim.get_stimulus_current(model = model,

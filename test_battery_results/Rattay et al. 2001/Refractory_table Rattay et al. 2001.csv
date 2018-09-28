@@ -1,6 +1,6 @@
-phase duration (us),pulse form,absolute refractory period (ms),relative refractory period (ms)
-40.0,monophasic,1.393,1.478
-50.0,monophasic,1.393,1.478
-100.0,monophasic,1.353,1.468
-50.0,biphasic,1.383,1.384
-200.0,biphasic,1.158,1.188
+phase duration,pulse form,absolute refractory period (ms),relative refractory period (ms)
+40. us,monophasic,1.3726806640624998,1.6932591795921321
+50. us,monophasic,1.3629150390625,1.6825807094573972
+100. us,monophasic,1.3275146484375,1.6278766095638275
+50. us,biphasic,1.3726806640624998,1.6427813470363613
+200. us,biphasic,1.1175537109375002,1.3583108782768252

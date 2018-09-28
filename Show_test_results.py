@@ -19,6 +19,9 @@ import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
 import models.Negm_2014 as negm_14
 
+##### import functions
+import functions.create_plots as plot
+
 ##### makes code faster and prevents warning
 prefs.codegen.target = "numpy"
 
@@ -26,15 +29,57 @@ prefs.codegen.target = "numpy"
 # Load data
 # =============================================================================
 ##### choose model
-model = frijns_05
+model = rattay_01
 
-##### load datasets
+##### load dataframes for tables
 strength_duration_data = pd.read_csv("test_battery_results/{}/Strength_duration_data {}.csv".format(model.display_name,model.display_name))
 threshold_table = pd.read_csv("test_battery_results/{}/Threshold_table {}.csv".format(model.display_name,model.display_name))
 relative_spreads = pd.read_csv("test_battery_results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
 conduction_velocity_table = pd.read_csv("test_battery_results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name))
 node_response_data_summary = pd.read_csv("test_battery_results/{}/Single_node_response_summary {}.csv".format(model.display_name,model.display_name))
 refractory_table = pd.read_csv("test_battery_results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name))
+
+##### load dataframes for plots
+strength_duration_plot_table = pd.read_csv("test_battery_results/{}/Strength_duration_plot_table {}.csv".format(model.display_name,model.display_name))
+relative_spread_plot_table = pd.read_csv("test_battery_results/{}/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
+voltage_course_dataset = pd.read_csv("test_battery_results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name))
+refractory_curve_table = pd.read_csv("test_battery_results/{}/Refractory_curve_table {}.csv".format(model.display_name,model.display_name))
+psth_table = pd.read_csv("test_battery_results/{}/PSTH_table {}.csv".format(model.display_name,model.display_name))
+
+# =============================================================================
+# Generate plots and save them
+# =============================================================================
+##### strength duration curve
+strength_duration_curve = plot.strength_duration_curve(plot_name = "Strength duration curve {}".format(model.display_name),
+                                                       threshold_matrix = strength_duration_plot_table,
+                                                       rheobase = strength_duration_data["rheobase (uA)"][0]*uA,
+                                                       chronaxie = strength_duration_data["chronaxie (us)"][0]*us)
+
+strength_duration_curve.savefig("test_battery_results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name))
+
+##### relative spreads plot
+relative_spread_plot = plot.relative_spread(plot_name = "Relative spreads {}".format(model.display_name),
+                                            threshold_matrix = relative_spread_plot_table)
+
+relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name))
+
+##### single node response plot
+single_node_response = plot.single_node_response_voltage_course(plot_name = "Voltage courses {}".format(model.display_name),
+                                                                voltage_data = voltage_course_dataset)
+
+single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name))
+
+##### refractory curve
+refractory_curve = plot.refractory_curve(plot_name = "Refractory curve {}".format(model.display_name),
+                                         refractory_table = refractory_curve_table)
+
+refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name))
+
+##### poststimulus time histogram plot
+post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
+                                                                 psth_dataset = psth_table)
+
+post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name))
 
 # =============================================================================
 # Add experimental results to tables
@@ -126,4 +171,12 @@ relative_refractory_periods["RRP Experiments (ms)"] = ["-","3-4; 4-5","5","-","5
 relative_refractory_periods["reference"] = ["-","Stypulkowski and Van den Honert 1984; Cartee et al. 2000","Dynes 1996","-", "Hartmann et al. 1984"]
 relative_refractory_periods = relative_refractory_periods[relative_refractory_periods["RRP Experiments (ms)"] != "-"]
 relative_refractory_periods = relative_refractory_periods.set_index(["phase duration (us)","pulse form"])
+
+# =============================================================================
+# Generate plots
+# =============================================================================
+
+
+
+
 
