@@ -7,6 +7,7 @@ from brian2 import *
 from brian2.units.constants import zero_celsius, gas_constant as R, faraday_constant as F
 import numpy as np
 import pandas as pd
+pd.options.mode.chained_assignment = None
 import matplotlib.pyplot as plt
 import os
 
@@ -26,11 +27,18 @@ import functions.create_plots as plot
 prefs.codegen.target = "numpy"
 
 # =============================================================================
-# Load data
+# Initializations
 # =============================================================================
 ##### choose model
-model = rattay_01
+model_name = "frijns_94"
+model = eval(model_name)
 
+##### save plots
+save_plots = True
+
+# =============================================================================
+# Load data
+# =============================================================================
 ##### load dataframes for tables
 strength_duration_data = pd.read_csv("test_battery_results/{}/Strength_duration_data {}.csv".format(model.display_name,model.display_name))
 threshold_table = pd.read_csv("test_battery_results/{}/Threshold_table {}.csv".format(model.display_name,model.display_name))
@@ -52,34 +60,31 @@ psth_table = pd.read_csv("test_battery_results/{}/PSTH_table {}.csv".format(mode
 ##### strength duration curve
 strength_duration_curve = plot.strength_duration_curve(plot_name = "Strength duration curve {}".format(model.display_name),
                                                        threshold_matrix = strength_duration_plot_table,
-                                                       rheobase = strength_duration_data["rheobase (uA)"][0]*uA,
-                                                       chronaxie = strength_duration_data["chronaxie (us)"][0]*us)
-
-strength_duration_curve.savefig("test_battery_results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name))
+                                                       rheobase = strength_duration_data["rheobase (uA)"].iloc[0]*uA,
+                                                       chronaxie = strength_duration_data["chronaxie (us)"].iloc[0]*us)
 
 ##### relative spreads plot
 relative_spread_plot = plot.relative_spread(plot_name = "Relative spreads {}".format(model.display_name),
                                             threshold_matrix = relative_spread_plot_table)
 
-relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name))
-
 ##### single node response plot
 single_node_response = plot.single_node_response_voltage_course(plot_name = "Voltage courses {}".format(model.display_name),
                                                                 voltage_data = voltage_course_dataset)
-
-single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name))
 
 ##### refractory curve
 refractory_curve = plot.refractory_curve(plot_name = "Refractory curve {}".format(model.display_name),
                                          refractory_table = refractory_curve_table)
 
-refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name))
-
 ##### poststimulus time histogram plot
 post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
                                                                  psth_dataset = psth_table)
 
-post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name))
+if save_plots:
+    strength_duration_curve.savefig("test_battery_results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name))
+    relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name))
+    single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name))
+    refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name))
+    post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name))
 
 # =============================================================================
 # Add experimental results to tables
@@ -101,7 +106,7 @@ conduction_velocity_table = conduction_velocity_table.transpose()
 conduction_velocity_table = conduction_velocity_table.rename(index = str, columns={0:"model"})
 if hasattr(model, "index_soma"):
     conduction_velocity_table["Hursh 1939"] = ["-","6","-","-"]
-    if model.diameter_dendrite < 12*um:
+    if model.dendrite_outer_diameter < 12*um:
         dendrite_ratio = 4.6
     else:
         dendrite_ratio = 5.66
@@ -110,7 +115,7 @@ if hasattr(model, "index_soma"):
 
 else:
     conduction_velocity_table["Hursh 1939"] = ["-","6"]
-    if model.diameter_fiber < 12*um:
+    if model.fiber_outer_diameter < 12*um:
         dendrite_ratio = 4.6
     else:
         dendrite_ratio = 5.66
@@ -163,20 +168,11 @@ absolute_refractory_periods["ARP model (us)"] = absolute_refractory_periods["ARP
 absolute_refractory_periods["ARP Experiments (us)"] = ["334","300","500-700","400-500","-"]
 absolute_refractory_periods["reference"] = ["Miller et al. 2001","Stypulkowski and Van den Honert 1984","Dynes 1996","Brown and Abbas 1990", "-"]
 absolute_refractory_periods = absolute_refractory_periods[absolute_refractory_periods["ARP Experiments (us)"] != "-"]
-absolute_refractory_periods = absolute_refractory_periods.set_index(["phase duration (us)","pulse form"])
+absolute_refractory_periods = absolute_refractory_periods.set_index(["phase duration","pulse form"])
 
 relative_refractory_periods = refractory_table.drop(columns = ["absolute refractory period (ms)"])
 relative_refractory_periods = relative_refractory_periods.rename(index = str, columns={"relative refractory period (ms)":"RRP model (ms)"})
 relative_refractory_periods["RRP Experiments (ms)"] = ["-","3-4; 4-5","5","-","5"]
 relative_refractory_periods["reference"] = ["-","Stypulkowski and Van den Honert 1984; Cartee et al. 2000","Dynes 1996","-", "Hartmann et al. 1984"]
 relative_refractory_periods = relative_refractory_periods[relative_refractory_periods["RRP Experiments (ms)"] != "-"]
-relative_refractory_periods = relative_refractory_periods.set_index(["phase duration (us)","pulse form"])
-
-# =============================================================================
-# Generate plots
-# =============================================================================
-
-
-
-
-
+relative_refractory_periods = relative_refractory_periods.set_index(["phase duration","pulse form"])

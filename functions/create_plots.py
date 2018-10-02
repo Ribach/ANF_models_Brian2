@@ -182,10 +182,17 @@ def single_node_response_voltage_course(plot_name,
     y_min = min(voltage_data["membrane potential (mV)"]) - 5
     y_max = max(voltage_data["membrane potential (mV)"]) + 5
     x_max = max(voltage_data["time (ms)"])
+    
+    ##### get y-ticks
+    y_ticks = [np.round(voltage_data["membrane potential (mV)"].iloc[0]).astype(int), np.round(y_max-5).astype(int)]
 
     ##### create figure
     fig, axes = plt.subplots(nof_phase_durations, nof_amplitudes, sharex=True, sharey=True, figsize=(3*nof_amplitudes, 3*nof_phase_durations))
     
+    ##### give figure a title
+    fig.canvas.set_window_title(plot_name)
+    
+    ##### create plots    
     for ii in range(nof_phase_durations):
         for jj in range(nof_amplitudes):
             for kk in range(nof_runs):
@@ -198,16 +205,19 @@ def single_node_response_voltage_course(plot_name,
                 ##### create plot
                 axes[ii][jj].plot(current_data["time (ms)"], current_data["membrane potential (mV)"], color = "black")
                 
-                ##### remove top and right lines
-                axes[ii][jj].spines['top'].set_visible(False)
-                axes[ii][jj].spines['right'].set_visible(False)
-                
-                ##### define achses ranges
-                axes[ii][jj].set_ylim([y_min,y_max])
-                axes[ii][jj].set_xlim([0,x_max])
-                
-                ##### remove ticks
-                axes[ii][jj].tick_params(axis = 'both', left = 'off', bottom = 'off')
+            ##### remove top and right lines
+            axes[ii][jj].spines['top'].set_visible(False)
+            axes[ii][jj].spines['right'].set_visible(False)
+            
+            ##### define achses ranges
+            axes[ii][jj].set_ylim([y_min,y_max])
+            axes[ii][jj].set_xlim([0,x_max])
+            
+            ##### set y-ticks
+            axes[ii][jj].set_yticks(y_ticks)
+            
+            ##### remove ticks
+            axes[ii][jj].tick_params(axis = 'both', left = 'off', bottom = 'off')
                 
             ##### add right side y label
             if jj == nof_amplitudes-1:
@@ -215,7 +225,7 @@ def single_node_response_voltage_course(plot_name,
                 axes[ii][jj].set_ylabel("{} ({} us)".format(current_data["pulse form"].iloc[0], phase_durations[ii]), rotation=-90)
                 
             ##### no grid
-            #axes[ii][jj].grid(False)
+            axes[ii][jj].grid(False)
     
     ##### bring subplots close to each other.
     fig.subplots_adjust(hspace=0.05, wspace=0.1)
@@ -266,20 +276,34 @@ def strength_duration_curve(plot_name,
     current vector
         Gives back a vector of currents for each timestep
     """
-    threshold_matrix = threshold_matrix.loc[threshold_matrix["threshold (uA)"] != 0]
-        
-    plt.close(plot_name)
-    strength_duration_curve = plt.figure(plot_name)
-    plt.plot(threshold_matrix["phase duration (us)"], threshold_matrix["threshold (uA)"], label = '_nolegend_')
-    if not rheobase == 0 and not chronaxie == 0:
-        plt.hlines(y=rheobase/uA, xmin=-0, xmax=max(threshold_matrix["phase duration (us)"]), linestyles="dashed", label = "rheobase: {} uA".format(round(rheobase/uA, 2)))
-        plt.scatter(x=chronaxie/us, y=2*rheobase/uA, label = "chronaxie: {} us".format(round(chronaxie/us)))
-        plt.legend()
-    plt.xlabel('Stimulus duration / us', fontsize=16)
-    plt.ylabel('Stimulus amplitude required / uA', fontsize=16)
-    plt.show(plot_name)
     
-    return strength_duration_curve
+    ##### exclude values, where no threshold was found
+    threshold_matrix = threshold_matrix.loc[threshold_matrix["threshold (uA)"] != 0]
+    
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### generate figure
+    fig = plt.figure(plot_name)
+    axes = fig.add_subplot(1, 1, 1)
+    
+    ##### no grid
+    axes.grid(False)
+    
+    ##### plot strength duration curve    
+    axes.plot(threshold_matrix["phase duration (us)"], threshold_matrix["threshold (uA)"], color = "black", label = "_nolegend_")
+    
+    ##### mark chronaxie and rheobase    
+    if not rheobase == 0 and not chronaxie == 0:
+        axes.hlines(y=rheobase/uA, xmin=-0, xmax=max(threshold_matrix["phase duration (us)"]), linestyles="dashed", label = "rheobase: {} uA".format(round(rheobase/uA, 2)))
+        axes.scatter(x=chronaxie/us, y=2*rheobase/uA, color = "blue", label = "chronaxie: {} us".format(round(chronaxie/us)))
+        plt.legend()
+    
+    ##### add labels to the axes    
+    axes.set_xlabel('Stimulus duration / us', fontsize=16)
+    axes.set_ylabel('Stimulus amplitude required / uA', fontsize=16)
+    
+    return fig
 
 # =============================================================================
 #  relative spread
@@ -307,17 +331,18 @@ def relative_spread(plot_name,
     current vector
         Gives back a vector of currents for each timestep
     """
-    
-    ##### round phase durations and thresholds
-    threshold_matrix["phase duration"] = round(threshold_matrix["phase duration"]/second*1000000).astype(int)
-    threshold_matrix["threshold"] = round(threshold_matrix["threshold"]/amp*1000000,3)
-    
-    ##### add pulse form info to phase duration
-    #threshold_matrix["phase duration"] = '{} us'.format(threshold_matrix["phase duration"])
-    
-    ##### plot thresholds
+
+#    ##### round phase durations and thresholds
+#    threshold_matrix["phase duration"] = round(threshold_matrix["phase duration"]/second*1e6).astype(int)
+#    threshold_matrix["threshold"] = round(threshold_matrix["threshold"]/amp*1e6,3)
+
+    ##### close possibly open plots
     plt.close(plot_name)
-    relative_spread_plot = plt.figure(plot_name)
+    
+    ##### generate figure
+    fig = plt.figure(plot_name)
+    
+    ##### create boxplots
     sns.set_style("whitegrid")
     sns.boxplot(data=threshold_matrix, x="phase duration", y="threshold", hue="pulse form", showfliers=False, dodge=False)
     sns.stripplot(x='phase duration', y='threshold',
@@ -328,9 +353,8 @@ def relative_spread(plot_name,
                    color='black')
     plt.xlabel('Phase duration / us', fontsize=16)
     plt.ylabel('Threshold / uA', fontsize=16)
-    plt.show(plot_name)
         
-    return relative_spread_plot
+    return fig
 
 # =============================================================================
 #  refractory curve
@@ -359,21 +383,43 @@ def refractory_curve(plot_name,
         Gives back a vector of currents for each timestep
     """
     
-    ##### remove inter_pulse_intervals where no second spikes were obtained
-    inter_pulse_intervals = refractory_table["interpulse interval"][np.where(refractory_table["minimum required amplitude"] != 0)[0]]*1e3
-    
+    ##### remove rows where no second spikes were obtained
+    refractory_table = refractory_table[refractory_table["minimum required amplitude"] != 0]
+        
     ##### calculate the ratio of the threshold of the second spike and the masker
-    thresholds_second_spike = refractory_table["minimum required amplitude"][np.where(refractory_table["minimum required amplitude"] != 0)[0]]/refractory_table["threshold"].iloc[0]
-     
-    ###### plot refractory curve
-    plt.close(plot_name)
-    refractory_curve = plt.figure(plot_name)
-    plt.plot(inter_pulse_intervals, thresholds_second_spike, "#000000")
-    plt.xlabel('Inter pulse interval / ms', fontsize=16)
-    plt.ylabel('threshold 2nd stimulus / threshold', fontsize=16)
-    plt.show(plot_name)
+    refractory_table["threshold ratio"] = refractory_table["minimum required amplitude"]/refractory_table["threshold"]
     
-    return refractory_curve
+    ##### convert interpulse intervals to ms
+    refractory_table["interpulse interval"] = refractory_table["interpulse interval"]*1e3
+    
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### generate figure
+    fig = plt.figure(plot_name)
+    axes = fig.add_subplot(1, 1, 1)
+
+    ###### plot refractory curve
+    axes.plot(refractory_table["interpulse interval"], refractory_table["threshold ratio"], color = "black")
+    
+    ##### show points
+    axes.scatter(refractory_table["interpulse interval"], refractory_table["threshold ratio"], color = "blue")
+    
+    ##### add line at threshold level
+    axes.hlines(y=1, xmin=-0, xmax=max(refractory_table["interpulse interval"]), linestyles="dashed")
+    
+    ##### define axes ranges
+    axes.set_xlim([0,max(refractory_table["interpulse interval"])+0.5])
+    axes.set_ylim([0,max(refractory_table["threshold ratio"])+0.5])
+    
+    ##### axes labels
+    axes.set_xlabel('Inter pulse interval / ms', fontsize=14)
+    axes.set_ylabel('threshold 2nd stimulus / threshold', fontsize=14)
+    
+    ##### no grid
+    axes.grid(False)
+    
+    return fig
     
 
 # =============================================================================
@@ -404,7 +450,6 @@ def post_stimulus_time_histogram(plot_name,
     """
     
     ##### convert spike times to ms
-    psth_dataset["spike times (us)"] = np.ceil(psth_dataset["spike times (us)"]/1000).astype(int)
     psth_dataset = psth_dataset.rename(index = str, columns={"spike times (us)" : "spike times (ms)"})
     
     ##### get amplitude levels and pulse rates
@@ -415,16 +460,26 @@ def post_stimulus_time_histogram(plot_name,
     nof_amplitudes = len(amplitudes)
     nof_pulse_rates = len(pulse_rates)
     
+    ##### specify bin width (in ms)
+    bin_width = 10
+    
     ##### get number of runs and bins
     nof_runs = max(psth_dataset["run"])+1
-    nof_bins = max(psth_dataset["spike times (ms)"])+1
+    nof_bins = int((max(psth_dataset["spike times (ms)"])+1) / bin_width)
 
     ##### get bin edges
-    bin_edges = list(range(nof_bins))
+    bin_edges = [ii*bin_width for ii in range(nof_bins+1)]
     
     ##### create figure
     fig, axes = plt.subplots(nof_amplitudes, nof_pulse_rates, sharex=True, sharey=True, figsize=(2*nof_pulse_rates, 2*nof_amplitudes))
-
+    
+    ##### give figure a title
+    fig.canvas.set_window_title(plot_name)
+    
+    ##### initialize maximum bin height
+    max_bin_height = 0
+    
+    ##### create plots
     for ii in range(nof_amplitudes):
         for jj in range(nof_pulse_rates):
             
@@ -432,22 +487,23 @@ def post_stimulus_time_histogram(plot_name,
             current_data = psth_dataset[psth_dataset["amplitude"] == amplitudes[ii]][psth_dataset["pulse rate"] == pulse_rates[jj]]
 
             ##### calculating the bin heights
-            bin_heights = [round(sum(current_data["spike times (ms)"] == kk)*1000/nof_runs).astype(int) for kk in range(1,nof_bins+1)]
-            
+            bin_heights = [sum((bin_width*kk < current_data["spike times (ms)"]) & (current_data["spike times (ms)"] < bin_width*kk+bin_width))/nof_runs for kk in range(0,nof_bins+1)]
+                        
             ##### create barplot
-            axes[ii][jj].bar(x = bin_edges, height = bin_heights, width = 1, color = "black", linewidth=0)
+            axes[ii][jj].bar(x = bin_edges, height = bin_heights, width = bin_width, color = "black", linewidth=0.3)
             
             ##### remove top and right lines
             axes[ii][jj].spines['top'].set_visible(False)
             axes[ii][jj].spines['right'].set_visible(False)
             
-            ##### define y-achses range and tick numbers
-            axes[ii][jj].set_ylim([0,1500])
-            axes[ii][jj].set_yticks([0,500,1000])
+            ##### update max_bin_height
+            if round(max(bin_heights)) > max_bin_height:
+                max_bin_height = round(max(bin_heights))
             
-            ##### write stimulus amplitude in plots
-            axes[ii][jj].text(np.ceil(nof_bins/2.5), 1250, "i={}mA".format(current_data["stimulus amplitude (uA)"][0]))
-            
+            ##### define x-achses range and tick numbers
+            axes[ii][jj].set_xlim([-10,max(bin_edges)*1.1])
+            axes[ii][jj].set_xticks([0,max(bin_edges)])
+                        
             ##### remove ticks
             axes[ii][jj].tick_params(axis = 'both', left = 'off', bottom = 'off')
             
@@ -455,7 +511,22 @@ def post_stimulus_time_histogram(plot_name,
             if jj == nof_pulse_rates-1:
                 axes[ii][jj].yaxis.set_label_position("right")
                 axes[ii][jj].set_ylabel("i={}".format(current_data["amplitude"].iloc[0]), rotation=-90)
-                axes[ii][jj].yaxis.set_label_coords(1.25,0.6)
+                axes[ii][jj].yaxis.set_label_coords(1.25,0.5)
+                
+            ##### no grid
+            axes[ii][jj].grid(False) 
+    
+    ##### further adjustments
+    for ii in range(nof_amplitudes):
+        for jj in range(nof_pulse_rates):
+            
+            ##### define y-achses range and tick numbers
+            axes[ii][jj].set_ylim([0,max_bin_height*1.25])
+            axes[ii][jj].set_yticks([0,round(max_bin_height/2),max_bin_height])
+            
+            ##### write stimulus amplitdues in plots
+            axes[ii][jj].text(np.ceil(max(bin_edges)/3.2), max_bin_height+0.1, "i={}mA".format(current_data["stimulus amplitude (uA)"][0]))
+
     
     ##### bring subplots close to each other.
     fig.subplots_adjust(hspace=0.05, wspace=0.1)
@@ -474,7 +545,7 @@ def post_stimulus_time_histogram(plot_name,
     
     ##### get labels for the axes
     fig.text(0.5, 0.02, 'Time after pulse train onset (ms)', ha='center')
-    fig.text(0.02, 0.5, 'Response Rate (spikes/s)', va='center', rotation='vertical')
+    fig.text(0.06, 0.5, 'Spikes per timebin ({} ms)'.format(bin_width), va='center', rotation='vertical')
     
     return fig
 

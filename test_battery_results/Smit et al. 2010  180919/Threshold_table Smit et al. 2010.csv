@@ -1,9 +1,0 @@
-phase duration,pulse form,threshold
-40. us,mono,1.0118866 uA
-50. us,mono,0.82427979 uA
-100. us,mono,0.44647217 uA
-20. us,bi,4.64454651 uA
-40. us,bi,1.89544678 uA
-50. us,bi,1.43066406 uA
-200. us,bi,303.26843262 nA
-0.4 ms,bi,178.83300781 nA

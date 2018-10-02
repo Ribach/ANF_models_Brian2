@@ -12,9 +12,9 @@ import matplotlib.pyplot as plt
 import os
 
 ##### set working directory to folder of script
-#abspath = os.path.abspath(__file__)
-#dname = os.path.dirname(abspath)
-#os.chdir(dname)
+abspath = os.path.abspath(__file__)
+dname = os.path.dirname(abspath)
+os.chdir(dname)
 
 ##### import functions
 import functions.stimulation as stim
@@ -38,7 +38,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "rattay_01"
+model_name = "smit_10"
 model = eval(model_name)
 
 ##### initialize clock
@@ -47,10 +47,13 @@ dt = 5*us
 ##### define way of processing
 backend = "serial"
 
+##### define if plots should be generated
+generate_plots = False
+
 ##### define which tests to run
 all_tests = False
 strength_duration_test = False
-relative_spread_test = False
+relative_spread_test = True
 conduction_velocity_test = False
 single_node_response_test = False
 refractory_test = False
@@ -170,18 +173,21 @@ if all_tests or strength_duration_test:
     strength_duration_plot_table["phase duration (us)"] = [ii/us for ii in strength_duration_plot_table["phase duration (us)"]]
     
     ##### change unit of threshold column to uA
-    strength_duration_plot_table["threshold"] = [ii*1e6 for ii in strength_duration_plot_table["threshold"]]
-
-    ##### plot strength duration curve
-    strength_duration_curve = plot.strength_duration_curve(plot_name = "Strength duration curve {}".format(model.display_name),
-                                                           threshold_matrix = strength_duration_plot_table,
-                                                           rheobase = rheobase,
-                                                           chronaxie = chronaxie)
+    strength_duration_plot_table["threshold (uA)"] = [ii*1e6 for ii in strength_duration_plot_table["threshold (uA)"]]
     
-    ##### save strength duration curve and table
+    ##### save strength duration table
     strength_duration_plot_table.to_csv("test_battery_results/{}/Strength_duration_plot_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)
-    strength_duration_curve.savefig("test_battery_results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name))
 
+    if generate_plots:
+        ##### plot strength duration curve
+        strength_duration_curve = plot.strength_duration_curve(plot_name = "Strength duration curve {}".format(model.display_name),
+                                                               threshold_matrix = strength_duration_plot_table,
+                                                               rheobase = rheobase,
+                                                               chronaxie = chronaxie)
+        
+        ##### save strength duration curve and table
+        strength_duration_curve.savefig("test_battery_results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name))
+    
 if all_tests or relative_spread_test:
     # =============================================================================
     # Get the relative spread of thresholds for certain stimulation types and stimulus durations
@@ -193,7 +199,7 @@ if all_tests or relative_spread_test:
     ##### define test parameters
     phase_durations = [ii*1e-6 for ii in phase_durations_mono + phase_durations_bi]
     pulse_form = np.repeat(["mono","bi"], (len(phase_durations_mono),len(phase_durations_bi)))
-    runs_per_stimulus_type = 60
+    runs_per_stimulus_type = 2
     
     ##### define varied parameters 
     params = [{"phase_duration" : phase_durations[ii],
@@ -222,6 +228,9 @@ if all_tests or relative_spread_test:
                                                                                          "pulse_form" : "pulse form",
                                                                                          0:"threshold"})
     
+    ##### exclude spontaneous APs
+    relative_spread_plot_table = relative_spread_plot_table[relative_spread_plot_table["threshold"] > 1e-9]
+    
     ##### add unit to phase duration
     relative_spread_plot_table["phase duration"] = [ii*second for ii in relative_spread_plot_table["phase duration"]]
     
@@ -231,13 +240,16 @@ if all_tests or relative_spread_test:
     ##### built subset of dataframe
     relative_spread_plot_table = relative_spread_plot_table[["phase duration", "pulse form", "threshold"]]
     
-    ##### plot relative spreads
-    relative_spread_plot = plot.relative_spread(plot_name = "Relative spreads {}".format(model.display_name),
-                                                threshold_matrix = relative_spread_plot_table)
+    if generate_plots:
+        ##### plot relative spreads
+        relative_spread_plot = plot.relative_spread(plot_name = "Relative spreads {}".format(model.display_name),
+                                                    threshold_matrix = relative_spread_plot_table)
     
-    ##### save relative spreads plot
+        ##### save relative spreads plot
+        relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name))
+    
+    ##### save relative spreads plot table
     relative_spread_plot_table.to_csv("test_battery_results/{}/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)
-    relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name))
     
     ##### calculate relative spread values
     thresholds = relative_spread_plot_table.groupby(["phase duration", "pulse form"])
@@ -416,13 +428,16 @@ if all_tests or single_node_response_test:
     ##### start time values at zero
     voltage_course_dataset["time (ms)"] = voltage_course_dataset["time (ms)"] - min(voltage_course_dataset["time (ms)"])
     
-    ##### plot voltage courses of single node
-    single_node_response = plot.single_node_response_voltage_course(plot_name = "Voltage courses {}".format(model.display_name),
-                                                                    voltage_data = voltage_course_dataset)
+    if generate_plots:
+        ##### plot voltage courses of single node
+        single_node_response = plot.single_node_response_voltage_course(plot_name = "Voltage courses {}".format(model.display_name),
+                                                                        voltage_data = voltage_course_dataset)
+        
+        ##### save voltage courses plot
+        single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name))
     
-    ###### save voltage courses plot
+    ###### save voltage courses table
     voltage_course_dataset.to_csv("test_battery_results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name), index=False, header=True)
-    single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name))
 
 if all_tests or refractory_test:
     # =============================================================================
@@ -453,7 +468,7 @@ if all_tests or refractory_test:
                                    backend = backend,
                                    cache = "no",
                                    kwargs = {"model_name" : model_name,
-                                             "dt" : dt,
+                                             "dt" : 1*us,
                                              "delta" : 1*us,
                                              "stimulation_type" : "extern"})
         
@@ -486,7 +501,7 @@ if all_tests or refractory_test:
     # Refractory curve
     # =============================================================================
     ##### define inter-pulse-intervals
-    inter_pulse_intervals = np.logspace(-1.3, 2.9, num=120, base=2)*1e-3
+    inter_pulse_intervals = model.inter_pulse_intervals
     
     ##### define stimulation parameters
     phase_duration = 100*us
@@ -505,7 +520,7 @@ if all_tests or refractory_test:
                                          backend = backend,
                                          cache = "no",
                                          kwargs = {"model_name" : model_name,
-                                                   "dt" : dt,
+                                                   "dt" : 1*us,
                                                    "delta" : 0.0001*uA,
                                                    "pulse_form" : pulse_form,
                                                    "stimulation_type" : "extern",
@@ -526,15 +541,17 @@ if all_tests or refractory_test:
     ##### add threshold to dataframe
     refractory_curve_table["threshold"] = threshold/amp
     
+    if generate_plots:
+        ##### plot refractory curve
+        refractory_curve = plot.refractory_curve(plot_name = "Refractory curve {}".format(model.display_name),
+                                                 refractory_table = refractory_curve_table)
+        
+        ##### save refractory curve
+        refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name))
     
-    ##### plot refractory curve
-    refractory_curve = plot.refractory_curve(plot_name = "Refractory curve {}".format(model.display_name),
-                                             refractory_table = refractory_curve_table)
-    
-    ##### save refractory curve
+    ##### save refractory curve table
     refractory_curve_table.to_csv("test_battery_results/{}/Refractory_curve_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
-    refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name))
-
+    
 if all_tests or psth_test:
     # =============================================================================
     # Post Stimulus Time Histogram
@@ -603,10 +620,13 @@ if all_tests or psth_test:
     psth_table["stimulus amplitude (uA)"] = round(psth_table["stimulus amplitude (uA)"]*1e6,2)
     psth_table["spike times (us)"] = round(psth_table["spike times (us)"]*1e6).astype(int)
     
-    ##### plot post_stimulus_time_histogram
-    post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
-                                                                     psth_dataset = psth_table)
-    
-    ###### save post_stimulus_time_histogram
+    if generate_plots:
+        ##### plot post_stimulus_time_histogram
+        post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
+                                                                         psth_dataset = psth_table)
+        
+        ###### save post_stimulus_time_histogram
+        post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name))
+        
+    ###### save post_stimulus_time_histogram table
     psth_table.to_csv("test_battery_results/{}/PSTH_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
-    post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name))

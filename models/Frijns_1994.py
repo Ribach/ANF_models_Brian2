@@ -101,6 +101,13 @@ electrode_distance = 3*mm
 display_name = "Frijns et al. 1994"
 
 # =============================================================================
+# Define inter-pulse intervalls for refractory curve calculation
+# =============================================================================
+inter_pulse_intervals = np.append(np.append(np.linspace(0.5, 0.6, num=50, endpoint = False),
+                                            np.linspace(0.6, 1.2, num=20, endpoint = False)),
+                                            np.linspace(1.2, 8, num=30))
+
+# =============================================================================
 # Calculations
 # =============================================================================
 ###### Temperature in Kelvin

@@ -122,6 +122,11 @@ electrode_distance = 1.75*mm
 display_name = "Smit et al. 2009"
 
 # =============================================================================
+# Define inter-pulse intervalls for refractory curve calculation
+# =============================================================================
+inter_pulse_intervals = np.append(np.linspace(2.7, 3, num=50, endpoint = False), np.linspace(3, 5, num=25))
+
+# =============================================================================
 # Calculations
 # =============================================================================
 ##### Temperature
@@ -330,7 +335,7 @@ def set_up_model(dt, model, update = False, model_name = "model"):
                            method="exponential_euler")
     
     ##### initial values
-    neuron.v = V_res
+    neuron.v = model.V_res
     neuron.m_t = model.m_t_init
     neuron.m_p = model.m_p_init
     neuron.n = model.n_init
@@ -355,7 +360,7 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     E_K = {}.E_K
     E_L = {}.E_L
     T_celsius = {}.T_celsius
-    '''.format(model_name.model_name.model_name.model_name.model_name)
+    '''.format(model_name,model_name,model_name,model_name,model_name)
     
     ##### remove spaces to avoid complications
     param_string = param_string.replace(" ", "")

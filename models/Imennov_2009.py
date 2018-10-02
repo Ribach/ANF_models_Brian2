@@ -123,6 +123,11 @@ electrode_distance = 300*um
 display_name = "Imennov and Rubinstein 2009"
 
 # =============================================================================
+# Define inter-pulse intervalls for refractory curve calculation
+# =============================================================================
+inter_pulse_intervals = np.append(np.linspace(0.45, 0.5, num=50, endpoint = False), np.linspace(0.5, 5, num=50))
+
+# =============================================================================
 # Calculations
 # =============================================================================
 ##### structure of ANF
