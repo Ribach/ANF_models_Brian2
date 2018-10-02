@@ -12,9 +12,9 @@ import matplotlib.pyplot as plt
 import os
 
 ##### set working directory to folder of script
-abspath = os.path.abspath(__file__)
-dname = os.path.dirname(abspath)
-os.chdir(dname)
+#abspath = os.path.abspath(__file__)
+#dname = os.path.dirname(abspath)
+#os.chdir(dname)
 
 ##### import functions
 import functions.stimulation as stim
@@ -199,7 +199,7 @@ if all_tests or relative_spread_test:
     ##### define test parameters
     phase_durations = [ii*1e-6 for ii in phase_durations_mono + phase_durations_bi]
     pulse_form = np.repeat(["mono","bi"], (len(phase_durations_mono),len(phase_durations_bi)))
-    runs_per_stimulus_type = 2
+    runs_per_stimulus_type = 60
     
     ##### define varied parameters 
     params = [{"phase_duration" : phase_durations[ii],
@@ -219,7 +219,7 @@ if all_tests or relative_spread_test:
                                                        "time_before" : 2*ms,
                                                        "time_after" : 2*ms,
                                                        "add_noise" : True})
-    
+  
     ##### change index to column
     relative_spread_plot_table.reset_index(inplace=True)
     
@@ -232,7 +232,7 @@ if all_tests or relative_spread_test:
     relative_spread_plot_table = relative_spread_plot_table[relative_spread_plot_table["threshold"] > 1e-9]
     
     ##### add unit to phase duration
-    relative_spread_plot_table["phase duration"] = [ii*second for ii in relative_spread_plot_table["phase duration"]]
+    #relative_spread_plot_table["phase duration"] = [np.round(ii*1e6).astype(int) for ii in relative_spread_plot_table["phase duration"]]
     
     ##### adjust pulse form column
     relative_spread_plot_table["pulse form"] = ["monophasic" if relative_spread_plot_table["pulse form"][ii]=="mono" else "biphasic" for ii in range(np.shape(relative_spread_plot_table)[0])]
@@ -257,6 +257,9 @@ if all_tests or relative_spread_test:
     relative_spreads.reset_index(inplace=True)
     relative_spreads = relative_spreads.rename(index = str, columns={"threshold" : "relative spread"})
     relative_spreads["relative spread"] = ["{}%".format(relative_spreads["relative spread"][ii]) for ii in range(np.shape(relative_spreads)[0])]
+    
+    ##### add unit to phase duration
+    relative_spreads["phase duration"] = [ii*us for ii in relative_spreads["phase duration"]]
     
     ##### Save table as csv    
     relative_spreads.to_csv("test_battery_results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name), index=False, header=True)   

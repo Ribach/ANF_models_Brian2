@@ -30,7 +30,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "frijns_94"
+model_name = "rattay_01"
 model = eval(model_name)
 
 ##### save plots

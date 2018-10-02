@@ -332,9 +332,9 @@ def relative_spread(plot_name,
         Gives back a vector of currents for each timestep
     """
 
-#    ##### round phase durations and thresholds
-#    threshold_matrix["phase duration"] = round(threshold_matrix["phase duration"]/second*1e6).astype(int)
-#    threshold_matrix["threshold"] = round(threshold_matrix["threshold"]/amp*1e6,3)
+    ##### round phase durations and thresholds
+    threshold_matrix["phase duration"] = round(threshold_matrix["phase duration"]/second*1e6).astype(int)
+    threshold_matrix["threshold"] = round(threshold_matrix["threshold"]/amp*1e6,3)
 
     ##### close possibly open plots
     plt.close(plot_name)
