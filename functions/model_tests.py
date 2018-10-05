@@ -746,7 +746,7 @@ def get_refractory_curve(model_name,
     while amp_diff > delta:
         
         ##### print progress
-        if print_progress : print("Inter pulse interval: {} us; Amplitude of second stimulus: {} uA".format(round(inter_pulse_interval/us),np.round(stim_amp/uA,2)))
+        if print_progress : print("1. Inter pulse interval: {} us; Amplitude of second stimulus: {} uA".format(round(inter_pulse_interval/us),np.round(stim_amp/uA,2)))
         
         ##### define how the ANF is stimulated
         I_stim_masker, runtime_masker = stim.get_stimulus_current(model = model,
@@ -761,7 +761,9 @@ def get_refractory_curve(model_name,
                                                                   ##### biphasic stimulation
                                                                   amps_bi = [-amp_masker/amp,amp_masker/amp]*amp,
                                                                   durations_bi = [phase_duration/second,0,phase_duration/second]*second)
- 
+        
+        if print_progress : print("2. Inter pulse interval: {} us; Amplitude of second stimulus: {} uA".format(round(inter_pulse_interval/us),np.round(stim_amp/uA,2)))
+        
         I_stim_2nd, runtime_2nd = stim.get_stimulus_current(model = model,
                                                             dt = dt,
                                                             stimulation_type = stimulation_type,
@@ -774,6 +776,8 @@ def get_refractory_curve(model_name,
                                                             ##### biphasic stimulation
                                                             amps_bi = [-stim_amp/amp,stim_amp/amp]*amp,
                                                             durations_bi = [phase_duration/second,0,phase_duration/second]*second)
+
+        if print_progress : print("3. Inter pulse interval: {} us; Amplitude of second stimulus: {} uA".format(round(inter_pulse_interval/us),np.round(stim_amp/uA,2)))
         
         ##### combine stimuli
         I_stim = np.concatenate((I_stim_masker, I_stim_2nd), axis = 1)*amp
@@ -788,6 +792,8 @@ def get_refractory_curve(model_name,
         ##### run simulation
         run(runtime)
         
+        if print_progress : print("4. Inter pulse interval: {} us; Amplitude of second stimulus: {} uA".format(round(inter_pulse_interval/us),np.round(stim_amp/uA,2)))
+        
         ##### test if there were two spikes (one for masker and one for 2. stimulus)
         nof_spikes = len(peak.indexes(M.v[comp_index,:], thres = model.V_res + 60*mV, thres_abs=True))
         
@@ -800,6 +806,8 @@ def get_refractory_curve(model_name,
             stim_amp = (stim_amp + upper_border)/2
             
         amp_diff = upper_border - lower_border
+
+        if print_progress : print("5. Inter pulse interval: {} us; Amplitude of second stimulus: {} uA".format(round(inter_pulse_interval/us),np.round(stim_amp/uA,2)))
                 
     return float(min_amp_spiked), float(threshold)
 

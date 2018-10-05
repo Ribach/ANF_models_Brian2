@@ -30,11 +30,13 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "rattay_01"
+model_name = "negm_14"
 model = eval(model_name)
 
 ##### save plots
 save_plots = True
+save_plots_for_report = True
+interim_report_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Zwischenbericht Masterarbeit/images"
 
 # =============================================================================
 # Load data
@@ -81,6 +83,13 @@ post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PS
 
 if save_plots:
     strength_duration_curve.savefig("test_battery_results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name))
+    relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name))
+    single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name))
+    refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name))
+    post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name))
+
+if save_plots_for_report:
+    strength_duration_curve.savefig("{}/Strength_duration_curve {}.png".format(interim_report_path,model.display_name))
     relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name))
     single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name))
     refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name))
@@ -159,7 +168,7 @@ AP_shape = AP_shape.rename(index = str, columns={5:"model"})
 t_rise = round(-0.000625*conduction_velocity_table["model"].iloc[[0]] + 0.14, 3).tolist()[0]
 t_fall = round(-0.002083*conduction_velocity_table["model"].iloc[[0]] + 0.3933, 3).tolist()[0]
 AP_duration = t_rise + t_fall
-AP_shape["Paintal 1965"] = ["-", int(t_rise*1e3), int(t_fall*1e3), int(AP_duration*1e3)]
+AP_shape["Paintal 1966"] = ["-", int(t_rise*1e3), int(t_fall*1e3), int(AP_duration*1e3)]
 
 ##### Refractory periods
 absolute_refractory_periods = refractory_table.drop(columns = ["relative refractory period (ms)"])

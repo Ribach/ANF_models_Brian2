@@ -37,7 +37,7 @@ E_L_Rat = 10.6*mV
 # =============================================================================
 # Conductivities Smit + Rattay
 # =============================================================================
-##### conductivities active compartments Rattay
+##### conductivities active compartments Smit
 g_Na_Smit = 640*msiemens/cm**2 * 1.02**((T_celsius-24)/10)
 g_K_Smit = 60*msiemens/cm**2 * 1.16**((T_celsius-20)/10)
 g_L_Smit = 57.5*msiemens/cm**2 * 1.418**((T_celsius-24)/10)
@@ -121,7 +121,7 @@ g_myelin_Smit : siemens/meter**2
 #  Morphologic data
 # =============================================================================
 ##### structure
-nof_segments_presomatic_region = 5
+nof_segments_presomatic_region = 3
 nof_segments_soma = 20
 nof_axonal_internodes = 10
 ##### lengths
@@ -134,15 +134,18 @@ length_presomatic_region = 100*um
 length_postsomatic_region = 5*um
 ##### diameters
 diameter_dendrite = 1*um
+dendrite_outer_diameter = 1.68*um
 diameter_soma = 27*um
 diameter_axon = 2.02*um
+axon_outer_diameter = 3.75*um
+##### myelin layer thickness axon
+myelin_layer_thicknes_axon = 16*nmeter
 
 # =============================================================================
-# Myelin data
+# Myelin data dendrite and soma
 # =============================================================================
 nof_myelin_layers_dendrite = 40
 nof_myelin_layers_soma = 3
-nof_myelin_layers_axon = 35
 
 # =============================================================================
 # Capacities
@@ -182,7 +185,7 @@ display_name = "Smit et al. 2010"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(1, 2, num=80, endpoint = False), np.linspace(2, 4, num=20))
+inter_pulse_intervals = np.append(np.linspace(1, 1.87, num=80, endpoint = False), np.linspace(1.87, 4, num=20))*1e-3
 
 # =============================================================================
 # Calculations
@@ -246,16 +249,17 @@ length_neuron = sum(compartment_lengths)
 compartment_diameters = np.zeros(nof_comps+1)*um
 # dendrite
 compartment_diameters[0:start_index_soma] = diameter_dendrite
-dendrite_outer_diameter = 1.68*um
 # soma
 soma_comp_diameters = calc.get_soma_diameters(nof_segments_soma,
-                                                    diameter_dendrite,
-                                                    diameter_soma,
-                                                    diameter_axon)
+                                              diameter_dendrite,
+                                              diameter_soma,
+                                              diameter_axon)
 compartment_diameters[start_index_soma:end_index_soma+2] = soma_comp_diameters
 # axon
 compartment_diameters[end_index_soma+2:] = diameter_axon
-axon_outer_diameter = 3.75*um
+
+##### number of axonal myelin layers
+nof_myelin_layers_axon = np.floor(0.5*(axon_outer_diameter-diameter_axon)/myelin_layer_thicknes_axon)
 
 #####  Compartment middle point distances (needed for plots)
 distance_comps_middle = np.zeros_like(compartment_lengths)
@@ -404,6 +408,9 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         model.compartment_diameters[model.start_index_soma:model.end_index_soma+2] = model.soma_comp_diameters
         # axon
         model.compartment_diameters[model.end_index_soma+2:] = model.diameter_axon
+        
+        ##### number of axonal myelin layers
+        model.nof_myelin_layers_axon = np.floor(0.5*(model.axon_outer_diameter-model.diameter_axon)/model.myelin_layer_thicknes_axon)
         
         #####  Compartment middle point distances (needed for plots)
         model.distance_comps_middle = np.zeros_like(model.compartment_lengths)

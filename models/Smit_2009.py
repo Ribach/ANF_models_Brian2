@@ -16,9 +16,9 @@ T_kelvin = zero_celsius + T_celsius*kelvin
 # Ionic concentrations
 # =============================================================================
 ##### Na_e / Na_i
-Na_ratio = 7.210
-K_ratio = 0.036
-Leak_ratio = 0.0367
+Na_ratio = 7.2102
+K_ratio = 0.036645
+Leak_ratio = 0.036645
 
 # =============================================================================
 # Resting potential
@@ -124,7 +124,7 @@ display_name = "Smit et al. 2009"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(2.7, 3, num=50, endpoint = False), np.linspace(3, 5, num=25))
+inter_pulse_intervals = np.append(np.linspace(2.7, 3, num=50, endpoint = False), np.linspace(3, 5, num=25))*1e-3
 
 # =============================================================================
 # Calculations
@@ -154,7 +154,7 @@ nof_comps = len(structure)
 # initialize
 compartment_lengths = np.zeros_like(structure)*um
 # internodes
-compartment_lengths[np.where(structure == 1)] = 7.9*10**-2*np.log((fiber_outer_diameter/cm)/(3.4*10**-4))*cm
+compartment_lengths[np.where(structure == 1)] = 7.9*10**-2*np.log((fiber_outer_diameter/cm)/(3.4*1e-4))*cm
 # nodes
 compartment_lengths[np.where(structure == 2)] = length_nodes
 # total length neuron
@@ -162,7 +162,7 @@ length_neuron = sum(compartment_lengths)
 
 ##### Compartment diameters
 # internode inner diameter
-internode_inner_diameter = 0.63*fiber_outer_diameter - 3.4*10**-5*cm
+internode_inner_diameter = 0.63*fiber_outer_diameter - 3.4*1e-5*cm
 # initialize
 compartment_diameters = np.zeros(nof_comps+1)*um
 # internodes

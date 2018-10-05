@@ -91,21 +91,21 @@ nof_internodes = 15
 length_internodes = 230*um
 length_nodes = 1*um
 ##### diameters
-diameter_fiber = 2.5*um
+fiber_outer_diameter = 2.5*um
 
 # =============================================================================
 # Capacities
 # =============================================================================
-##### cell membrane capacities one layer
-c_mem = 2.05e-5*nF/mm**2
-##### myelin layer capacity
-c_my = 1.45e-10*nF/(2.5*1*np.pi*mm**2)
+##### cell membrane capacity of nodes
+c_mem = 2.05e-5*nF/mm**2 * 2 # multiplied with 2 because of the constriction factor
+##### myelin layer capacity per mm
+c_my_per_mm = 1.45e-10*nF/mm
 
 # =============================================================================
 # resistivity internodes
 # =============================================================================
-##### cell membrane + myelin sheath resistivity internodes
-r_my = 1254e6*ohm*2.5*np.pi*mm**2
+##### resistivity internodes per mm
+r_my_per_mm = 1254e6*ohm*mm
 
 # =============================================================================
 # Noise factor
@@ -125,7 +125,7 @@ display_name = "Imennov and Rubinstein 2009"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(0.45, 0.5, num=50, endpoint = False), np.linspace(0.5, 5, num=50))
+inter_pulse_intervals = np.append(np.linspace(0.40, 0.5, num=50, endpoint = False), np.linspace(0.5, 5, num=50))*1e-3
 
 # =============================================================================
 # Calculations
@@ -154,13 +154,16 @@ length_neuron = sum(compartment_lengths)
 # initialize
 compartment_diameters = np.zeros(nof_comps+1)*um
 # same diameter for whole fiber
-compartment_diameters[:] = diameter_fiber
-fiber_outer_diameter = diameter_fiber / 0.6 # see Gillespie 1983
+fiber_inner_diameter = fiber_outer_diameter*0.6
+compartment_diameters[:] = fiber_inner_diameter
 
 #####  Compartment middle point distances (needed for plots)
 distance_comps_middle = np.zeros_like(compartment_lengths)
 for ii in range(0,nof_comps-1):
     distance_comps_middle[ii+1] = 0.5* compartment_lengths[ii] + 0.5* compartment_lengths[ii+1]
+
+##### internodal surface aria per 1 mm
+surface_aria_1mm = np.pi*fiber_inner_diameter*1*mm
 
 ##### Capacities
 # initialize
@@ -168,12 +171,14 @@ c_m = np.zeros_like(structure)*nF/mm**2
 # nodes
 c_m[structure == 2] = c_mem
 # internodes
+c_my = c_my_per_mm/(surface_aria_1mm/mm)
 c_m[structure == 1] = c_my
 
 ##### Condactivities internodes
 # initialize
 g_m = np.zeros_like(structure)*msiemens/cm**2
 # calculate values
+r_my = r_my_per_mm*(surface_aria_1mm/mm)
 g_m[structure == 1] = 1/r_my
 
 ##### Axoplasmatic resistances
@@ -182,12 +187,12 @@ compartment_center_diameters = (compartment_diameters[0:-1] + compartment_diamet
 R_a = (compartment_lengths*rho_in) / ((compartment_center_diameters*0.5)**2*np.pi)
 
 ##### Surface arias
-# lateral surfaces
+# lateral lengths
 m = [np.sqrt(abs(compartment_diameters[i+1] - compartment_diameters[i])**2 + compartment_lengths[i]**2)
-           for i in range(0,nof_comps)]
+           for i in range(nof_comps)]
 # total surfaces
 A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]*0.5
-           for i in range(0,nof_comps)]
+           for i in range(nof_comps)]
 
 ##### Noise term
 noise_term = np.sqrt(A_surface*gamma_Na*rho_Na)
@@ -252,12 +257,16 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         # initialize
         model.compartment_diameters = np.zeros(nof_comps+1)*um
         # same diameter for whole fiber
-        model.compartment_diameters[:] = model.diameter_fiber
+        model.fiber_inner_diameter = model.fiber_outer_diameter*0.6
+        model.compartment_diameters[:] = model.fiber_inner_diameter
         
         #####  Compartment middle point distances (needed for plots)
         model.distance_comps_middle = np.zeros_like(model.compartment_lengths)
         for ii in range(0,model.nof_comps-1):
             model.distance_comps_middle[ii+1] = 0.5* model.compartment_lengths[ii] + 0.5* model.compartment_lengths[ii+1]
+        
+        ##### internodal surface aria per 1 mm
+        model.surface_aria_1mm = np.pi*model.fiber_inner_diameter*1*mm
         
         ##### Capacities
         # initialize
@@ -265,12 +274,14 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         # nodes
         model.c_m[model.structure == 2] = model.c_mem
         # internodes
+        model.c_my = model.c_my_per_mm/(model.surface_aria_1mm/mm)
         model.c_m[model.structure == 1] = model.c_my
         
         ##### Condactivities internodes
         # initialize
         model.g_m = np.zeros_like(model.structure)*msiemens/cm**2
         # calculate values
+        model.r_my = model.r_my_per_mm*(model.surface_aria_1mm/mm)
         model.g_m[model.structure == 1] = 1/model.r_my
         
         ##### Axoplasmatic resistances

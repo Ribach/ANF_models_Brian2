@@ -127,7 +127,7 @@ display_name = "Rattay et al. 2001"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(1.3, 1.35, num=50, endpoint = False), np.linspace(1.35, 4, num=25))
+inter_pulse_intervals = np.append(np.linspace(1.2, 1.35, num=50, endpoint = False), np.linspace(1.35, 4, num=25))*1e-3
 
 # =============================================================================
 # Calculations

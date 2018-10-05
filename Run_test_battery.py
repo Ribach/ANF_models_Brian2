@@ -38,7 +38,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "smit_10"
+model_name = "rattay_01"
 model = eval(model_name)
 
 ##### initialize clock
@@ -53,7 +53,7 @@ generate_plots = False
 ##### define which tests to run
 all_tests = False
 strength_duration_test = False
-relative_spread_test = True
+relative_spread_test = False
 conduction_velocity_test = False
 single_node_response_test = False
 refractory_test = False

@@ -31,7 +31,7 @@ prefs.codegen.target = "numpy"
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = negm_14
+model = imennov_09
 
 ##### initialize clock
 dt = 5*us
@@ -67,20 +67,20 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     I_stim, runtime = stim.get_stimulus_current(model = model,
                                                 dt = dt,
                                                 stimulation_type = "extern",
-                                                pulse_form = "bi",
+                                                pulse_form = "mono",
                                                 stimulated_compartment = 4,
                                                 nof_pulses = 1,
                                                 time_before = 2*ms,
-                                                time_after = 20*ms,
+                                                time_after = 2*ms,
                                                 add_noise = True,
                                                 ##### monophasic stimulation
                                                 amp_mono = -2*uA,
                                                 duration_mono = 200*us,
                                                 ##### biphasic stimulation
-                                                amps_bi = [-0,0]*uA,
-                                                durations_bi = [0,0,0]*us,
+                                                amps_bi = [-8,8]*uA,
+                                                durations_bi = [40,0,40]*us,
                                                 ##### multiple pulses / pulse trains
-                                                inter_pulse_gap = 420*us)
+                                                inter_pulse_gap = 120*us)
     
     ##### get TimedArray of stimulus currents
     stimulus = TimedArray(np.transpose(I_stim), dt = dt)
@@ -93,7 +93,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     
     ##### Plot membrane potential of all compartments over time (2 plots)
     if plot_voltage_course_lines:
-        plot.voltage_course_lines(plot_name = "Voltage course {}".format(model.display_name)),
+        plot.voltage_course_lines(plot_name = "Voltage course {}".format(model.display_name),
                                   time_vector = M.t,
                                   voltage_matrix = M.v,
                                   comps_to_plot = model.comps_to_plot,
@@ -138,85 +138,3 @@ if measure_single_node_response:
     
     ##### plot results in bar plot
     plot.single_node_response_bar_plot(data = node_response_data_summary)
-
-# =============================================================================
-# Now a simulation will be run several times to calculate the strength-duration
-#  curve. This allows to determine the following properties
-# - Rheobase
-# - chronaxie
-# =============================================================================
-if measure_strength_duration_curve:
-    
-    ##### define phase_durations to be tested
-    phase_durations = np.round(np.logspace(1, 9, num=20, base=2.0))*us
-    
-    ##### calculated corresponding thresholds
-    thresholds = test.get_strength_duration_curve(model = model,
-                                                  dt = 1*us,
-                                                  phase_durations = phase_durations,
-                                                  start_intervall = [0.1,20]*uA,
-                                                  delta = 0.01*uA,
-                                                  stimulation_type = "extern",
-                                                  pulse_form = "bi")
-    
-    ##### plot strength duration curve
-    plot.strength_duration_curve(plot_name = "Strength duration curve {}".format(model.display_name),
-                                 durations = phase_durations,
-                                 stimulus_amps = thresholds)
-    
-# =============================================================================
-# Now the relative and absolute refractory periods will be measured. This is
-# done with two stimuli, the first one with an amplitude of 150% of threshold
-# masks the second one. Threshold amplitudes of the second stimulus over inter-
-# pulse interval are measured
-# =============================================================================
-if measure_refractory_properties:
-    
-    ##### define inter-pulse-intervalls
-    inter_pulse_intervalls = np.logspace(-1, 2, num=20, base=2)*ms
-    
-    ##### Define stimulation
-    stimulation_type = "extern"
-    pulse_form = "mono"
-    phase_duration = 100*us
-    
-    min_required_amps, threshold = test.get_refractory_curve(model = model,
-                                                             dt = 5*us,
-                                                             inter_pulse_intervalls = inter_pulse_intervalls,
-                                                             delta = 0.02*uA,
-                                                             stimulation_type = "extern",
-                                                             pulse_form = "mono",
-                                                             phase_duration = 100*us)
-    
-    ##### plot strength duration curve
-    plot.refractory_curve(plot_name = "Threshold curve {}".format(),
-                          inter_pulse_intervalls = inter_pulse_intervalls,
-                          stimulus_amps = min_required_amps,
-                          threshold = threshold)
-    
-# =============================================================================
-# Post Stimulus Time Histogram
-# =============================================================================
-if post_stimulus_time_histogram:
-    
-    ##### define bin_width
-    bin_width = 1*ms
-    
-    ##### calculate bin heigths and edges
-    bin_heigths, bin_edges = test.post_stimulus_time_histogram(model = model,
-                                                        dt = 2*us,
-                                                        nof_repeats = 50,
-                                                        pulses_per_second = 2000,
-                                                        stim_duration = 300*ms,
-                                                        stim_amp = 1.5*uA,
-                                                        stimulation_type = "extern",
-                                                        pulse_form = "bi",
-                                                        phase_duration = 40*us,
-                                                        bin_width = bin_width)
-    
-    ##### plot post_stimulus_time_histogram
-    plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
-                                      bin_edges = bin_edges,
-                                      bin_heigths = bin_heigths,
-                                      bin_width = bin_width/ms)
-

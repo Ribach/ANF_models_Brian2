@@ -77,7 +77,7 @@ nof_internodes = 15
 length_internodes = 1500*um
 length_nodes = 1*um
 ##### diameters
-diameter_fiber = 10.5*um
+fiber_outer_diameter = 15*um
 
 # =============================================================================
 # Capacitivites
@@ -105,7 +105,7 @@ display_name = "Frijns et al. 1994"
 # =============================================================================
 inter_pulse_intervals = np.append(np.append(np.linspace(0.5, 0.6, num=50, endpoint = False),
                                             np.linspace(0.6, 1.2, num=20, endpoint = False)),
-                                            np.linspace(1.2, 8, num=30))
+                                            np.linspace(1.2, 8, num=30))*1e-3
 
 # =============================================================================
 # Calculations
@@ -147,8 +147,8 @@ length_neuron = sum(compartment_lengths)
 
 ##### Compartment diameters
 compartment_diameters = np.zeros(nof_comps+1)*um
-compartment_diameters[:] = diameter_fiber
-fiber_outer_diameter = diameter_fiber / 0.6 # see Gillespie 1983
+fiber_inner_diameter = 0.7* fiber_outer_diameter
+compartment_diameters[:] = fiber_inner_diameter
 
 #####  Compartment middle point distances (needed for plots)
 distance_comps_middle = np.zeros_like(compartment_lengths)
@@ -253,7 +253,8 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         # initialize
         model.compartment_diameters = np.zeros(model.nof_comps+1)*um
         # dendrite
-        model.compartment_diameters[:] = model.diameter_fiber
+        model.fiber_inner_diameter = 0.7* model.fiber_outer_diameter
+        model.compartment_diameters[:] = model.fiber_inner_diameter
         
         #####  Compartment middle point distances (needed for plots)
         model.distance_comps_middle = np.zeros_like(model.compartment_lengths)
