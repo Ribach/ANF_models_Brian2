@@ -170,7 +170,7 @@ r_my = 104*ohm*cm**2 * (1/1.3)**((T_celsius-25)/10)
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.001*uA/np.sqrt(mS)
+k_noise = 0.004*uA/np.sqrt(mS)
 
 # =============================================================================
 # Electrode
@@ -302,7 +302,11 @@ A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]*
            for i in range(0,nof_comps)]
 
 ##### Noise term
-noise_term = np.sqrt(A_surface*g_Na_Rat)
+g_Na_vector = np.zeros(nof_comps)*msiemens/cm**2
+g_Na_vector[0:start_index_soma][structure[0:start_index_soma] != 1] = g_Na_Rat
+g_Na_vector[np.where(structure == 4)] = g_Na_soma
+g_Na_vector[end_index_soma+1:][structure[end_index_soma+1:] != 1] = g_Na_Smit
+noise_term = np.sqrt(A_surface*g_Na_vector)
 
 ##### Compartments to plot
 # get indexes of all compartments that are not segmented

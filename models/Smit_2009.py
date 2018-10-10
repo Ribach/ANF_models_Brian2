@@ -109,7 +109,7 @@ r_my = 104*ohm*cm**2 * (1/1.3)**((T_celsius-25)/10)
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.002*uA/np.sqrt(mS)
+k_noise = 0.1*uA/np.sqrt(mS)
 
 # =============================================================================
 # Electrode
@@ -205,7 +205,9 @@ A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]*
            for i in range(0,nof_comps)]
 
 ##### Noise term
-noise_term = np.sqrt(A_surface*g_Na)
+g_Na_vector = np.zeros(nof_comps)*msiemens/cm**2
+g_Na_vector[structure == 2] = g_Na
+noise_term = np.sqrt(A_surface*g_Na_vector)
 
 ##### Compartments to plot
 comps_to_plot = range(1,nof_comps)
@@ -314,7 +316,9 @@ def set_up_model(dt, model, update = False, model_name = "model"):
                    for i in range(0,model.nof_comps)]
         
         ##### Noise term
-        model.noise_term = np.sqrt(model.A_surface*model.g_Na)
+        model.g_Na_vector = np.zeros(model.nof_comps)*msiemens/cm**2
+        model.g_Na_vector[model.structure == 2] = model.g_Na
+        model.noise_term = np.sqrt(model.A_surface*model.g_Na_vector)
         
         ##### Compartments to plot
         model.comps_to_plot = range(1,model.nof_comps)

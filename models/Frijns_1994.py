@@ -88,7 +88,7 @@ c_m_layer = 2*uF/cm**2
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.0000002*uA*np.sqrt(second/um**3)
+k_noise = 0.000003*uA*np.sqrt(second/um**3)
 
 # =============================================================================
 # Electrode
@@ -181,7 +181,9 @@ A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]*
            for i in range(0,nof_comps)]
 
 ##### Noise term
-noise_term = np.sqrt(A_surface*P_Na)
+P_Na_vector = np.zeros(nof_comps)*um/second
+P_Na_vector[structure == 2] = P_Na
+noise_term = np.sqrt(A_surface*P_Na_vector)
 
 ##### Compartments to plot
 comps_to_plot = range(1,nof_comps)
@@ -287,7 +289,9 @@ def set_up_model(dt, model, update = False, model_name = "model"):
                    for i in range(0,model.nof_comps)]
         
         ##### Noise term
-        model.noise_term = np.sqrt(model.A_surface*model.P_Na)
+        model.P_Na_vector = np.zeros(model.nof_comps)*um/second
+        model.P_Na_vector[model.structure == 2] = model.P_Na
+        model.noise_term = np.sqrt(model.A_surface*model.P_Na_vector)
         
         ##### Compartments to plot
         model.comps_to_plot = range(1,model.nof_comps)

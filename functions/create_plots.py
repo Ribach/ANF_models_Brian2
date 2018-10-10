@@ -187,10 +187,7 @@ def single_node_response_voltage_course(plot_name,
     y_ticks = [np.round(voltage_data["membrane potential (mV)"].iloc[0]).astype(int), np.round(y_max-5).astype(int)]
 
     ##### create figure
-    fig, axes = plt.subplots(nof_phase_durations, nof_amplitudes, sharex=True, sharey=True, figsize=(3*nof_amplitudes, 3*nof_phase_durations))
-    
-    ##### give figure a title
-    fig.canvas.set_window_title(plot_name)
+    fig, axes = plt.subplots(nof_phase_durations, nof_amplitudes, sharex=True, sharey=True, num = plot_name, figsize=(3*nof_amplitudes, 3*nof_phase_durations))
     
     ##### create plots    
     for ii in range(nof_phase_durations):
@@ -450,6 +447,7 @@ def post_stimulus_time_histogram(plot_name,
     """
     
     ##### convert spike times to ms
+    #psth_dataset["spike times (us)"] = np.ceil(psth_dataset["spike times (us)"]/1000).astype(int)
     psth_dataset = psth_dataset.rename(index = str, columns={"spike times (us)" : "spike times (ms)"})
     
     ##### get amplitude levels and pulse rates
@@ -471,10 +469,7 @@ def post_stimulus_time_histogram(plot_name,
     bin_edges = [ii*bin_width for ii in range(nof_bins+1)]
     
     ##### create figure
-    fig, axes = plt.subplots(nof_amplitudes, nof_pulse_rates, sharex=True, sharey=True, figsize=(2*nof_pulse_rates, 2*nof_amplitudes))
-    
-    ##### give figure a title
-    fig.canvas.set_window_title(plot_name)
+    fig, axes = plt.subplots(nof_amplitudes, nof_pulse_rates, sharex=True, sharey=True, num = plot_name, figsize=(2*nof_pulse_rates, 2*nof_amplitudes))
     
     ##### initialize maximum bin height
     max_bin_height = 0

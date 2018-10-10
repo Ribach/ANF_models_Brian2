@@ -53,12 +53,12 @@ diameter_fiber = 1.0*um
 g_L = (1953.49*Mohm)**-1/(1*um*np.pi*1.5*um)
 
 # =============================================================================
-# Numbers of ion channels per aria
+# Total ion channel numbers per node
 # =============================================================================
-rho_Na = 1000/(1*um*np.pi*1.5*um)
-rho_K = 166/(1*um*np.pi*1.5*um)
-rho_KLT = 166/(1*um*np.pi*1.5*um)
-rho_HCN = 100/(1*um*np.pi*1.5*um)
+max_Na = 1000
+max_K = 166
+max_KLT = 166
+max_HCN = 100
 
 # =============================================================================
 # Resistivities
@@ -140,7 +140,7 @@ r_my = 0.1*kohm*cm**2
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.002*uA/np.sqrt(mS)
+k_noise = 0.01*uA/np.sqrt(mS)
 
 # =============================================================================
 # Electrode
@@ -155,7 +155,7 @@ display_name = "Negm and Bruce 2014"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(1.2, 1.35, num=50, endpoint = False), np.linspace(1.35, 4, num=50))*1e-3
+inter_pulse_intervals = np.append(np.linspace(1, 1.5, num=60, endpoint = False), np.linspace(1.5, 4, num=40))*1e-3
 
 # =============================================================================
 # Calculations
@@ -186,6 +186,15 @@ compartment_diameters = np.zeros(nof_comps+1)*um
 # same diameter for whole fiber
 compartment_diameters[:] = diameter_fiber
 fiber_outer_diameter = diameter_fiber + nof_myelin_layers*thicknes_myelin_layer*2
+
+##### nodal surface aria
+surface_aria_node = diameter_fiber*np.pi*length_nodes
+
+##### ion channels per aria
+rho_Na = max_Na/surface_aria_node
+rho_K = max_K/surface_aria_node
+rho_KLT = max_KLT/surface_aria_node
+rho_HCN = max_HCN/surface_aria_node
 
 ##### Surface arias
 # lateral surfaces
@@ -227,7 +236,9 @@ compartment_center_diameters = (compartment_diameters[0:-1] + compartment_diamet
 R_a = (compartment_lengths*rho_in) / ((compartment_center_diameters*0.5)**2*np.pi)
 
 ##### Noise term
-noise_term = np.sqrt(A_surface*gamma_Na*rho_Na)
+gamma_Na_vector = np.zeros(nof_comps)*psiemens
+gamma_Na_vector[structure == 2] = gamma_Na
+noise_term = np.sqrt(A_surface*gamma_Na_vector*rho_Na)
 
 ##### Compartments to plot
 # get indexes of all compartments that are not segmented
@@ -331,7 +342,9 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         model.R_a = (model.compartment_lengths*model.rho_in) / ((model.compartment_center_diameters*0.5)**2*np.pi)
         
         ##### Noise term
-        model.noise_term = np.sqrt(model.A_surface*model.gamma_Na*model.rho_Na)
+        model.gamma_Na_vector = np.zeros(model.nof_comps)*psiemens
+        model.gamma_Na_vector[model.structure == 2] = model.gamma_Na
+        model.noise_term = np.sqrt(model.A_surface*model.gamma_Na_vector*model.rho_Na)
         
         ##### Compartments to plot
         # get indexes of all compartments that are not segmented

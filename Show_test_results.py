@@ -30,12 +30,12 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "negm_14"
+model_name = "rattay_01"
 model = eval(model_name)
 
 ##### save plots
 save_plots = True
-save_plots_for_report = True
+save_plots_for_report = False
 interim_report_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Zwischenbericht Masterarbeit/images"
 
 # =============================================================================
@@ -172,8 +172,7 @@ AP_shape["Paintal 1966"] = ["-", int(t_rise*1e3), int(t_fall*1e3), int(AP_durati
 
 ##### Refractory periods
 absolute_refractory_periods = refractory_table.drop(columns = ["relative refractory period (ms)"])
-absolute_refractory_periods = absolute_refractory_periods.rename(index = str, columns={"absolute refractory period (ms)":"ARP model (us)"})
-absolute_refractory_periods["ARP model (us)"] = absolute_refractory_periods["ARP model (us)"]*1000
+absolute_refractory_periods = absolute_refractory_periods.rename(index = str, columns={"absolute refractory period (us)":"ARP model (us)"})
 absolute_refractory_periods["ARP Experiments (us)"] = ["334","300","500-700","400-500","-"]
 absolute_refractory_periods["reference"] = ["Miller et al. 2001","Stypulkowski and Van den Honert 1984","Dynes 1996","Brown and Abbas 1990", "-"]
 absolute_refractory_periods = absolute_refractory_periods[absolute_refractory_periods["ARP Experiments (us)"] != "-"]

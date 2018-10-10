@@ -38,7 +38,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "rattay_01"
+model_name = "negm_14"
 model = eval(model_name)
 
 ##### initialize clock
@@ -48,14 +48,14 @@ dt = 5*us
 backend = "serial"
 
 ##### define if plots should be generated
-generate_plots = False
+generate_plots = True
 
 ##### define which tests to run
 all_tests = False
 strength_duration_test = False
 relative_spread_test = False
 conduction_velocity_test = False
-single_node_response_test = False
+single_node_response_test = True
 refractory_test = False
 psth_test = False
 
@@ -144,7 +144,7 @@ if all_tests or strength_duration_test:
     # Get strength-duration curve
     # =============================================================================
     ##### define phase durations
-    phase_durations = np.round(np.logspace(1, 9, num=30, base=2.0))*us
+    phase_durations = np.round(np.logspace(1, 9, num=50, base=2.0))*us
     
     ##### define varied parameter    
     params = {"phase_duration" : phase_durations}
@@ -190,7 +190,7 @@ if all_tests or strength_duration_test:
     
 if all_tests or relative_spread_test:
     # =============================================================================
-    # Get the relative spread of thresholds for certain stimulation types and stimulus durations
+    # Get the relative spread of thresholds
     # =============================================================================
     ##### define phase durations to test (in us)
     phase_durations_mono = [40,100]
@@ -230,9 +230,6 @@ if all_tests or relative_spread_test:
     
     ##### exclude spontaneous APs
     relative_spread_plot_table = relative_spread_plot_table[relative_spread_plot_table["threshold"] > 1e-9]
-    
-    ##### add unit to phase duration
-    #relative_spread_plot_table["phase duration"] = [np.round(ii*1e6).astype(int) for ii in relative_spread_plot_table["phase duration"]]
     
     ##### adjust pulse form column
     relative_spread_plot_table["pulse form"] = ["monophasic" if relative_spread_plot_table["pulse form"][ii]=="mono" else "biphasic" for ii in range(np.shape(relative_spread_plot_table)[0])]
@@ -481,21 +478,25 @@ if all_tests or refractory_test:
     ##### change column names
     refractory_table = refractory_table.rename(index = str, columns={"phase_duration" : "phase duration",
                                                                      "pulse_form" : "pulse form",
-                                                                     0 : "absolute refractory period (ms)",
+                                                                     0 : "absolute refractory period (us)",
                                                                      1 : "relative refractory period (ms)"})
     
     ##### add units to phase duration
     refractory_table["phase duration"] = [ii*second for ii in refractory_table["phase duration"]]
     
     ##### convert refractory periods to ms
-    refractory_table["absolute refractory period (ms)"] = refractory_table["absolute refractory period (ms)"]*1e3
+    refractory_table["absolute refractory period (us)"] = refractory_table["absolute refractory period (us)"]*1e6
     refractory_table["relative refractory period (ms)"] = refractory_table["relative refractory period (ms)"]*1e3
     
     ##### adjust pulse form column
     refractory_table["pulse form"] = ["monophasic" if pulse_form[ii]=="mono" else "biphasic" for ii in range(len(phase_durations))]
     
     ##### built subset of dataframe
-    refractory_table = refractory_table[["phase duration", "pulse form", "absolute refractory period (ms)","relative refractory period (ms)"]]
+    refractory_table = refractory_table[["phase duration", "pulse form", "absolute refractory period (us)","relative refractory period (ms)"]]
+    
+    ##### round columns to 3 significant digits
+    for ii in ["absolute refractory period (us)","relative refractory period (ms)"]:
+        refractory_table[ii] = ["%.3g" %refractory_table[ii][jj] for jj in range(refractory_table.shape[0])]
     
     ##### Save dataframe as csv    
     refractory_table.to_csv("test_battery_results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
@@ -592,7 +593,7 @@ if all_tests or psth_test:
                              cache = "no",
                              kwargs = {"model_name" : model_name,
                                        "dt" : dt,
-                                       "stim_duration" : 20*ms,
+                                       "stim_duration" : 300*ms,
                                        "stimulation_type" : "extern",
                                        "pulse_form" : "bi"})
     

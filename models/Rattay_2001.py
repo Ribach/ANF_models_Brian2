@@ -112,7 +112,7 @@ g_m_layer = 1*msiemens/cm**2
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.0002*uA/np.sqrt(mS)
+k_noise = 0.004*uA/np.sqrt(mS)
 
 # =============================================================================
 # Electrode
@@ -230,7 +230,11 @@ A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]*
            for i in range(0,nof_comps)]
 
 ##### Noise term
-noise_term = np.sqrt(A_surface*g_Na)
+g_Na_vector = np.zeros(nof_comps)*msiemens/cm**2
+g_Na_vector[:] = g_Na
+g_Na_vector[structure == 1] = 0*msiemens/cm**2
+g_Na_vector[structure == 4] = g_Na_soma
+noise_term = np.sqrt(A_surface*g_Na_vector)
 
 ##### Compartments to plot
 # get indexes of all compartments that are not segmented
@@ -365,7 +369,11 @@ def set_up_model(dt, model, update = False, model_name = "model"):
                    for i in range(0,model.nof_comps)]
         
         ##### Noise term
-        model.noise_term = np.sqrt(model.A_surface*model.g_Na)
+        model.g_Na_vector = np.zeros(model.nof_comps)*msiemens/cm**2
+        model.g_Na_vector[:] = model.g_Na
+        model.g_Na_vector[model.structure == 1] = 0*msiemens/cm**2
+        model.g_Na_vector[model.structure == 4] = model.g_Na_soma
+        model.noise_term = np.sqrt(model.A_surface*model.g_Na_vector)
         
         ##### Compartments to plot
         # get indexes of all compartments that are not segmented

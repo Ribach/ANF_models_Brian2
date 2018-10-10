@@ -7,6 +7,11 @@ import numpy as np
 import functions.calculations as calc
 
 # =============================================================================
+# Constriction factor (constricts surface aria of nodes)
+# =============================================================================
+cons_fac = 1/2
+
+# =============================================================================
 # Nernst potentials
 # =============================================================================
 ##### Resting potential of cell
@@ -27,14 +32,14 @@ gamma_Ks = 10*psiemens
 gamma_Kf = 10*psiemens
 
 ##### cell membrane conductivity nodes
-g_L = 1/(8310*ohm*mm**2)
+g_L = 1/(8310*ohm*mm**2) * cons_fac
 
 # =============================================================================
 # Numbers of channels per aria
 # =============================================================================
-rho_Na = 618/um**2
-rho_Kf = 20.3/um**2
-rho_Ks = 41.2/um**2
+rho_Na = 618/um**2 * cons_fac
+rho_Kf = 20.3/um**2 * cons_fac
+rho_Ks = 41.2/um**2 * cons_fac
 
 # =============================================================================
 # Resistivities
@@ -97,7 +102,7 @@ fiber_outer_diameter = 2.5*um
 # Capacities
 # =============================================================================
 ##### cell membrane capacity of nodes
-c_mem = 2.05e-5*nF/mm**2 * 2 # multiplied with 2 because of the constriction factor
+c_mem = 2.05e-5*nF/mm**2 * cons_fac
 ##### myelin layer capacity per mm
 c_my_per_mm = 1.45e-10*nF/mm
 
@@ -110,7 +115,7 @@ r_my_per_mm = 1254e6*ohm*mm
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.0002*uA/np.sqrt(mS)
+k_noise = 0.005*uA/np.sqrt(mS)
 
 # =============================================================================
 # Electrode
@@ -125,7 +130,7 @@ display_name = "Imennov and Rubinstein 2009"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(0.40, 0.5, num=50, endpoint = False), np.linspace(0.5, 5, num=50))*1e-3
+inter_pulse_intervals = np.append(np.linspace(0.30, 0.7, num=60, endpoint = False), np.linspace(0.7, 5, num=30))*1e-3
 
 # =============================================================================
 # Calculations
@@ -157,6 +162,11 @@ compartment_diameters = np.zeros(nof_comps+1)*um
 fiber_inner_diameter = fiber_outer_diameter*0.6
 compartment_diameters[:] = fiber_inner_diameter
 
+# makes nodal diameters smaller
+#nodes1 = np.append(structure == 2, True)
+#nodes2 = np.append(True,structure == 2)
+#compartment_diameters[nodes1 | nodes2] = fiber_inner_diameter * 0.5
+
 #####  Compartment middle point distances (needed for plots)
 distance_comps_middle = np.zeros_like(compartment_lengths)
 for ii in range(0,nof_comps-1):
@@ -187,15 +197,21 @@ compartment_center_diameters = (compartment_diameters[0:-1] + compartment_diamet
 R_a = (compartment_lengths*rho_in) / ((compartment_center_diameters*0.5)**2*np.pi)
 
 ##### Surface arias
+# list of constriction factors
+cons_fac_list = np.ones(nof_comps)
+cons_fac_list[structure == 2] = cons_fac
+
 # lateral lengths
 m = [np.sqrt(abs(compartment_diameters[i+1] - compartment_diameters[i])**2 + compartment_lengths[i]**2)
            for i in range(nof_comps)]
 # total surfaces
-A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]*0.5
+A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]*0.5*cons_fac_list[i]
            for i in range(nof_comps)]
 
 ##### Noise term
-noise_term = np.sqrt(A_surface*gamma_Na*rho_Na)
+gamma_Na_vector = np.zeros(nof_comps)*psiemens
+gamma_Na_vector[structure == 2] = gamma_Na
+noise_term = np.sqrt(A_surface*gamma_Na_vector*rho_Na)
 
 ##### Compartments to plot
 # get indexes of all compartments that are not segmented
@@ -298,7 +314,9 @@ def set_up_model(dt, model, update = False, model_name = "model"):
                    for i in range(0,model.nof_comps)]
         
         ##### Noise term
-        model.noise_term = np.sqrt(model.A_surface*model.gamma_Na*model.rho_Na)
+        model.gamma_Na_vector = np.zeros(model.nof_comps)*psiemens
+        model.gamma_Na_vector[model.structure == 2] = model.gamma_Na
+        model.noise_term = np.sqrt(model.A_surface*model.gamma_Na_vector*model.rho_Na)
         
         ##### Compartments to plot
         # get indexes of all compartments that are not segmented
