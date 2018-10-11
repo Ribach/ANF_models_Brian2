@@ -447,7 +447,7 @@ def post_stimulus_time_histogram(plot_name,
     """
     
     ##### convert spike times to ms
-    #psth_dataset["spike times (us)"] = np.ceil(psth_dataset["spike times (us)"]/1000).astype(int)
+    psth_dataset["spike times (us)"] = np.ceil(psth_dataset["spike times (us)"]/1000).astype(int)
     psth_dataset = psth_dataset.rename(index = str, columns={"spike times (us)" : "spike times (ms)"})
     
     ##### get amplitude levels and pulse rates

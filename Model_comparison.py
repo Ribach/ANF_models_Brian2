@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 pd.options.mode.chained_assignment = None
 import matplotlib.pyplot as plt
-import os
+import itertools as itl
 
 ##### import models
 import models.Rattay_2001 as rattay_01
@@ -73,7 +73,7 @@ single_node_response = plot.single_node_response_comparison(plot_name = "Voltage
 
 ##### save plot
 if save_plots:
-    single_node_response.savefig("{}/Single_node_response comparison.png".format(interim_report_image_path), bbox_inches='tight')
+    single_node_response.savefig("{}/single_node_response comparison.png".format(interim_report_image_path), bbox_inches='tight')
 
 # =============================================================================
 # AP shape table
@@ -174,7 +174,55 @@ strength_duration_curve = plot.strength_duration_curve_comparison(plot_name = "S
 
 ##### save plot
 if save_plots:
-    strength_duration_curve.savefig("{}/Strength_duration_curve comparison.png".format(interim_report_image_path), bbox_inches='tight')
+    strength_duration_curve.savefig("{}/strength_duration_curve comparison.png".format(interim_report_image_path), bbox_inches='tight')
+
+# =============================================================================
+# Conduction velocity table
+# =============================================================================
+##### distinguish models with and without soma
+models_with_soma = list(itl.compress(models, [hasattr(model, "index_soma") for model in models]))
+models_without_soma = list(itl.compress(models, [not hasattr(model, "index_soma") for model in models]))
+
+##### table for models with soma
+for ii,model in enumerate(models_with_soma):
+    
+    ##### get strength duration data
+    data = pd.read_csv("test_battery_results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name)).transpose()
+    
+    if ii == 0:
+        ##### use model name as column header
+        conduction_velocity_table_with_soma = data.rename(index = str, columns={0:model.display_name})
+        
+    else:
+        ##### add column with AP shape data of current model
+        conduction_velocity_table_with_soma[model.display_name] = data[0]
+
+##### table for models without soma
+for ii,model in enumerate(models_without_soma):
+    
+    ##### get strength duration data
+    data = pd.read_csv("test_battery_results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name)).transpose()
+    
+    if ii == 0:
+        ##### use model name as column header
+        conduction_velocity_table_without_soma = data.rename(index = str, columns={0:model.display_name})
+        
+    else:
+        ##### add column with AP shape data of current model
+        conduction_velocity_table_without_soma[model.display_name] = data[0]
+
+##### save tables as tex
+if save_tables:
+    with open("{}/conduction_velocity_table_with_soma.tex".format(interim_report_table_path), "w") as tf:
+        tf.write(conduction_velocity_table_with_soma.to_latex(column_format ="lccc"))
+    
+    with open("{}/conduction_velocity_table_without_soma.tex".format(interim_report_table_path), "w") as tf:
+        tf.write(conduction_velocity_table_without_soma.to_latex(column_format ="lcccc"))
+
+
+
+
+
 
 
 

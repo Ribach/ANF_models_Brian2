@@ -82,18 +82,18 @@ post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PS
                                                                  psth_dataset = psth_table)
 
 if save_plots:
-    strength_duration_curve.savefig("test_battery_results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name))
-    relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name))
-    single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name))
-    refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name))
-    post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name))
+    strength_duration_curve.savefig("test_battery_results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
 
 if save_plots_for_report:
-    strength_duration_curve.savefig("{}/Strength_duration_curve {}.png".format(interim_report_path,model.display_name))
-    relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name))
-    single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name))
-    refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name))
-    post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name))
+    strength_duration_curve.savefig("{}/Strength_duration_curve {}.png".format(interim_report_path,model.display_name), bbox_inches='tight')
+    relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
 
 # =============================================================================
 # Add experimental results to tables
@@ -114,21 +114,21 @@ relative_spreads = relative_spreads.set_index(["phase duration","pulse form"])
 conduction_velocity_table = conduction_velocity_table.transpose()
 conduction_velocity_table = conduction_velocity_table.rename(index = str, columns={0:"model"})
 if hasattr(model, "index_soma"):
-    conduction_velocity_table["Hursh 1939"] = ["-","6","-","-"]
+    conduction_velocity_table["Hursh 1939"] = ["-","-","6","-","-","-"]
     if model.dendrite_outer_diameter < 12*um:
         dendrite_ratio = 4.6
     else:
         dendrite_ratio = 5.66
-    conduction_velocity_table["Boyd and Kalu 1979"] = ["-","{}".format(dendrite_ratio),"-","-"]
-    conduction_velocity_table["Czèh et al 1976"] = ["-","-","v_ax = 0.9*v_den-6.9*m/s","-"]
+    conduction_velocity_table["Boyd and Kalu 1979"] = ["-","-","{}".format(dendrite_ratio),"-","-","-"]
+    conduction_velocity_table["Czèh et al 1976"] = ["-","-","-","v_ax = 0.9*v_den-6.9*m/s","-","-"]
 
 else:
-    conduction_velocity_table["Hursh 1939"] = ["-","6"]
+    conduction_velocity_table["Hursh 1939"] = ["-","-","6"]
     if model.fiber_outer_diameter < 12*um:
         dendrite_ratio = 4.6
     else:
         dendrite_ratio = 5.66
-    conduction_velocity_table["Boyd and Kalu 1979"] = ["-","{}".format(dendrite_ratio)]
+    conduction_velocity_table["Boyd and Kalu 1979"] = ["-","-","{}".format(dendrite_ratio)]
 
 ##### Latency and jitter
 latency_jitter = node_response_data_summary[["phase duration (us)", "pulse form", "amplitude level", "latency (us)",  "jitter (us)"]]

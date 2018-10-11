@@ -457,7 +457,11 @@ def set_up_model(dt, model, update = False, model_name = "model"):
                    for i in range(0,model.nof_comps)]
         
         ##### Noise term
-        model.noise_term = np.sqrt(model.A_surface*model.g_Na_Rat)
+        model.g_Na_vector = np.zeros(model.nof_comps)*msiemens/cm**2
+        model.g_Na_vector[0:model.start_index_soma][model.structure[0:model.start_index_soma] != 1] = model.g_Na_Rat
+        model.g_Na_vector[np.where(model.structure == 4)] = model.g_Na_soma
+        model.g_Na_vector[model.end_index_soma+1:][model.structure[model.end_index_soma+1:] != 1] = model.g_Na_Smit
+        model.noise_term = np.sqrt(model.A_surface*model.g_Na_vector)
         
         ##### Compartments to plot
         # get indexes of all compartments that are not segmented

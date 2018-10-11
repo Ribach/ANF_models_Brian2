@@ -912,4 +912,4 @@ def post_stimulus_time_histogram(model_name,
     ##### trim zeros
     spike_times = spike_times[spike_times != 0].tolist()
     
-    return spike_times, "Hallo"
+    return spike_times, "needed for map function"

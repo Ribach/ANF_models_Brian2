@@ -38,7 +38,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "negm_14"
+model_name = "rattay_01"
 model = eval(model_name)
 
 ##### initialize clock
@@ -55,7 +55,7 @@ all_tests = False
 strength_duration_test = False
 relative_spread_test = False
 conduction_velocity_test = False
-single_node_response_test = True
+single_node_response_test = False
 refractory_test = False
 psth_test = False
 
@@ -186,7 +186,7 @@ if all_tests or strength_duration_test:
                                                                chronaxie = chronaxie)
         
         ##### save strength duration curve and table
-        strength_duration_curve.savefig("test_battery_results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name))
+        strength_duration_curve.savefig("test_battery_results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
     
 if all_tests or relative_spread_test:
     # =============================================================================
@@ -243,7 +243,7 @@ if all_tests or relative_spread_test:
                                                     threshold_matrix = relative_spread_plot_table)
     
         ##### save relative spreads plot
-        relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name))
+        relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
     
     ##### save relative spreads plot table
     relative_spread_plot_table.to_csv("test_battery_results/{}/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)
@@ -294,8 +294,10 @@ if all_tests or conduction_velocity_test:
         conduction_velocity_axon_ratio = round((conduction_velocity_axon/(meter/second))/(model.axon_outer_diameter/um),2)
         
         ##### save values in dataframe
-        conduction_velocity_table = pd.DataFrame(np.array([[conduction_velocity_dendrite], [conduction_velocity_dendrite_ratio], [conduction_velocity_axon], [conduction_velocity_axon_ratio]]).T,
-                                                 columns = ["velocity dendrite (m/s)", "velocity/diameter dendrite", "velocity axon (m/s)", "velocity/diameter axon"])
+        conduction_velocity_table = pd.DataFrame(np.array([[conduction_velocity_dendrite],[np.round(model.dendrite_outer_diameter/um,2)],[conduction_velocity_dendrite_ratio],
+                                                           [conduction_velocity_axon],[np.round(model.axon_outer_diameter/um,2)],[conduction_velocity_axon_ratio]]).T,
+                                                 columns = ["velocity dendrite (m/s)", "outer diameter dendrite (um)", "velocity/diameter dendrite",
+                                                            "velocity axon (m/s)", "outer diameter axon (um)", "velocity/diameter axon"])
     
     ##### models without a soma 
     else:
@@ -308,8 +310,8 @@ if all_tests or conduction_velocity_test:
        conduction_velocity_ratio = round((conduction_velocity/(meter/second))/(model.fiber_outer_diameter/um),2)
        
        ##### save values in dataframe
-       conduction_velocity_table = pd.DataFrame(np.array([[conduction_velocity], [conduction_velocity_ratio]]).T,
-                                                columns = ["velocity (m/s)", "velocity/diameter"])
+       conduction_velocity_table = pd.DataFrame(np.array([[conduction_velocity],[np.round(model.fiber_outer_diameter/um,2)],[conduction_velocity_ratio]]).T,
+                                                columns = ["velocity (m/s)", "outer diameter (um)", "velocity/diameter"])
     
     ##### Save table as csv    
     conduction_velocity_table.to_csv("test_battery_results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)
@@ -434,7 +436,7 @@ if all_tests or single_node_response_test:
                                                                         voltage_data = voltage_course_dataset)
         
         ##### save voltage courses plot
-        single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name))
+        single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
     
     ###### save voltage courses table
     voltage_course_dataset.to_csv("test_battery_results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name), index=False, header=True)
@@ -551,7 +553,7 @@ if all_tests or refractory_test:
                                                  refractory_table = refractory_curve_table)
         
         ##### save refractory curve
-        refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name))
+        refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
     
     ##### save refractory curve table
     refractory_curve_table.to_csv("test_battery_results/{}/Refractory_curve_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
@@ -570,7 +572,7 @@ if all_tests or psth_test:
     stim_amp_level = [1,1.2,1.5]
     
     ##### number of runs
-    nof_runs = 100
+    nof_runs = 60
     
     ##### look up thresholds
     thresholds = [threshold_table["threshold"][threshold_table["pulse form"] == "bi"]\
@@ -630,7 +632,7 @@ if all_tests or psth_test:
                                                                          psth_dataset = psth_table)
         
         ###### save post_stimulus_time_histogram
-        post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name))
+        post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
         
     ###### save post_stimulus_time_histogram table
     psth_table.to_csv("test_battery_results/{}/PSTH_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
