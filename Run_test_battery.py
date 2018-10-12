@@ -38,7 +38,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "rattay_01"
+model_name = "frijns_94"
 model = eval(model_name)
 
 ##### initialize clock
@@ -52,11 +52,11 @@ generate_plots = True
 
 ##### define which tests to run
 all_tests = False
-strength_duration_test = False
+strength_duration_test = True
 relative_spread_test = False
-conduction_velocity_test = False
-single_node_response_test = False
-refractory_test = False
+conduction_velocity_test = True
+single_node_response_test = True
+refractory_test = True
 psth_test = False
 
 if any([all_tests, single_node_response_test, refractory_test, psth_test]):
@@ -526,7 +526,7 @@ if all_tests or refractory_test:
                                          backend = backend,
                                          cache = "no",
                                          kwargs = {"model_name" : model_name,
-                                                   "dt" : 1*us,
+                                                   "dt" : 0.4*us,
                                                    "delta" : 0.0001*uA,
                                                    "pulse_form" : pulse_form,
                                                    "stimulation_type" : "extern",

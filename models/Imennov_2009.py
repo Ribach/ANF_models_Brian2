@@ -115,7 +115,7 @@ r_my_per_mm = 1254e6*ohm*mm
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.005*uA/np.sqrt(mS)
+k_noise = 0.002*uA/np.sqrt(mS)
 
 # =============================================================================
 # Electrode
@@ -130,7 +130,9 @@ display_name = "Imennov and Rubinstein 2009"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(0.30, 0.7, num=60, endpoint = False), np.linspace(0.7, 5, num=30))*1e-3
+inter_pulse_intervals = np.append(np.linspace(0.47, 0.48, num=20, endpoint = False),
+                                  np.linspace(0.48, 0.7, num=15, endpoint = False),
+                                  np.linspace(0.7, 5, num=20))*1e-3
 
 # =============================================================================
 # Calculations

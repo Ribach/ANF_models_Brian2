@@ -873,7 +873,7 @@ def post_stimulus_time_histogram(model_name,
         inter_pulse_gap = (1e6/pulses_per_second - phase_duration*2/us)*us
         
     ##### initialize pulse train dataframe
-    spike_times = np.zeros(nof_pulses*2)
+    spike_times = np.zeros(nof_pulses*3)
     
     ##### print progress
     print("Pulse rate: {} pps; Stimulus Amplitude: {} uA; Run: {}".format(pulses_per_second,np.round(stim_amp/uA,2),run_number))

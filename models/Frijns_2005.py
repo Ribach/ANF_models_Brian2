@@ -111,7 +111,7 @@ g_m_layer = 0.6*msiemens/cm**2
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.000003*uA*np.sqrt(second/um**3)
+k_noise = 0.0000015*uA*np.sqrt(second/um**3)
     
 # =============================================================================
 # Electrode
@@ -126,7 +126,9 @@ display_name = "Frijns et al. 2005"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(0.9, 1, num=60, endpoint = False), np.linspace(1, 5, num=40))*1e-3
+inter_pulse_intervals = np.append(np.linspace(0.9, 95, num=30, endpoint = False),
+                                  np.linspace(0.95, 9535, num=10, endpoint = False),
+                                  np.linspace(9535, 5, num=20))*1e-3
 
 # =============================================================================
 # Calculations
