@@ -151,13 +151,14 @@ electrode_distance = 300*um
 # Display name for plots
 # =============================================================================
 display_name = "Negm and Bruce 2014"
+display_name_short = "Negm 14"
 
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(1.28, 1.29, num=20, endpoint = False),
-                                  np.linspace(1.29, 1.5, num=20, endpoint = False),
-                                  np.linspace(1.5, 4, num=20))*1e-3
+inter_pulse_intervals = np.append(np.append(np.linspace(1.268, 1.29, num=20, endpoint = False),
+                                            np.linspace(1.29, 1.5, num=20, endpoint = False)),
+                                            np.linspace(1.5, 4, num=20))*1e-3
 
 # =============================================================================
 # Calculations

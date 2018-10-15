@@ -329,8 +329,7 @@ def relative_spread(plot_name,
         Gives back a vector of currents for each timestep
     """
 
-    ##### round phase durations and thresholds
-    threshold_matrix["phase duration"] = round(threshold_matrix["phase duration"]/second*1e6).astype(int)
+    ##### round thresholds
     threshold_matrix["threshold"] = round(threshold_matrix["threshold"]/amp*1e6,3)
 
     ##### close possibly open plots
@@ -341,8 +340,8 @@ def relative_spread(plot_name,
     
     ##### create boxplots
     sns.set_style("whitegrid")
-    sns.boxplot(data=threshold_matrix, x="phase duration", y="threshold", hue="pulse form", showfliers=False, dodge=False)
-    sns.stripplot(x='phase duration', y='threshold',
+    sns.boxplot(data=threshold_matrix, x="phase duration (us)", y="threshold", hue="pulse form", showfliers=False, dodge=False)
+    sns.stripplot(x='phase duration (us)', y='threshold',
                    data=threshold_matrix, 
                    jitter=True, 
                    marker='o', 

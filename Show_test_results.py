@@ -108,7 +108,7 @@ strength_duration_data["Van den Honert and Stypulkowski 1984"] = ["95.8", "247"]
 relative_spreads = relative_spreads.rename(index = str, columns={"relative spread":"model"})
 relative_spreads["experiments"] = ["6.3%","5-10%","12%","11%"]
 relative_spreads["reference"] = ["Miller et al. 1999","Dynes 1996","Javel et al. 1987","Javel et al. 1987"]
-relative_spreads = relative_spreads.set_index(["phase duration","pulse form"])
+relative_spreads = relative_spreads.set_index(["phase duration (us)","pulse form"])
 
 ##### Conduction velocity
 conduction_velocity_table = conduction_velocity_table.transpose()
@@ -176,11 +176,11 @@ absolute_refractory_periods = absolute_refractory_periods.rename(index = str, co
 absolute_refractory_periods["ARP Experiments (us)"] = ["334","300","500-700","400-500","-"]
 absolute_refractory_periods["reference"] = ["Miller et al. 2001","Stypulkowski and Van den Honert 1984","Dynes 1996","Brown and Abbas 1990", "-"]
 absolute_refractory_periods = absolute_refractory_periods[absolute_refractory_periods["ARP Experiments (us)"] != "-"]
-absolute_refractory_periods = absolute_refractory_periods.set_index(["phase duration","pulse form"])
+absolute_refractory_periods = absolute_refractory_periods.set_index(["phase duration (us)","pulse form"])
 
-relative_refractory_periods = refractory_table.drop(columns = ["absolute refractory period (ms)"])
+relative_refractory_periods = refractory_table.drop(columns = ["absolute refractory period (us)"])
 relative_refractory_periods = relative_refractory_periods.rename(index = str, columns={"relative refractory period (ms)":"RRP model (ms)"})
 relative_refractory_periods["RRP Experiments (ms)"] = ["-","3-4; 4-5","5","-","5"]
 relative_refractory_periods["reference"] = ["-","Stypulkowski and Van den Honert 1984; Cartee et al. 2000","Dynes 1996","-", "Hartmann et al. 1984"]
 relative_refractory_periods = relative_refractory_periods[relative_refractory_periods["RRP Experiments (ms)"] != "-"]
-relative_refractory_periods = relative_refractory_periods.set_index(["phase duration","pulse form"])
+relative_refractory_periods = relative_refractory_periods.set_index(["phase duration (us)","pulse form"])

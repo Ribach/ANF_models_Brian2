@@ -32,7 +32,7 @@ prefs.codegen.target = "numpy"
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = smit_10
+model = frijns_05
 
 ##### initialize clock
 dt = 5*us
@@ -45,6 +45,10 @@ exec(param_string)
 
 ##### record the membrane voltage
 M = StateMonitor(neuron, 'v', record=True)
+
+Mm = StateMonitor(neuron, 'm', record=True)
+Mn = StateMonitor(neuron, 'n', record=True)
+Mh = StateMonitor(neuron, 'h', record=True)
 
 ##### save initialization of the monitor(s)
 store('initialized')
@@ -70,10 +74,10 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 stimulation_type = "extern",
                                                 pulse_form = "mono",
                                                 stimulated_compartment = 4,
-                                                nof_pulses = 4,
+                                                nof_pulses = 1,
                                                 time_before = 2*ms,
                                                 time_after = 2*ms,
-                                                add_noise = True,
+                                                add_noise = False,
                                                 ##### monophasic stimulation
                                                 amp_mono = -2*uA,
                                                 duration_mono = 100*us,
@@ -81,7 +85,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 amps_bi = [-8,8]*uA,
                                                 durations_bi = [40,0,40]*us,
                                                 ##### multiple pulses / pulse trains
-                                                inter_pulse_gap = 400*us)
+                                                inter_pulse_gap = 2*ms)
     
     ##### get TimedArray of stimulus currents
     stimulus = TimedArray(np.transpose(I_stim), dt = dt)
@@ -92,6 +96,15 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     ##### run simulation
     run(runtime)
     
+    ##### generate figure
+    comp_index = np.where(model.structure == 2)[0][10]
+    fig = plt.figure(1)
+    axes = fig.add_subplot(1, 1, 1)
+    axes.plot(Mm.t, Mm.m[comp_index,:], label = "m")
+    axes.plot(Mh.t, Mh.h[comp_index,:], label = "h")
+    axes.plot(Mn.t, Mn.n[comp_index,:], label = "n")
+    plt.legend()
+
     ##### Plot membrane potential of all compartments over time (2 plots)
     if plot_voltage_course_lines:
         plot.voltage_course_lines(plot_name = "Voltage course {}".format(model.display_name),

@@ -181,6 +181,7 @@ electrode_distance = 300*um
 # Display name for plots
 # =============================================================================
 display_name = "Smit et al. 2010"
+display_name_short = "Smit 10"
 
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
