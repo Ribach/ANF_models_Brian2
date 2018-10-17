@@ -128,7 +128,8 @@ display_name_short = "Rattay 01"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(1.2, 1.35, num=50, endpoint = False), np.linspace(1.35, 4, num=20))*1e-3
+inter_pulse_intervals = np.append(np.linspace(1.2, 1.35, num=50, endpoint = False),
+                                  np.linspace(1.35, 5, num=15))*1e-3
 
 # =============================================================================
 # Calculations

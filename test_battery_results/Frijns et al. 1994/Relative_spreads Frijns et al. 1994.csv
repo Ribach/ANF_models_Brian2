@@ -1,5 +1,5 @@
-phase duration,pulse form,relative spread
-40. us,monophasic,12.29%
-100. us,monophasic,16.11%
-200. us,biphasic,11.45%
-0.4 ms,biphasic,12.91%
+phase duration (us),pulse form,relative spread
+40,monophasic,7.14%
+100,monophasic,6.78%
+200,biphasic,6.12%
+400,biphasic,5.11%

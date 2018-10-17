@@ -38,19 +38,23 @@ gamma_HCN = 13*psiemens
 ##### structure
 nof_internodes = 25
 nof_segments_internode = 1
-nof_myelin_layers = 35
-thicknes_myelin_layer = 8.5*nmeter # value form Rattay2001
 ##### lengths
-length_internodes = 300*um
-length_nodes = 1.5*um
+length_internodes = 350*um
+length_nodes = 2.5*um
 ##### diameters
 diameter_fiber = 1.0*um
 
 # =============================================================================
-# Conductivity
+# Myelin data
 # =============================================================================
-##### conductivity of leakage channels
-g_L = (1953.49*Mohm)**-1/(1*um*np.pi*1.5*um)
+nof_myelin_layers = 40
+thicknes_myelin_layer = 8.5*nmeter
+
+# =============================================================================
+# Conductance
+# =============================================================================
+##### conductance of leakage channels per node
+g_L_node = (1953.49*Mohm)**-1
 
 # =============================================================================
 # Total ion channel numbers per node
@@ -71,7 +75,7 @@ rho_out = 300*ohm*cm
 # =============================================================================
 # Initial values for gating variables
 # =============================================================================
-m_init = 0.00775
+m_init = 0.011
 n_init = 0.0119
 h_init = 0.747
 w_init = 0.5127
@@ -124,23 +128,21 @@ g_myelin : siemens/meter**2
 # =============================================================================
 # Capacities
 # =============================================================================
-##### cell membrane capacity
-c_mem = 0.1*pF/(1*um*np.pi*1.5*um)
-##### myelin layer capacity
-c_my = 0.02*pF/(1*um*np.pi*1.5*um)
+##### cell membrane capacitance node
+c_m_node = 0.0714*pF
+##### myelin layer capacity internodes
+c_m_layer = 1*uF/cm**2
 
 # =============================================================================
-# Condactivities internodes
+# Condactivity internodes
 # =============================================================================
-##### cell membrane conductivity internodes
-r_mem = 10*kohm*cm**2
-##### cell membrane conductivity internodes
-r_my = 0.1*kohm*cm**2
+##### membrane conductivity internodes one layer
+g_m_layer = 1*msiemens/cm**2
 
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.01*uA/np.sqrt(mS)
+k_noise = 0.006*uA/np.sqrt(mS)
 
 # =============================================================================
 # Electrode
@@ -156,9 +158,8 @@ display_name_short = "Negm 14"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.append(np.linspace(1.268, 1.29, num=20, endpoint = False),
-                                            np.linspace(1.29, 1.5, num=20, endpoint = False)),
-                                            np.linspace(1.5, 4, num=20))*1e-3
+inter_pulse_intervals = np.append(np.linspace(1.5, 1.6, num=50, endpoint = False),
+                                  np.linspace(1.6, 5, num=20))*1e-3
 
 # =============================================================================
 # Calculations
@@ -199,6 +200,9 @@ rho_K = max_K/surface_aria_node
 rho_KLT = max_KLT/surface_aria_node
 rho_HCN = max_HCN/surface_aria_node
 
+##### conductivity of leakage channels
+g_L = g_L_node/surface_aria_node
+
 ##### Surface arias
 # lateral surfaces
 m = [np.sqrt(abs(compartment_diameters[i+1] - compartment_diameters[i])**2 + compartment_lengths[i]**2)
@@ -222,16 +226,16 @@ for ii in range(0,nof_comps-1):
 ##### Capacities
 # initialize
 c_m = np.zeros_like(structure)*uF/cm**2
-# all but internodes axon
-c_m[structure == 2] = c_mem
-# axonal internodes
-c_m[structure == 1] = 1/(1/c_mem + nof_myelin_layers/c_my)
+# nodes
+c_m[structure == 2] = c_m_node/surface_aria_node
+# internodes
+c_m[structure == 1] = c_m_layer/(1+nof_myelin_layers)
 
 ##### Condactivities internodes
 # initialize
 g_m = np.zeros_like(structure)*msiemens/cm**2
-# axonal internodes
-g_m[structure == 1] = 1/(r_mem + nof_myelin_layers*r_my)
+# internodes
+g_m[structure == 1] = g_m_layer/(1+nof_myelin_layers)
 
 ##### Axoplasmatic resistances
 compartment_center_diameters = np.zeros(nof_comps)*um
@@ -305,6 +309,9 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         # same diameter for whole fiber
         model.compartment_diameters[:] = model.diameter_fiber
         
+        ##### conductivity of leakage channels
+        model.g_L = model.g_L_node/model.surface_aria_node
+
         ##### Surface arias
         # lateral surfaces
         m = [np.sqrt(abs(model.compartment_diameters[i+1] - model.compartment_diameters[i])**2 + model.compartment_lengths[i]**2)
@@ -328,16 +335,16 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         ##### Capacities
         # initialize
         model.c_m = np.zeros_like(model.structure)*uF/cm**2
-        # all but internodes axon
-        model.c_m[model.structure == 2] = model.c_mem
-        # axonal internodes
-        model.c_m[model.structure == 1] = 1/(1/model.c_mem + model.nof_myelin_layers/c_my)
+        # nodes
+        model.c_m[model.structure == 2] = model.c_m_node/model.surface_aria_node
+        # internodes
+        model.c_m[structure == 1] = model.c_m_layer/(1+model.nof_myelin_layers)
         
         ##### Condactivities internodes
         # initialize
         model.g_m = np.zeros_like(model.structure)*msiemens/cm**2
-        # axonal internodes
-        model.g_m[model.structure == 1] = 1/(model.r_mem + model.nof_myelin_layers*model.r_my)
+        # internodes
+        model.g_m[model.structure == 1] = model.g_m_layer/(1+model.nof_myelin_layers)
         
         ##### Axoplasmatic resistances
         model.compartment_center_diameters = np.zeros(model.nof_comps)*um

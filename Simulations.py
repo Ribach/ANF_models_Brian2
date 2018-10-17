@@ -23,7 +23,6 @@ import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
 import models.Negm_2014 as negm_14
-import models.Negm_2014_node_model as negm_14_node_model
 
 ##### makes code faster and prevents warning
 prefs.codegen.target = "numpy"
@@ -32,7 +31,7 @@ prefs.codegen.target = "numpy"
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = frijns_05
+model = negm_14
 
 ##### initialize clock
 dt = 5*us
@@ -49,6 +48,9 @@ M = StateMonitor(neuron, 'v', record=True)
 Mm = StateMonitor(neuron, 'm', record=True)
 Mn = StateMonitor(neuron, 'n', record=True)
 Mh = StateMonitor(neuron, 'h', record=True)
+Mw = StateMonitor(neuron, 'w', record=True)
+Mz = StateMonitor(neuron, 'z', record=True)
+Mr = StateMonitor(neuron, 'r', record=True)
 
 ##### save initialization of the monitor(s)
 store('initialized')
@@ -72,20 +74,20 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     I_stim, runtime = stim.get_stimulus_current(model = model,
                                                 dt = dt,
                                                 stimulation_type = "extern",
-                                                pulse_form = "mono",
+                                                pulse_form = "bi",
                                                 stimulated_compartment = 4,
-                                                nof_pulses = 1,
+                                                nof_pulses = 500,
                                                 time_before = 2*ms,
                                                 time_after = 2*ms,
-                                                add_noise = False,
+                                                add_noise = True,
                                                 ##### monophasic stimulation
-                                                amp_mono = -2*uA,
-                                                duration_mono = 100*us,
+                                                amp_mono = -3*uA,
+                                                duration_mono = 50*us,
                                                 ##### biphasic stimulation
-                                                amps_bi = [-8,8]*uA,
-                                                durations_bi = [40,0,40]*us,
+                                                amps_bi = [-10,10]*uA,
+                                                durations_bi = [50,0,50]*us,
                                                 ##### multiple pulses / pulse trains
-                                                inter_pulse_gap = 2*ms)
+                                                inter_pulse_gap = 0.5*ms)
     
     ##### get TimedArray of stimulus currents
     stimulus = TimedArray(np.transpose(I_stim), dt = dt)
@@ -101,8 +103,11 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     fig = plt.figure(1)
     axes = fig.add_subplot(1, 1, 1)
     axes.plot(Mm.t, Mm.m[comp_index,:], label = "m")
-    axes.plot(Mh.t, Mh.h[comp_index,:], label = "h")
     axes.plot(Mn.t, Mn.n[comp_index,:], label = "n")
+    axes.plot(Mh.t, Mh.h[comp_index,:], label = "h")
+    axes.plot(Mm.t, Mw.w[comp_index,:], label = "w")
+    axes.plot(Mh.t, Mz.z[comp_index,:], label = "z")
+    axes.plot(Mn.t, Mr.r[comp_index,:], label = "r")
     plt.legend()
 
     ##### Plot membrane potential of all compartments over time (2 plots)

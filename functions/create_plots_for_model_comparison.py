@@ -480,3 +480,45 @@ def refractory_curves_comparison(plot_name,
     fig.text(0.05, 0.5, 'threshold 2nd stimulus / threshold', va='center', rotation='vertical', fontsize=14)
         
     return fig
+
+# =============================================================================
+#  relative spread comparison
+# =============================================================================
+def relative_spread_comparison(plot_name,
+                               threshold_matrix):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    time_vector : integer
+        Number of timesteps of whole simulation.
+    voltage_matrix : time
+        Lenght of one time step.
+    distance_comps_middle : current
+        Amplitude of current stimulus.
+    time_before_pulse : time
+        Time until pulse starts.
+    stimulus_duration : time
+        Duration of stimulus.
+                
+    Returns
+    -------
+    current vector
+        Gives back a vector of currents for each timestep
+    """
+
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### generate figure
+    fig = plt.figure(plot_name)
+    
+    ##### create boxplots
+    sns.set_style("whitegrid")
+    sns.boxplot(data=threshold_matrix, x="phase duration (us)", y="threshold", hue="noise level", showfliers=False, dodge=True)
+    plt.xlabel('Phase duration / us', fontsize=16)
+    plt.ylabel('Threshold / uA', fontsize=16)
+        
+    return fig
+

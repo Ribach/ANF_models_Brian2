@@ -1,9 +1,9 @@
 phase duration (us),stimulus amplitude (uA),amplitude level,pulse form,AP height (mV),rise time (us),fall time (us),AP duration (us),latency (us),jitter (us)
-40,2.37,1*threshold,monophasic,124,39.8,352,392,117,37.8
-40,4.75,2*threshold,monophasic,124,39,354,393,40,0
-50,2.07,1*threshold,monophasic,124,39.3,354,393,127,31.6
-50,4.14,2*threshold,monophasic,124,40.3,354,394,48.1,2.45
-100,1.36,1*threshold,monophasic,124,38.8,353,392,171,37.1
-100,2.72,2*threshold,monophasic,124,39,353,392,72.4,4.08
-200,0.98,1*threshold,biphasic,124,38.2,354,392,220,22.7
-200,1.97,2*threshold,biphasic,124,39.2,353,392,99.1,7.15
+40,2.37,1*threshold,monophasic,124,39.5,353,393,124,43
+40,4.75,2*threshold,monophasic,124,39.6,355,395,40,0
+50,2.07,1*threshold,monophasic,124,39.5,353,393,137,45.5
+50,4.14,2*threshold,monophasic,124,39.5,356,396,48.4,2.63
+100,1.36,1*threshold,monophasic,124,38.6,355,394,174,41.7
+100,2.72,2*threshold,monophasic,124,38.9,356,394,72.6,4.38
+200,0.98,1*threshold,biphasic,124,39.4,355,394,219,19
+200,1.97,2*threshold,biphasic,124,40.1,353,393,97.2,6.98

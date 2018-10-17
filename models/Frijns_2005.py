@@ -60,7 +60,8 @@ dividing_factor = 30
 eqs = '''
 I_Na = P_Na*m**3*h*(v*F**2)/(R*T_kelvin) * (Na_e-Na_i*exp(v*F/(R*T_kelvin)))/(exp(v*F/(R*T_kelvin))-1) : amp/meter**2
 I_K = P_K*n**2*(v*F**2)/(R*T_kelvin) * (K_e-K_i*exp(v*F/(R*T_kelvin)))/(exp(v*F/(R*T_kelvin))-1) : amp/meter**2
-Im = I_Na + I_K + g_myelin*(-(v-V_res)): amp/meter**2
+I_L = g_L*(E_L-(v-V_res)) : amp/meter**2
+Im = I_Na + I_K + I_L + g_myelin*(-(v-V_res)): amp/meter**2
 I_stim = stimulus(t,i) : amp (point current)
 dm/dt = alpha_m * (1-m) - beta_m * m : 1
 dn/dt = alpha_n * (1-n) - beta_n * n : 1
@@ -73,6 +74,7 @@ beta_n = 0.05/mV*(10*mV-(v-V_res))/(1-exp(((v-V_res)-10*mV)/(10*mV))) * 3**(0.1*
 beta_h = 3.7/(1+exp((56*mV-(v-V_res))/(12.5*mV))) * 2.9**(0.1*(T_celsius-20))/ms : Hz
 P_Na : meter/second
 P_K : meter/second
+g_L : siemens/meter**2
 g_myelin : siemens/meter**2
 '''
 
@@ -127,9 +129,9 @@ display_name_short = "Frijns 05"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.append(np.linspace(0.9, 95, num=30, endpoint = False),
+inter_pulse_intervals = np.append(np.append(np.linspace(0.9, 0.95, num=20, endpoint = False),
                                             np.linspace(0.95, 0.9535, num=10, endpoint = False)),
-                                            np.linspace(0.9535, 5, num=20))*1e-3
+                                            np.linspace(0.9535, 5, num=15))*1e-3
 
 # =============================================================================
 # Calculations
@@ -427,14 +429,17 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     # permeabilities presomatic region and active compartments
     neuron.P_Na[np.asarray(np.where(np.logical_or(model.structure == 0, model.structure == 2)))] = model.P_Na
     neuron.P_K[np.asarray(np.where(np.logical_or(model.structure == 0, model.structure == 2)))] = model.P_K
+    neuron.g_L[np.asarray(np.where(np.logical_or(model.structure == 0, model.structure == 2)))] = model.g_L
     
     # permeabilities internodes
     neuron.P_Na[np.asarray(np.where(model.structure == 1))] = 0*meter/second
     neuron.P_K[np.asarray(np.where(model.structure == 1))] = 0*meter/second
+    neuron.g_L[np.asarray(np.where(model.structure == 1))] = 0*siemens/meter**2
     
     # permeabilities somatic region
     neuron.P_Na[np.asarray(np.where(np.logical_or(model.structure == 3, model.structure == 4)))] = model.P_Na/model.dividing_factor
     neuron.P_K[np.asarray(np.where(np.logical_or(model.structure == 3, model.structure == 4)))] = model.P_K/model.dividing_factor
+    neuron.g_L[np.asarray(np.where(np.logical_or(model.structure == 3, model.structure == 4)))] = model.g_L/model.dividing_factor
     
     # conductances
     neuron.g_myelin = model.g_m
@@ -448,7 +453,8 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     Na_e = {}.Na_e
     K_i = {}.K_i
     K_e = {}.K_e
-    '''.format(model_name,model_name,model_name,model_name,model_name,model_name,model_name)
+    E_L = {}.E_L
+    '''.format(model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name)
     
     ##### remove spaces to avoid complications
     param_string = param_string.replace(" ", "")

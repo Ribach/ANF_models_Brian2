@@ -9,6 +9,7 @@ import thorns as th
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import itertools as itl
 import os
 
 ###### set working directory to folder of script
@@ -38,7 +39,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "rattay_01"
+model_name = "imennov_09"
 model = eval(model_name)
 
 ##### initialize clock
@@ -66,7 +67,7 @@ if any([all_tests, single_node_response_test, refractory_periods, refractory_cur
     # =============================================================================
     ##### define phase durations to test (in us)
     phase_durations_mono = [40,50,100]
-    phase_durations_bi = [20,40,50,200,400]
+    phase_durations_bi = [50,200,400]
     
     ##### define test parameters
     phase_durations = [ii*1e-6 for ii in phase_durations_mono + phase_durations_bi]
@@ -98,7 +99,7 @@ if any([all_tests, single_node_response_test, refractory_periods, refractory_cur
                                                                    0:"threshold"})
     
     ##### add unit to phase duration
-    threshold_table["phase duration (us)"] = [int(np.ceil(ii*1e6)) for ii in threshold_table["phase duration (us)"]]
+    threshold_table["phase duration (us)"] = [round(ii*1e6) for ii in threshold_table["phase duration (us)"]]
     
     ##### built subset of dataframe
     threshold_table = threshold_table[["phase duration (us)", "pulse form", "threshold"]]
@@ -258,9 +259,6 @@ if all_tests or relative_spread_test:
     relative_spreads = relative_spreads.rename(index = str, columns={"threshold" : "relative spread"})
     relative_spreads["relative spread"] = ["{}%".format(relative_spreads["relative spread"][ii]) for ii in range(np.shape(relative_spreads)[0])]
     
-    ##### add unit to phase duration
-    relative_spreads["phase duration"] = [ii*us for ii in relative_spreads["phase duration"]]
-    
     ##### Save table as csv    
     relative_spreads.to_csv("test_battery_results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
 
@@ -327,13 +325,10 @@ if all_tests or single_node_response_test:
     phase_durations = [40,50,100,200]
     pulse_forms = ["mono", "mono", "mono", "bi"]
     
-    ##### create dataframe, that defines which data to show
-    stimulations = pd.DataFrame([phase_durations,pulse_forms]).transpose()
-    stimulations = stimulations.rename(index = str, columns={0:"phase duration (us)",
-                                                             1:"pulse form"})
-    
-    ##### get thresholds for the parameters defined in the stimulation dataframe
-    thresholds = pd.merge(stimulations, threshold_table, on=["phase duration (us)", "pulse form"])["threshold"].tolist()
+    ##### look up thresholds
+    thresholds = [threshold_table["threshold"][threshold_table["pulse form"] == pulse_forms[ii]]\
+                                             [threshold_table["phase duration (us)"] == phase_durations[ii]].iloc[0]\
+                                             for ii in range(len(phase_durations))]
     
     ##### define stimulus durations to test
     stim_amp_levels = [1,2]
@@ -451,13 +446,10 @@ if all_tests or refractory_periods:
     phase_durations = [40,50,100,50,200]
     pulse_forms = ["mono", "mono", "mono", "bi", "bi"]
     
-    ##### create dataframe, that defines which data to show
-    stimulations = pd.DataFrame([phase_durations,pulse_forms]).transpose()
-    stimulations = stimulations.rename(index = str, columns={0:"phase duration (us)",
-                                                             1:"pulse form"})
-    
-    ##### get thresholds for the parameters defined in the stimulation dataframe
-    thresholds = pd.merge(stimulations, threshold_table, on=["phase duration (us)", "pulse form"])["threshold"].tolist()
+    ##### look up thresholds
+    thresholds = [threshold_table["threshold"][threshold_table["pulse form"] == pulse_forms[ii]]\
+                                             [threshold_table["phase duration (us)"] == phase_durations[ii]].iloc[0]\
+                                             for ii in range(len(phase_durations))]
     
     ##### define varied parameters 
     params = [{"phase_duration" : phase_durations[ii]*1e-6,
@@ -497,9 +489,9 @@ if all_tests or refractory_periods:
     ##### built subset of dataframe
     refractory_table = refractory_table[["phase duration (us)", "pulse form", "absolute refractory period (us)","relative refractory period (ms)"]]
     
-    ##### round columns to 3 significant digits
+    ##### round columns to 4 significant digits
     for ii in ["absolute refractory period (us)","relative refractory period (ms)"]:
-        refractory_table[ii] = ["%.3g" %refractory_table[ii][jj] for jj in range(refractory_table.shape[0])]
+        refractory_table[ii] = ["%.4g" %refractory_table[ii][jj] for jj in range(refractory_table.shape[0])]
     
     ##### Save dataframe as csv    
     refractory_table.to_csv("test_battery_results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
@@ -565,20 +557,22 @@ if all_tests or psth_test:
     # Post Stimulus Time Histogram
     # =============================================================================
     ##### pulse rates to test
-    pulses_per_second = [250,1000,5000,10000]
+    pulses_per_second = [250,800,2000,5000]
 
     ##### define phase durations to test (in us)
-    phase_durations = [40,40,40,20]
+    phase_durations = [50,50,50,50]
     pulse_forms = ["bi", "bi", "bi", "bi"]
     
-    ##### create dataframe, that defines which data to show
-    stimulations = pd.DataFrame([phase_durations,pulse_forms]).transpose()
-    stimulations = stimulations.rename(index = str, columns={0:"phase duration (us)",
-                                                             1:"pulse form"})
+    ##### look up thresholds
+    thresholds = [threshold_table["threshold"][threshold_table["pulse form"] == pulse_forms[ii]]\
+                                             [threshold_table["phase duration (us)"] == phase_durations[ii]].iloc[0]\
+                                             for ii in range(len(phase_durations))]
     
-    ##### get thresholds for the parameters defined in the stimulation dataframe
-    thresholds = pd.merge(stimulations, threshold_table, on=["phase duration (us)", "pulse form"])["threshold"].tolist()
-    
+    ##### exclude pulse rates, phase durations and pulse forms, where no threshold was found
+    pulses_per_second = list(itl.compress(pulses_per_second, [thresholds[ii] != 0 for ii in range(len(thresholds))]))
+    phase_durations = list(itl.compress(phase_durations, [thresholds[ii] != 0 for ii in range(len(thresholds))]))
+    pulse_forms = list(itl.compress(pulse_forms, [thresholds[ii] != 0 for ii in range(len(thresholds))]))
+
     ##### stimulus levels (will be multiplied with the threshold for a certain stimulation)
     stim_amp_level = [1,1.2,1.5]
     

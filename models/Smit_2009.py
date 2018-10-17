@@ -124,7 +124,8 @@ display_name_short = "Smit 09"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(2.7, 3, num=50, endpoint = False), np.linspace(3, 5, num=15))*1e-3
+inter_pulse_intervals = np.append(np.linspace(2.7, 3, num=30, endpoint = False),
+                                  np.linspace(3, 5, num=10))*1e-3
 
 # =============================================================================
 # Calculations
