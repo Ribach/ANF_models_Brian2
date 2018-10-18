@@ -56,7 +56,7 @@ def single_node_response_comparison(plot_name,
     plt.close(plot_name)
     
     ##### create figure
-    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=False, num = plot_name, figsize=(4*nof_cols, 3*nof_rows))
+    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=False, num = plot_name, figsize=(4.5*nof_cols, 3*nof_rows))
     
     ##### create plots  
     for ii in range(nof_rows*nof_cols):
@@ -184,18 +184,9 @@ def paintal_rise_time_curve(plot_name,
         ##### building a subset
         current_data = model_data[model_data["model_name"] == model]
         
-        ##### axon (for models with soma)
-        if current_data["velocity dendrite (m/s)"][0] != 0:
-            axes.scatter(current_data["velocity dendrite (m/s)"][0],current_data["rise time (us)"][0], label = "{} dendrite".format(model))
-        
-        ##### dendride (for models with soma)
-        if current_data["velocity axon (m/s)"][0] != 0:
-            axes.scatter(current_data["velocity axon (m/s)"],current_data["rise time (us)"], label = "{} axon".format(model))
-        
-        ##### whole fiber (for models without soma)
-        if current_data["velocity fiber (m/s)"][0] != 0:
-            axes.scatter(current_data["velocity fiber (m/s)"],current_data["rise time (us)"], label = "{}".format(model))
-            
+        ##### plot point
+        axes.scatter(current_data["conduction velocity (m/s)"],current_data["rise time (us)"], label = "{}".format(model))
+
     ##### show legend
     plt.legend()
 
@@ -263,17 +254,8 @@ def paintal_fall_time_curve(plot_name,
         ##### building a subset
         current_data = model_data[model_data["model_name"] == model]
         
-        ##### axon (for models with soma)
-        if current_data["velocity dendrite (m/s)"][0] != 0:
-            axes.scatter(current_data["velocity dendrite (m/s)"],current_data["fall time (us)"], label = "{} dendrite".format(model))
-        
-        ##### dendride (for models with soma)
-        if current_data["velocity axon (m/s)"][0] != 0:
-            axes.scatter(current_data["velocity axon (m/s)"],current_data["fall time (us)"], label = "{} axon".format(model))
-        
-        ##### whole fiber (for models without soma)
-        if current_data["velocity fiber (m/s)"][0] != 0:
-            axes.scatter(current_data["velocity fiber (m/s)"],current_data["fall time (us)"], label = "{}".format(model))
+        ##### plot point
+        axes.scatter(current_data["conduction velocity (m/s)"],current_data["fall time (us)"], label = "{}".format(model))
             
     ##### show legend
     plt.legend()
@@ -410,13 +392,13 @@ def refractory_curves_comparison(plot_name,
     y_min = 0
     y_max = max(refractory_curves["threshold ratio"]) + 1.5
     x_min = 0
-    x_max = max(refractory_curves["interpulse interval"])
+    x_max = max(refractory_curves["interpulse interval"]) + 0.2
     
     ##### close possibly open plots
     plt.close(plot_name)
     
     ##### create figure
-    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=False, num = plot_name, figsize=(4*nof_cols, 3*nof_rows))
+    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=False, num = plot_name, figsize=(4.5*nof_cols, 3*nof_rows))
     
     ##### create plots  
     for ii in range(nof_rows*nof_cols):

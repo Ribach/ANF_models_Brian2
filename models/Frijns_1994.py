@@ -90,7 +90,7 @@ c_m_layer = 2*uF/cm**2
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.0000075*uA*np.sqrt(second/um**3)
+k_noise = 0.000015*uA*np.sqrt(second/um**3)
 
 # =============================================================================
 # Electrode
@@ -106,9 +106,8 @@ display_name_short = "Frijns 94"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.append(np.linspace(0.5, 0.6, num=30, endpoint = False),
-                                            np.linspace(0.6, 1.2, num=10, endpoint = False)),
-                                            np.linspace(1.2, 5, num=15))*1e-3
+inter_pulse_intervals = np.append(np.linspace(0.55, 0.66, num=50, endpoint = False),
+                                  np.linspace(0.66, 5, num=20, endpoint = False))*1e-3
 
 # =============================================================================
 # Calculations

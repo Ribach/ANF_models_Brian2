@@ -171,25 +171,26 @@ if save_tables:
 # =============================================================================
 ##### connect conduction velocities with AP shape values
 AP_shape_cond_vel_table = AP_shape[["rise time (us)","fall time (us)","AP duration (us)"]]
-AP_shape_cond_vel_table["velocity dendrite (m/s)"] = 0.0
-AP_shape_cond_vel_table["velocity axon (m/s)"] = 0.0
-AP_shape_cond_vel_table["velocity fiber (m/s)"] = 0.0
+AP_shape_cond_vel_table["conduction velocity (m/s)"] = 0.0
 
 ##### Fill in conduction velocities
 for ii,model in enumerate(models):
     
     ##### models with soma
     if model in models_with_soma:
-        AP_shape_cond_vel_table["velocity dendrite (m/s)"][model.display_name_short] = conduction_velocity_table_with_soma[model.display_name_short]["velocity dendrite (m/s)"]
-        AP_shape_cond_vel_table["velocity axon (m/s)"][model.display_name_short] = conduction_velocity_table_with_soma[model.display_name_short]["velocity axon (m/s)"]
+        AP_shape_cond_vel_table["conduction velocity (m/s)"][model.display_name_short] = conduction_velocity_table_with_soma[model.display_name_short]["velocity axon (m/s)"]
     
     ##### models without soma
     else:
-        AP_shape_cond_vel_table["velocity fiber (m/s)"][model.display_name_short] = conduction_velocity_table_without_soma[model.display_name_short]["velocity (m/s)"]
+        AP_shape_cond_vel_table["conduction velocity (m/s)"][model.display_name_short] = conduction_velocity_table_without_soma[model.display_name_short]["velocity (m/s)"]
 
 ##### change index to column
 AP_shape_cond_vel_table.reset_index(inplace=True)
 AP_shape_cond_vel_table = AP_shape_cond_vel_table.rename(index = str, columns={"index" : "model_name"})
+
+##### replace short display names with long display names
+for ii,model in enumerate(models):
+    AP_shape_cond_vel_table["model_name"][ii] = model.display_name
 
 ##### change rise time column type to float
 AP_shape_cond_vel_table["rise time (us)"] = AP_shape_cond_vel_table["rise time (us)"].astype(float)

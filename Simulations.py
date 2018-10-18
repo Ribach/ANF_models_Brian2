@@ -31,7 +31,7 @@ prefs.codegen.target = "numpy"
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = negm_14
+model = smit_09
 
 ##### initialize clock
 dt = 5*us
@@ -45,12 +45,12 @@ exec(param_string)
 ##### record the membrane voltage
 M = StateMonitor(neuron, 'v', record=True)
 
-Mm = StateMonitor(neuron, 'm', record=True)
-Mn = StateMonitor(neuron, 'n', record=True)
-Mh = StateMonitor(neuron, 'h', record=True)
-Mw = StateMonitor(neuron, 'w', record=True)
-Mz = StateMonitor(neuron, 'z', record=True)
-Mr = StateMonitor(neuron, 'r', record=True)
+#Mm = StateMonitor(neuron, 'm', record=True)
+#Mn = StateMonitor(neuron, 'n', record=True)
+#Mh = StateMonitor(neuron, 'h', record=True)
+#Mw = StateMonitor(neuron, 'w', record=True)
+#Mz = StateMonitor(neuron, 'z', record=True)
+#Mr = StateMonitor(neuron, 'r', record=True)
 
 ##### save initialization of the monitor(s)
 store('initialized')
@@ -59,7 +59,7 @@ store('initialized')
 # Simulations to be done / Plots to be shown
 # =============================================================================
 plot_voltage_course_lines = True
-plot_voltage_course_colored = False
+plot_voltage_course_colored = True
 measure_single_node_response = False
 measure_strength_duration_curve = False
 measure_refractory_properties = False
@@ -74,15 +74,15 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     I_stim, runtime = stim.get_stimulus_current(model = model,
                                                 dt = dt,
                                                 stimulation_type = "extern",
-                                                pulse_form = "bi",
-                                                stimulated_compartment = 4,
-                                                nof_pulses = 500,
-                                                time_before = 2*ms,
-                                                time_after = 2*ms,
+                                                pulse_form = "mono",
+                                                stimulated_compartment = 2,
+                                                nof_pulses = 1,
+                                                time_before = 50*ms,
+                                                time_after = 50*ms,
                                                 add_noise = True,
                                                 ##### monophasic stimulation
                                                 amp_mono = -3*uA,
-                                                duration_mono = 50*us,
+                                                duration_mono = 100*us,
                                                 ##### biphasic stimulation
                                                 amps_bi = [-10,10]*uA,
                                                 durations_bi = [50,0,50]*us,
@@ -98,17 +98,17 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     ##### run simulation
     run(runtime)
     
-    ##### generate figure
-    comp_index = np.where(model.structure == 2)[0][10]
-    fig = plt.figure(1)
-    axes = fig.add_subplot(1, 1, 1)
-    axes.plot(Mm.t, Mm.m[comp_index,:], label = "m")
-    axes.plot(Mn.t, Mn.n[comp_index,:], label = "n")
-    axes.plot(Mh.t, Mh.h[comp_index,:], label = "h")
-    axes.plot(Mm.t, Mw.w[comp_index,:], label = "w")
-    axes.plot(Mh.t, Mz.z[comp_index,:], label = "z")
-    axes.plot(Mn.t, Mr.r[comp_index,:], label = "r")
-    plt.legend()
+#    ##### generate figure
+#    comp_index = np.where(model.structure == 2)[0][10]
+#    fig = plt.figure(1)
+#    axes = fig.add_subplot(1, 1, 1)
+#    axes.plot(Mm.t, Mm.m[comp_index,:], label = "m")
+#    axes.plot(Mn.t, Mn.n[comp_index,:], label = "n")
+#    axes.plot(Mh.t, Mh.h[comp_index,:], label = "h")
+#    axes.plot(Mm.t, Mw.w[comp_index,:], label = "w")
+#    axes.plot(Mh.t, Mz.z[comp_index,:], label = "z")
+#    axes.plot(Mn.t, Mr.r[comp_index,:], label = "r")
+#    plt.legend()
 
     ##### Plot membrane potential of all compartments over time (2 plots)
     if plot_voltage_course_lines:

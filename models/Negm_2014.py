@@ -158,7 +158,7 @@ display_name_short = "Negm 14"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(1.5, 1.6, num=50, endpoint = False),
+inter_pulse_intervals = np.append(np.linspace(1.5, 1.6, num=29, endpoint = False),
                                   np.linspace(1.6, 5, num=20))*1e-3
 
 # =============================================================================

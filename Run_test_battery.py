@@ -39,7 +39,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "imennov_09"
+model_name = "rattay_01"
 model = eval(model_name)
 
 ##### initialize clock
@@ -55,7 +55,7 @@ generate_plots = True
 all_tests = False
 strength_duration_test = False
 relative_spread_test = False
-conduction_velocity_test = False
+conduction_velocity_test = True
 single_node_response_test = False
 refractory_periods = False
 refractory_curve = False
@@ -279,7 +279,7 @@ if all_tests or conduction_velocity_test:
                                                                     dt = dt,
                                                                     stimulated_compartment = node_indexes_dendrite[0],
                                                                     measurement_start_comp = node_indexes_dendrite[1],
-                                                                    measurement_end_comp = node_indexes_dendrite[-1])
+                                                                    measurement_end_comp = node_indexes_dendrite[-2])
         
         conduction_velocity_dendrite_ratio = round((conduction_velocity_dendrite/(meter/second))/(model.dendrite_outer_diameter/um),2)
         
@@ -334,109 +334,127 @@ if all_tests or single_node_response_test:
     stim_amp_levels = [1,2]
     stim_amps = [float(ii*jj) for ii in thresholds for jj in stim_amp_levels]
     
-    ##### define number of stochastic runs
-    nof_runs = 40
-    
-    ##### define varied parameters 
-    params = [{"phase_duration" : phase_durations[ii]*1e-6,
-               "pulse_form" : pulse_forms[ii],
-               "stim_amp" : stim_amps[2*ii+jj-1],
-               "run_number" : kk}
-                 for ii in range(len(phase_durations))\
-                 for jj in stim_amp_levels\
-                 for kk in range(nof_runs)]
-    
-    ##### get thresholds
-    single_node_response_table = th.util.map(func = test.get_single_node_response,
-                                             space = params,
-                                             backend = backend,
-                                             cache = "no",
-                                             kwargs = {"model_name" : model_name,
-                                                       "dt" : dt,
-                                                       "stimulation_type" : "extern",
-                                                       "time_before" : 3*ms,
-                                                       "time_after" : 2*ms,
-                                                       "add_noise" : True})
-    
-    ##### change index to column
-    single_node_response_table.reset_index(inplace=True)
-    
-    ##### change column names
-    single_node_response_table = single_node_response_table.rename(index = str, columns={"phase_duration" : "phase duration (us)",
-                                                                                         "stim_amp" : "stimulus amplitude (uA)",
-                                                                                         "pulse_form" : "pulse form",
-                                                                                         "run_number" : "run",
-                                                                                         0 : "AP height (mV)",
-                                                                                         1 : "rise time (us)",
-                                                                                         2 : "fall time (us)",
-                                                                                         3 : "latency (us)",
-                                                                                         4 : "membrane potential (mV)",
-                                                                                         5 : "time (ms)"})
-    
-    ##### add row with stimulus amplitude information
-    single_node_response_table["amplitude level"] = ["{}*threshold".format(stim_amp_levels[jj])
-                                    for ii in range(len(phase_durations))
-                                    for jj in range(len(stim_amp_levels))
-                                    for kk in range(nof_runs)]
-    
-    ##### change units from second to us and form amp to uA
-    single_node_response_table["phase duration (us)"] = round(single_node_response_table["phase duration (us)"]*1e6).astype(int)
-    single_node_response_table["stimulus amplitude (uA)"] = round(single_node_response_table["stimulus amplitude (uA)"]*1e6,2)
-    single_node_response_table["AP height (mV)"] = single_node_response_table["AP height (mV)"]*1e3
-    single_node_response_table["rise time (us)"] = single_node_response_table["rise time (us)"]*1e6
-    single_node_response_table["fall time (us)"] = single_node_response_table["fall time (us)"]*1e6
-    single_node_response_table["latency (us)"] = single_node_response_table["latency (us)"]*1e6
-    
-    ##### adjust pulse form column
-    single_node_response_table["pulse form"] = ["monophasic" if single_node_response_table["pulse form"][ii]=="mono" else "biphasic" for ii in range(np.shape(single_node_response_table)[0])]
-    
-    ##### calculate AP duration
-    single_node_response_table["AP duration (us)"] = single_node_response_table["rise time (us)"] + single_node_response_table["fall time (us)"]
-    
-    ##### build summary dataframe and exclude data where no action potential was elicited
-    single_node_response_summary = single_node_response_table[single_node_response_table["AP height (mV)"] > 60]
-    
-    ##### calculate jitter
-    jitter = single_node_response_summary.groupby(["phase duration (us)","stimulus amplitude (uA)","pulse form"])["latency (us)"].std().reset_index()
-    jitter = jitter.rename(index = str, columns={"latency (us)" : "jitter (us)"})
-    
-    ##### calculate means of AP characteristics and summarize them in a summary dataframe
-    single_node_response_summary = single_node_response_summary.groupby(["phase duration (us)","stimulus amplitude (uA)", "amplitude level", "pulse form"])\
-    ["AP height (mV)","rise time (us)","fall time (us)","AP duration (us)","latency (us)"].mean().reset_index()
-    
-    ##### add jitter to summary
-    single_node_response_summary = pd.merge(single_node_response_summary, jitter, on=["phase duration (us)","stimulus amplitude (uA)","pulse form"])
-    
-    ##### round columns to 3 significant digits
-    for ii in ["AP height (mV)","rise time (us)","fall time (us)","AP duration (us)","latency (us)","jitter (us)"]:
-        single_node_response_summary[ii] = ["%.3g" %single_node_response_summary[ii][jj] for jj in range(single_node_response_summary.shape[0])]
-    
-    ##### Save table as csv    
-    single_node_response_summary.to_csv("test_battery_results/{}/Single_node_response_summary {}.csv".format(model.display_name,model.display_name), index=False, header=True)
-    
-    ##### built dataset for voltage courses (to plot them)
-    voltage_course_dataset = single_node_response_table[["phase duration (us)","stimulus amplitude (uA)", "amplitude level", "pulse form", "run", "membrane potential (mV)", "time (ms)"]]
-    
-    ##### split lists in membrane potential and time columns to multiple rows
-    voltage_course_dataset = calc.explode(voltage_course_dataset, ["membrane potential (mV)", "time (ms)"])
-    
-    ##### convert membrane potential to mV and time to ms
-    voltage_course_dataset["membrane potential (mV)"] = voltage_course_dataset["membrane potential (mV)"] *1e3
-    voltage_course_dataset["time (ms)"] = voltage_course_dataset["time (ms)"] *1e3
-    
-    ##### start time values at zero
-    voltage_course_dataset["time (ms)"] = voltage_course_dataset["time (ms)"] - min(voltage_course_dataset["time (ms)"])
-    
-    if generate_plots:
-        ##### plot voltage courses of single node
-        single_node_response = plot.single_node_response_voltage_course(plot_name = "Voltage courses {}".format(model.display_name),
-                                                                        voltage_data = voltage_course_dataset)
+    ##### Run test twice, one time with and one time without stochasticity
+    for stochasticity in [True, False]:
         
-        ##### save voltage courses plot
-        single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
-    
-    ###### save voltage courses table
-    voltage_course_dataset.to_csv("test_battery_results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name), index=False, header=True)
+        ##### define number of stochastic runs
+        if stochasticity:
+            nof_runs = 3
+        else:
+            nof_runs = 1
+        
+        ##### define varied parameters 
+        params = [{"phase_duration" : phase_durations[ii]*1e-6,
+                   "pulse_form" : pulse_forms[ii],
+                   "stim_amp" : stim_amps[2*ii+jj-1],
+                   "run_number" : kk}
+                     for ii in range(len(phase_durations))\
+                     for jj in stim_amp_levels\
+                     for kk in range(nof_runs)]
+        
+        ##### get thresholds
+        single_node_response_table = th.util.map(func = test.get_single_node_response,
+                                                 space = params,
+                                                 backend = backend,
+                                                 cache = "no",
+                                                 kwargs = {"model_name" : model_name,
+                                                           "dt" : 1*us,
+                                                           "stimulation_type" : "extern",
+                                                           "time_before" : 3*ms,
+                                                           "time_after" : 2*ms,
+                                                           "add_noise" : stochasticity})
+        
+        ##### change index to column
+        single_node_response_table.reset_index(inplace=True)
+        
+        ##### change column names
+        single_node_response_table = single_node_response_table.rename(index = str, columns={"phase_duration" : "phase duration (us)",
+                                                                                             "stim_amp" : "stimulus amplitude (uA)",
+                                                                                             "pulse_form" : "pulse form",
+                                                                                             "run_number" : "run",
+                                                                                             0 : "AP height (mV)",
+                                                                                             1 : "rise time (us)",
+                                                                                             2 : "fall time (us)",
+                                                                                             3 : "latency (us)",
+                                                                                             4 : "membrane potential (mV)",
+                                                                                             5 : "time (ms)"})
+        
+        ##### add row with stimulus amplitude information
+        single_node_response_table["amplitude level"] = ["{}*threshold".format(stim_amp_levels[jj])
+                                        for ii in range(len(phase_durations))
+                                        for jj in range(len(stim_amp_levels))
+                                        for kk in range(nof_runs)]
+        
+        ##### change units from second to us and form amp to uA
+        single_node_response_table["phase duration (us)"] = round(single_node_response_table["phase duration (us)"]*1e6).astype(int)
+        single_node_response_table["stimulus amplitude (uA)"] = round(single_node_response_table["stimulus amplitude (uA)"]*1e6,2)
+        single_node_response_table["AP height (mV)"] = single_node_response_table["AP height (mV)"]*1e3
+        single_node_response_table["rise time (us)"] = single_node_response_table["rise time (us)"]*1e6
+        single_node_response_table["fall time (us)"] = single_node_response_table["fall time (us)"]*1e6
+        single_node_response_table["latency (us)"] = single_node_response_table["latency (us)"]*1e6
+        
+        ##### adjust pulse form column
+        single_node_response_table["pulse form"] = ["monophasic" if single_node_response_table["pulse form"][ii]=="mono" else "biphasic" for ii in range(np.shape(single_node_response_table)[0])]
+        
+        ##### calculate AP duration
+        single_node_response_table["AP duration (us)"] = single_node_response_table["rise time (us)"] + single_node_response_table["fall time (us)"]
+        
+        ##### build summary dataframe and exclude data where no action potential was elicited
+        single_node_response_summary = single_node_response_table[single_node_response_table["AP height (mV)"] > 60]
+        
+        ##### calculate jitter
+        jitter = single_node_response_summary.groupby(["phase duration (us)","stimulus amplitude (uA)","pulse form"])["latency (us)"].std().reset_index()
+        jitter = jitter.rename(index = str, columns={"latency (us)" : "jitter (us)"})
+        
+        ##### calculate means of AP characteristics and summarize them in a summary dataframe
+        single_node_response_summary = single_node_response_summary.groupby(["phase duration (us)","stimulus amplitude (uA)", "amplitude level", "pulse form"])\
+        ["AP height (mV)","rise time (us)","fall time (us)","AP duration (us)","latency (us)"].mean().reset_index()
+        
+        ##### add jitter to summary
+        single_node_response_summary = pd.merge(single_node_response_summary, jitter, on=["phase duration (us)","stimulus amplitude (uA)","pulse form"])
+        
+        ##### round columns to 3 significant digits
+        for ii in ["AP height (mV)","rise time (us)","fall time (us)","AP duration (us)","latency (us)","jitter (us)"]:
+            single_node_response_summary[ii] = ["%.3g" %single_node_response_summary[ii][jj] for jj in range(single_node_response_summary.shape[0])]
+        
+        ##### just for stochastic run
+        if stochasticity:
+            
+            ##### Save table as csv
+            single_node_response_summary.to_csv("test_battery_results/{}/Single_node_response_stochastic {}.csv".format(model.display_name,model.display_name), index=False, header=True)
+            
+            ##### built dataset for voltage courses (to plot them)
+            voltage_course_dataset = single_node_response_table[["phase duration (us)","stimulus amplitude (uA)", "amplitude level", "pulse form", "run", "membrane potential (mV)", "time (ms)"]]
+            
+            ##### split lists in membrane potential and time columns to multiple rows
+            voltage_course_dataset = calc.explode(voltage_course_dataset, ["membrane potential (mV)", "time (ms)"])
+            
+            ##### convert membrane potential to mV and time to ms
+            voltage_course_dataset["membrane potential (mV)"] = voltage_course_dataset["membrane potential (mV)"] *1e3
+            voltage_course_dataset["time (ms)"] = voltage_course_dataset["time (ms)"] *1e3
+            
+            ##### start time values at zero
+            voltage_course_dataset["time (ms)"] = voltage_course_dataset["time (ms)"] - min(voltage_course_dataset["time (ms)"])
+            
+            if generate_plots:
+                ##### plot voltage courses of single node
+                single_node_response = plot.single_node_response_voltage_course(plot_name = "Voltage courses {}".format(model.display_name),
+                                                                                voltage_data = voltage_course_dataset)
+                
+                ##### save voltage courses plot
+                single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+            
+            ###### save voltage courses table
+            voltage_course_dataset.to_csv("test_battery_results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name), index=False, header=True)
+        
+        ##### for deterministic run
+        else:
+            
+            ##### delete jitter column
+            single_node_response_summary = single_node_response_summary.drop(columns = ["jitter (us)"])
+            
+            ##### save table as csv
+            single_node_response_summary.to_csv("test_battery_results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name), index=False, header=True)
 
 if all_tests or refractory_periods:
     # =============================================================================
