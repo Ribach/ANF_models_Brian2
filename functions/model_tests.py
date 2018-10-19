@@ -15,7 +15,7 @@ import functions.calculations as calc
 ##### import models
 import models.Rattay_2001 as rattay_01
 import models.Frijns_1994 as frijns_94
-import models.Frijns_2005 as frijns_05
+import models.Briaire_2005 as briaire_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09

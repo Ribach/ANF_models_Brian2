@@ -15,7 +15,7 @@ from string import ascii_uppercase as letters
 ##### import models
 import models.Rattay_2001 as rattay_01
 import models.Frijns_1994 as frijns_94
-import models.Frijns_2005 as frijns_05
+import models.Briaire_2005 as briaire_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
@@ -31,7 +31,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### list of all models
-models = [rattay_01, frijns_94, frijns_05, smit_09, smit_10, imennov_09, negm_14]
+models = [rattay_01, frijns_94, briaire_05, smit_09, smit_10, imennov_09, negm_14]
 
 ##### distinguish models with and without soma
 models_with_soma = list(itl.compress(models, [hasattr(model, "index_soma") for model in models]))
@@ -137,21 +137,21 @@ amplitude_level = "2*threshold"
 for ii,model in enumerate(models):
     
     ##### get node response summery table
-    node_response_data_summary = pd.read_csv("test_battery_results/{}/Single_node_response_summary {}.csv".format(model.display_name,model.display_name))
+    data  = pd.read_csv("test_battery_results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name))
     
     ##### built subset of relevant rows and columns and transpose dataframe
-    node_response_data_summary = node_response_data_summary[["AP height (mV)", "rise time (us)", "fall time (us)", "AP duration (us)"]]\
-                                                           [node_response_data_summary["pulse form"] == pulse_form]\
-                                                           [node_response_data_summary["phase duration (us)"] == phase_duration/us]\
-                                                           [node_response_data_summary["amplitude level"] == amplitude_level].transpose()
+    data = data[["AP height (mV)", "rise time (us)", "fall time (us)", "AP duration (us)"]]\
+               [data["pulse form"] == pulse_form]\
+               [data["phase duration (us)"] == phase_duration/us]\
+               [data["amplitude level"] == amplitude_level].transpose()
     
     if ii == 0:
         ##### use model name as column header
-        AP_shape = node_response_data_summary.rename(index = str, columns={node_response_data_summary.columns.values[0]:model.display_name_short})
+        AP_shape = data.rename(index = str, columns={data.columns.values[0]:model.display_name_short})
         
     else:
         ##### add column with AP shape data of current model
-        AP_shape[model.display_name_short] = node_response_data_summary[node_response_data_summary.columns.values[0]]
+        AP_shape[model.display_name_short] = data[data.columns.values[0]]
     
 ##### transpose dataframe
 AP_shape = AP_shape.transpose()
@@ -228,7 +228,7 @@ stimulations = stimulations.rename(index = str, columns={0:"phase duration (us)"
 for ii,model in enumerate(models):
     
     ##### get node response summery table
-    data = pd.read_csv("test_battery_results/{}/Single_node_response_summary {}.csv".format(model.display_name,model.display_name))
+    data = pd.read_csv("test_battery_results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name))
     
     ##### just observe data, with the parameters of the stimulation dataframe
     data = pd.DataFrame(pd.merge(stimulations, data, on=["phase duration (us)","amplitude level", "pulse form"])["latency (us)"].astype(int))
@@ -265,7 +265,7 @@ if save_tables:
 for ii,model in enumerate(models):
     
     ##### get node response summery table
-    data = pd.read_csv("test_battery_results/{}/Single_node_response_summary {}.csv".format(model.display_name,model.display_name))
+    data = pd.read_csv("test_battery_results/{}/Single_node_response_stochastic {}.csv".format(model.display_name,model.display_name))
     
     ##### just observe data, with the parameters of the stimulation dataframe
     data = pd.DataFrame(pd.merge(stimulations, data, on=["phase duration (us)","amplitude level", "pulse form"])["jitter (us)"].astype(int))

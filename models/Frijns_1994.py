@@ -106,8 +106,8 @@ display_name_short = "Frijns 94"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(0.55, 0.66, num=50, endpoint = False),
-                                  np.linspace(0.66, 5, num=20, endpoint = False))*1e-3
+inter_pulse_intervals = np.append(np.linspace(0.62, 0.63, num=8, endpoint = False),
+                                  np.linspace(0.63, 5, num=20, endpoint = False))*1e-3
 
 # =============================================================================
 # Calculations
@@ -120,12 +120,11 @@ T_kelvin = zero_celsius + T_celsius*kelvin
 V_res = (R*T_kelvin)/F * np.log((P_K*n_init**2*K_e + P_Na*h_init*m_init**3*Na_e)/
          (P_K*n_init**2*K_i + P_Na*h_init*m_init**3*Na_i))
 
-# Nerst potential for leakage current; leakage chanels were excluded but could be added by using: g_L*(E_L-(v-V_res))  
+# Nerst potential for leakage current
 E_L = (-1/g_L)*(P_Na*m_init**3*h_init*(V_res*F**2)/(R*T_kelvin) * 
-       (Na_e-Na_i*exp(V_res*F/(R*T_kelvin)))/(1-np.exp(V_res*F/(R*T_kelvin))) + 
+       (Na_e-Na_i*np.exp(V_res*F/(R*T_kelvin)))/(1-np.exp(V_res*F/(R*T_kelvin))) + 
        P_K*n_init**2*(V_res*F**2)/(R*T_kelvin) *
        (K_e-K_i*np.exp(V_res*F/(R*T_kelvin)))/(1-np.exp(V_res*F/(R*T_kelvin))))
-
 
 ##### structure of ANF
 # terminal = 0

@@ -31,10 +31,10 @@ prefs.codegen.target = "numpy"
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = smit_09
+model = imennov_09
 
 ##### initialize clock
-dt = 5*us
+dt = 0.05*us
 
 ##### set up the neuron
 neuron, param_string, model = model.set_up_model(dt = dt, model = model)
@@ -74,20 +74,20 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     I_stim, runtime = stim.get_stimulus_current(model = model,
                                                 dt = dt,
                                                 stimulation_type = "extern",
-                                                pulse_form = "mono",
-                                                stimulated_compartment = 2,
-                                                nof_pulses = 1,
-                                                time_before = 50*ms,
-                                                time_after = 50*ms,
+                                                pulse_form = "bi",
+                                                stimulated_compartment = 4,
+                                                nof_pulses = 50,
+                                                time_before = 1*ms,
+                                                time_after = 0*ms,
                                                 add_noise = True,
                                                 ##### monophasic stimulation
                                                 amp_mono = -3*uA,
                                                 duration_mono = 100*us,
                                                 ##### biphasic stimulation
-                                                amps_bi = [-10,10]*uA,
-                                                durations_bi = [50,0,50]*us,
+                                                amps_bi = [-10,7]*uA,
+                                                durations_bi = [0.15,26,0.15]*us,
                                                 ##### multiple pulses / pulse trains
-                                                inter_pulse_gap = 0.5*ms)
+                                                inter_pulse_gap = 29.3*us)
     
     ##### get TimedArray of stimulus currents
     stimulus = TimedArray(np.transpose(I_stim), dt = dt)

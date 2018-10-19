@@ -14,7 +14,7 @@ import os
 ##### import models
 import models.Rattay_2001 as rattay_01
 import models.Frijns_1994 as frijns_94
-import models.Frijns_2005 as frijns_05
+import models.Briaire_2005 as briaire_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
@@ -46,7 +46,8 @@ strength_duration_data = pd.read_csv("test_battery_results/{}/Strength_duration_
 threshold_table = pd.read_csv("test_battery_results/{}/Threshold_table {}.csv".format(model.display_name,model.display_name))
 relative_spreads = pd.read_csv("test_battery_results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
 conduction_velocity_table = pd.read_csv("test_battery_results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name))
-node_response_data_summary = pd.read_csv("test_battery_results/{}/Single_node_response_summary {}.csv".format(model.display_name,model.display_name))
+single_node_response_deterministic  = pd.read_csv("test_battery_results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name))
+single_node_response_stochastic = pd.read_csv("test_battery_results/{}/Single_node_response_stochastic {}.csv".format(model.display_name,model.display_name))
 refractory_table = pd.read_csv("test_battery_results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name))
 
 ##### load dataframes for plots
@@ -131,7 +132,10 @@ else:
     conduction_velocity_table["Boyd and Kalu 1979"] = ["-","-","{}".format(dendrite_ratio)]
 
 ##### Latency and jitter
-latency_jitter = node_response_data_summary[["phase duration (us)", "pulse form", "amplitude level", "latency (us)",  "jitter (us)"]]
+latency = single_node_response_deterministic[["phase duration (us)", "pulse form", "amplitude level", "latency (us)"]]
+jitter = single_node_response_stochastic[["phase duration (us)", "pulse form", "amplitude level", "jitter (us)"]]
+latency_jitter = pd.merge(single_node_response_deterministic, single_node_response_stochastic, on=["phase duration (us)","pulse form","amplitude level"], how="left")
+
 latency_jitter = pd.melt(latency_jitter, id_vars=["phase duration (us)", "pulse form", "amplitude level"], value_vars=["latency (us)",  "jitter (us)"])
 latency_jitter["value"] = ["%.3g" %latency_jitter["value"][i] for i in range(0,latency_jitter.shape[0])]
 latency_jitter["phase duration (us)"] = ["%g us" %latency_jitter["phase duration (us)"][i] for i in range(0,latency_jitter.shape[0])]
@@ -162,7 +166,7 @@ latency_jitter = latency_jitter.rename(index = str, columns={"variable":"propert
 latency_jitter = latency_jitter.set_index(["phase duration","pulse form", "property"])
 
 ##### AP shape
-AP_shape = node_response_data_summary[["AP height (mV)", "rise time (us)", "fall time (us)", "AP duration (us)"]].iloc[[5]].transpose()
+AP_shape = single_node_response_deterministic[["AP height (mV)", "rise time (us)", "fall time (us)", "AP duration (us)"]].iloc[[5]].transpose()
 AP_shape = AP_shape.rename(index = str, columns={5:"model"})
 
 t_rise = round(-0.000625*conduction_velocity_table["model"].iloc[[0]] + 0.14, 3).tolist()[0]

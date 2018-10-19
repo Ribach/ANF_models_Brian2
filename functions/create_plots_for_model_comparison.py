@@ -341,7 +341,7 @@ def strength_duration_curve_comparison(plot_name,
     return fig
 
 # =============================================================================
-#  Single node response voltage course model comparison
+#  Refractory curve comparison
 # =============================================================================
 def refractory_curves_comparison(plot_name,
                                  refractory_curves):
