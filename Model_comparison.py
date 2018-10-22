@@ -44,7 +44,7 @@ interim_report_image_path = "C:/Users/Richard/Documents/Studium/Master Elektrote
 interim_report_table_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Zwischenbericht Masterarbeit/tables"
 
 # =============================================================================
-# Conduction velocity table
+# Conduction velocity tables
 # =============================================================================
 ##### table for models with soma
 for ii,model in enumerate(models_with_soma):
@@ -87,6 +87,47 @@ if save_tables:
     
     with open("{}/conduction_velocity_table_without_soma.tex".format(interim_report_table_path), "w") as tf:
         tf.write(conduction_velocity_table_without_soma.to_latex(column_format ="lcccc"))
+
+# =============================================================================
+# Conduction velocity plot
+# =============================================================================
+##### built subset with relevant columns of dataset of models without soma
+cond_vel_without_soma = conduction_velocity_table_without_soma.transpose()[["velocity (m/s)","outer diameter (um)"]]
+cond_vel_without_soma["section"] = "fiber"
+
+##### built subset with relevant columns of dataset of models with soma for dendritic part
+cond_vel_with_soma = conduction_velocity_table_with_soma.transpose()[["velocity dendrite (m/s)","outer diameter dendrite (um)"]]
+cond_vel_with_soma["section"] = "dendrite"
+cond_vel_with_soma = cond_vel_with_soma.rename(index = str, columns={"velocity dendrite (m/s)":"velocity (m/s)",
+                                                                     "outer diameter dendrite (um)":"outer diameter (um)"})
+
+##### connect dataframes
+conduction_velocity_table = pd.concat((cond_vel_without_soma, cond_vel_with_soma), axis=0)
+
+##### built subset with relevant columns of dataset of models with soma for axonal part
+cond_vel_with_soma = conduction_velocity_table_with_soma.transpose()[["velocity axon (m/s)","outer diameter axon (um)"]]
+cond_vel_with_soma["section"] = "axon"
+cond_vel_with_soma = cond_vel_with_soma.rename(index = str, columns={"velocity axon (m/s)":"velocity (m/s)",
+                                                                     "outer diameter axon (um)":"outer diameter (um)"})
+
+##### connect dataframes
+conduction_velocity_table = pd.concat((conduction_velocity_table, cond_vel_with_soma), axis=0)
+
+##### index to column
+conduction_velocity_table.reset_index(inplace=True)
+conduction_velocity_table = conduction_velocity_table.rename(index = str, columns={"index":"model_name"})
+
+##### order dataframe
+conduction_velocity_table = conduction_velocity_table.sort_values("model_name")
+
+##### Plot conduction velocity comparison
+conduction_velocity_plot = plot.conduction_velocity_comparison(plot_name = "Comparison of conduction velocities with experimental data",
+                                                               model_data = conduction_velocity_table)
+
+##### save plots
+if save_plots:
+    conduction_velocity_plot.savefig("{}/conduction_velocity_plot.png".format(interim_report_image_path), bbox_inches='tight')
+
 
 # =============================================================================
 # Single node response plot

@@ -6,6 +6,78 @@ import seaborn as sns
 sns.set(style="ticks", color_codes=True)
 
 # =============================================================================
+#  Conductance velocity comparison
+# =============================================================================
+def conduction_velocity_comparison(plot_name,
+                                   model_data):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    time_vector : integer
+        Number of timesteps of whole simulation.
+    voltage_matrix : time
+        Lenght of one time step.
+    distance_comps_middle : current
+        Amplitude of current stimulus.
+    time_before_pulse : time
+        Time until pulse starts.
+    stimulus_duration : time
+        Duration of stimulus.
+                
+    Returns
+    -------
+    current vector
+        Gives back a vector of currents for each timestep
+    """
+    
+    ##### change strings to float
+    model_data["velocity (m/s)"] = model_data["velocity (m/s)"].astype(float)
+    model_data["outer diameter (um)"] = model_data["outer diameter (um)"].astype(float)
+    
+    ##### experimental data of Hursh 1939
+    x_Hursh = np.array([2,20])
+    y_Hursh = x_Hursh*6
+    
+    ##### experimental data of Boyd and Kalu 1979
+    x_Boyd_1 = np.array([3,12])
+    y_Boyd_1 = x_Boyd_1*4.6
+    
+    x_Boyd_2 = np.array([10,20])
+    y_Boyd_2 = x_Boyd_2*5.7
+    
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### generate figure
+    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(7, 6))
+    
+    ##### no grid
+    axes.grid(False)
+    
+    ##### Plot AP rise time values of models
+    for ii in range(len(model_data)):
+        
+        ##### plot point
+        axes.scatter(model_data["outer diameter (um)"][ii], model_data["velocity (m/s)"][ii],
+                                label = "{} {}".format(model_data["model_name"][ii], model_data["section"][ii]))
+    
+    ##### Plot lines for the experiments
+    axes.plot(x_Hursh,y_Hursh, 'k--', label = "Hursh 1939")
+    axes.plot(x_Boyd_1,y_Boyd_1, 'k:', label = "Boyd and Kalu 1979")
+    axes.plot(x_Boyd_2,y_Boyd_2, 'k:', label = "_nolegend_")
+
+    ##### show legend
+    plt.legend(ncol=2)
+
+    ##### add labels to the axes    
+    axes.set_xlabel('Outer fiber diameter / um', fontsize=16)
+    axes.set_ylabel('Conduction velocity / (m/s)', fontsize=16)  
+    
+    return fig
+
+# =============================================================================
 #  Single node response voltage course model comparison
 # =============================================================================
 def single_node_response_comparison(plot_name,

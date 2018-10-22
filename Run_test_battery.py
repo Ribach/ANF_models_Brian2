@@ -39,7 +39,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "rattay_01"
+model_name = "frijns_94"
 model = eval(model_name)
 
 ##### initialize clock
@@ -55,10 +55,10 @@ generate_plots = True
 all_tests = False
 strength_duration_test = False
 relative_spread_test = False
-conduction_velocity_test = True
+conduction_velocity_test = False
 single_node_response_test = False
 refractory_periods = False
-refractory_curve = False
+refractory_curve = True
 psth_test = False
 
 if any([all_tests, single_node_response_test, refractory_periods, refractory_curve, psth_test]):
@@ -575,7 +575,7 @@ if all_tests or psth_test:
     # Post Stimulus Time Histogram
     # =============================================================================
     ##### pulse rates to test
-    pulses_per_second = [250,800,2000,5000]
+    pulses_per_second = [300,800,2000,5000]
 
     ##### define phase durations to test (in us)
     phase_durations = [50,50,50,50]
@@ -595,7 +595,7 @@ if all_tests or psth_test:
     stim_amp_level = [1,1.2,1.5]
     
     ##### number of runs
-    nof_runs = 60
+    nof_runs = 50
     
     ##### define varied parameters 
     params = [{"pulses_per_second" : pulses_per_second[ii],
