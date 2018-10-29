@@ -75,7 +75,6 @@ h_init_Rat = 0.6
 # Differential equations
 # =============================================================================
 #Im = 1*g_Na*m_t**3*h* ((v-V_res)-E_Na) + 0*g_Na*m_p**3*h* ((v-V_res)-E_Na) + g_K*n**4*((v-V_res)-E_K) + g_L*((v-V_res)-E_L) + g_myelin*(-(v-V_res)): amp/meter**2
-
 eqs = '''
 I_Na_persistent_Smit = 0.975*g_Na_Smit*m_t_Smit**3*h_Smit*(E_Na_Smit-(v-V_res)) : amp/meter**2
 I_Na_transient_Smit = 0.025*g_Na_Smit*m_p_Smit**3*h_Smit*(E_Na_Smit-(v-V_res)) : amp/meter**2

@@ -29,25 +29,44 @@ def get_threshold(model_name,
                   phase_duration,
                   delta,
                   amps_start_interval,
+                  parameter = None,
+                  parameter_ratio = None,
                   pulse_form = "mono",
                   stimulation_type = "extern",
                   time_before = 3*ms,
                   time_after = 3*ms,
                   add_noise = False,
                   print_progress = True,
-                  run_number = 1):
+                  run_number = 0):
     
     ##### add quantity to phase_duration
     phase_duration = float(phase_duration)*second
     
     ##### get model
     model = eval(model_name)
+    
+    ##### initialize model
+    if parameter is not None:
         
-    ##### initialize model with given defaultclock dt
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-    exec(param_string)
-    M = StateMonitor(neuron, 'v', record=True)
-    store('initialized')
+        ##### get parameter value of model
+        original_param_value = eval("model.{}".format(parameter))
+        
+        ##### adjust model parameter
+        exec("model.{} = parameter_ratio*original_param_value".format(parameter))
+            
+        ##### initialize model with changed parameter
+        neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
+        exec(param_string)
+        M = StateMonitor(neuron, 'v', record=True)
+        store('initialized')
+        
+    else:
+        
+        ##### initialize model (no parameter was changed)
+        neuron, param_string, model = model.set_up_model(dt = dt, model = model)
+        exec(param_string)
+        M = StateMonitor(neuron, 'v', record=True)
+        store('initialized')
     
     ##### compartment for measurements
     comp_index = np.where(model.structure == 2)[0][10]
@@ -79,7 +98,8 @@ def get_threshold(model_name,
     while amp_diff > delta:
         
         ##### print progress
-        if print_progress: print("Duration: {} us; Run: {}; Stimulus amplitde: {} uA".format(np.round(phase_duration/us),run_number,np.round(stim_amp/uA,4)))
+        if print_progress: print("Model: {}; {}: {}; Duration: {} us; Run: {}; Stimulus amplitde: {} uA".format(model_name,
+                                 parameter, parameter_ratio, np.round(phase_duration/us),run_number+1,np.round(stim_amp/uA,4)))
         
         ##### define how the ANF is stimulated
         I_stim, runtime = stim.get_stimulus_current(model = model,
@@ -115,6 +135,12 @@ def get_threshold(model_name,
             stim_amp = (stim_amp + upper_border)/2
             
         amp_diff = upper_border - lower_border
+    
+    if parameter is not None:
+        ##### reset model parameter
+        exec("model.{} = original_param_value".format(parameter))
+        neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
+        exec(param_string)
 
     return threshold
 
@@ -227,6 +253,8 @@ def get_single_node_response(model_name,
                              dt,
                              stim_amp,
                              phase_duration,
+                             parameter = None,
+                             parameter_ratio = None,
                              stimulation_type = "extern",
                              pulse_form = "bi",
                              time_before = 3*ms,
@@ -269,18 +297,36 @@ def get_single_node_response(model_name,
     
     ##### get model
     model = eval(model_name)
+    
+    ##### initialize model
+    if parameter is not None:
         
-    ##### initialize model with given defaultclock dt
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-    exec(param_string)
-    M = StateMonitor(neuron, 'v', record=True)
-    store('initialized')
+        ##### get parameter value of model
+        original_param_value = eval("model.{}".format(parameter))
+        
+        ##### adjust model parameter
+        exec("model.{} = parameter_ratio*original_param_value".format(parameter))
+            
+        ##### initialize model with changed parameter
+        neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
+        exec(param_string)
+        M = StateMonitor(neuron, 'v', record=True)
+        store('initialized')
+        
+    else:
+        
+        ##### initialize model (no parameter was changed)
+        neuron, param_string, model = model.set_up_model(dt = dt, model = model)
+        exec(param_string)
+        M = StateMonitor(neuron, 'v', record=True)
+        store('initialized')
     
     ##### compartment for measurements
     comp_index = np.where(model.structure == 2)[0][10]
     
     ##### print progress
-    if print_progress: print("Duration: {} us; Run: {}; Stimulus amplitde: {} uA".format(np.round(phase_duration/us),run_number+1,np.round(stim_amp/uA,4)))
+    if print_progress: print("Model: {}; {}: {}; Duration: {} us; Run: {}; Stimulus amplitde: {} uA".format(model_name,
+                             parameter, parameter_ratio, np.round(phase_duration/us),run_number+1,np.round(stim_amp/uA,4)))
             
     ##### define how the ANF is stimulated
     I_stim, runtime = stim.get_stimulus_current(model = model,
@@ -341,6 +387,12 @@ def get_single_node_response(model_name,
     ##### save voltage course of single compartment and corresponding time vector
     voltage_course = (M.v[comp_index, int(np.floor(time_before/dt)):]/volt).tolist()
     time_vector = (M.t[int(np.floor(time_before/dt)):]/second).tolist()
+    
+    if parameter is not None:
+        ##### reset model parameter
+        exec("model.{} = original_param_value".format(parameter))
+        neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
+        exec(param_string)
     
     return AP_amp/volt, AP_rise_time/second, AP_fall_time/second, latency/second, voltage_course, time_vector
 

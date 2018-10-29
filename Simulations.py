@@ -52,7 +52,7 @@ store('initialized')
 # Simulations to be done / Plots to be shown
 # =============================================================================
 plot_voltage_course_lines = True
-plot_voltage_course_colored = True
+plot_voltage_course_colored = False
 measure_single_node_response = False
 
 # =============================================================================
@@ -66,7 +66,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 stimulation_type = "extern",
                                                 pulse_form = "bi",
                                                 stimulated_compartment = 4,
-                                                nof_pulses = 4,
+                                                nof_pulses = 1,
                                                 time_before = 2*ms,
                                                 time_after = 2*ms,
                                                 add_noise = True,

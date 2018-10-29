@@ -107,7 +107,7 @@ c_m_layer = 2.801*uF/cm**2
 # =============================================================================
 # Condactivities internodes
 # =============================================================================
-##### membrane conductivity internodes one layer (calculated with the values given in Briaire and Frijns 2005 page 146)
+##### membrane conductivity somatic region one layer (calculated with the values given in Briaire and Frijns 2005 page 146)
 g_m_layer = 0.6*msiemens/cm**2
 
 # =============================================================================

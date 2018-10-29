@@ -39,7 +39,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "frijns_94"
+model_name = "smit_10"
 model = eval(model_name)
 
 ##### initialize clock
@@ -56,9 +56,9 @@ all_tests = False
 strength_duration_test = False
 relative_spread_test = False
 conduction_velocity_test = False
-single_node_response_test = False
+single_node_response_test = True
 refractory_periods = False
-refractory_curve = True
+refractory_curve = False
 psth_test = False
 
 if any([all_tests, single_node_response_test, refractory_periods, refractory_curve, psth_test]):
@@ -87,8 +87,7 @@ if any([all_tests, single_node_response_test, refractory_periods, refractory_cur
                                             "delta" : 0.0001*uA,
                                             "stimulation_type" : "extern",
                                             "amps_start_interval" : [0,30]*uA,
-                                            "add_noise" : False,
-                                            "run_number" : 1})
+                                            "add_noise" : False})
     
     ##### change index to column
     threshold_table.reset_index(inplace=True)
@@ -339,9 +338,9 @@ if all_tests or single_node_response_test:
         
         ##### define number of stochastic runs
         if stochasticity:
-            nof_runs = 40
+            nof_runs = 3
         else:
-            nof_runs = 1
+            nof_runs = 40
         
         ##### define varied parameters 
         params = [{"phase_duration" : phase_durations[ii]*1e-6,

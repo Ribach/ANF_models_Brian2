@@ -5,6 +5,119 @@ import pandas as pd
 import seaborn as sns
 sns.set(style="ticks", color_codes=True)
 
+##### import functions
+import functions.create_plots as plot
+
+##### import models
+import models.Rattay_2001 as rattay_01
+import models.Frijns_1994 as frijns_94
+import models.Briaire_2005 as briaire_05
+import models.Smit_2009 as smit_09
+import models.Smit_2010 as smit_10
+import models.Imennov_2009 as imennov_09
+import models.Negm_2014 as negm_14
+
+# =============================================================================
+#  Voltage course comparison
+# =============================================================================
+def voltage_course_comparison_plot(plot_name,
+                                   model_names,
+                                   time_vector,
+                                   voltage_courses):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    time_vector : integer
+        Number of timesteps of whole simulation.
+    voltage_matrix : time
+        Lenght of one time step.
+    distance_comps_middle : current
+        Amplitude of current stimulus.
+    time_before_pulse : time
+        Time until pulse starts.
+    stimulus_duration : time
+        Duration of stimulus.
+                
+    Returns
+    -------
+    current vector
+        Gives back a vector of currents for each timestep
+    """
+    
+    ##### get models
+    models = [eval(model) for model in model_names]
+    
+    ##### define number of columns
+    nof_cols = 3
+    
+    ##### get number of rows
+    nof_rows = np.ceil(len(models)/nof_cols).astype(int)
+    
+    ##### get number of plots
+    nof_plots = len(models)
+        
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### create figure
+    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=True, num = plot_name, figsize=(4.5*nof_cols, 4*nof_rows))
+    
+    ##### create plots  
+    for ii in range(nof_rows*nof_cols):
+        
+        ##### get row and column number
+        row = np.floor(ii/nof_cols).astype(int)
+        col = ii-row*nof_cols
+        
+        ##### turn off x-labels for all but the bottom plots
+        if (nof_plots - ii) > nof_cols:
+             plt.setp(axes[row][col].get_xticklabels(), visible=False)
+             axes[row][col].tick_params(axis = 'both', bottom = 'off')
+        
+        ##### turn off y-labels
+        plt.setp(axes[row][col].get_yticklabels(), visible=False)
+        axes[row][col].tick_params(axis = 'both', left = 'off')
+        
+        ##### remove not needed subplots
+        if ii >= nof_plots:
+            fig.delaxes(axes[row][col])
+        
+        ##### plot voltage courses
+        if ii < nof_plots:
+            
+            model = models[ii]
+            
+            ##### get voltage courses for current model
+            voltage_matrix = voltage_courses[ii]
+            
+            ##### distances between lines and x-axis
+            offset = np.cumsum(model.distance_comps_middle)/meter
+            offset = (offset/max(offset))*10
+            
+            ##### plot lines
+            for ii in model.comps_to_plot:
+                axes[row][col].plot(time_vector/ms, offset[ii] - 1/(30)*(voltage_matrix[ii, :]-model.V_res)/mV, "#000000")
+            
+            ##### write model name in plots
+            axes[row][col].text(0.45, -3, "{}".format(model.display_name), fontsize=13.5)
+                
+            ##### no grid
+            axes[row][col].grid(False)
+    
+    ##### invert y-achses
+    axes[row][col].invert_yaxis()
+    
+    ##### bring subplots close to each other.
+    fig.subplots_adjust(hspace=0, wspace=0)
+    
+    ##### get labels for the axes
+    fig.text(0.5, 0.06, 'Time (ms)', ha='center', fontsize=14)
+    fig.text(0.1, 0.5, 'Position [major] membrane potential [minor]', va='center', rotation='vertical', fontsize=14)
+    
+    return fig
+    
 # =============================================================================
 #  Conductance velocity comparison
 # =============================================================================
@@ -185,6 +298,9 @@ def single_node_response_comparison(plot_name,
     ##### get labels for the axes
     fig.text(0.5, 0.06, 'Time (ms)', ha='center', fontsize=14)
     fig.text(0.05, 0.5, 'Membrane potential (mV)', va='center', rotation='vertical', fontsize=14)
+    
+    fig.text(0.5, 0.001, 'Time (ms)', ha='center', fontsize=14)
+    fig.text(0.03, 0.5, 'Membrane potential (mV)', va='center', rotation='vertical', fontsize=14)
         
     return fig
 
