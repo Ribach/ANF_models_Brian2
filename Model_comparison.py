@@ -561,9 +561,9 @@ relative_spread_plot_table_2k = pd.read_csv("test_battery_results/{}/2_knoise/Re
 relative_spread_plot_table_4k = pd.read_csv("test_battery_results/{}/4_knoise/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
 
 ##### add noise levels to dataframes
-relative_spread_plot_table_1k["noise level"] = "1*k_noise"
-relative_spread_plot_table_2k["noise level"] = "2*k_noise"
-relative_spread_plot_table_4k["noise level"] = "4*k_noise"
+relative_spread_plot_table_1k["noise level"] = "1 $k_{noise}$"
+relative_spread_plot_table_2k["noise level"] = "2 $k_{noise}$"
+relative_spread_plot_table_4k["noise level"] = "4 $k_{noise}$"
 
 ##### connect dataframes
 relative_spread_plot_table = pd.concat([relative_spread_plot_table_1k,relative_spread_plot_table_2k,relative_spread_plot_table_4k], ignore_index = True)

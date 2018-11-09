@@ -8,7 +8,7 @@ def get_stimulus_current(model,
                          dt = 5*ms,
                          stimulation_type = "extern",
                          pulse_form = "mono",
-                         stimulated_compartment = 4,
+                         stimulated_compartment = None,
                          time_before = 0*ms,
                          time_after = 1*ms,
                          nof_pulses = 1,
@@ -69,6 +69,10 @@ def get_stimulus_current(model,
     runtime
         Gives back the duration of the simulation
     """
+    
+    ##### use second node for stimulation if no index is given
+    if stimulated_compartment is None:
+        stimulated_compartment = np.where(model.structure == 2)[0][2]
     
     ##### calculate runtime
     if pulse_form == "mono":

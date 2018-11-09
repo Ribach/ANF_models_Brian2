@@ -10,33 +10,32 @@ import functions.calculations as calc
 # Temperature
 # =============================================================================
 T_celsius = 37
-T_kelvin = zero_celsius + T_celsius*kelvin
 
 # =============================================================================
-# Permeabilities
+# Nernst potentials
 # =============================================================================
-P_Na = 51.5*um/second
-P_K = 2.0*um/second
+##### Resting potential of cell
+V_res = -78*mV
+##### Nernst potential sodium
+E_Na = 115*mV
+##### Nernst potential potassium
+E_K = -12*mV
+##### Nerst potential for leakage current
+E_L = 10.6*mV
 
 # =============================================================================
 # Conductivities
 # =============================================================================
-# conductivity of leakage channels; not needed, as the leakage channels were excluded
-g_L = 728*siemens/meter**2
-
-# =============================================================================
-# Ion concentrations
-# =============================================================================
-Na_i = 10*mole/meter**3
-Na_e = 142*mole/meter**3
-K_i = 141*mole/meter**3
-K_e = 4.2*mole/meter**3
+##### conductivities active compartments
+g_Na = 0.3238*siemens/cm**2
+g_K = 0.1046*siemens/cm**2
+g_L = 1e-5*siemens/cm**2
 
 # =============================================================================
 # Resistivities
 # =============================================================================
 ##### axoplasmatic resistivity
-rho_in = 70*ohm*cm
+rho_in = 100*ohm*cm
 ##### external resistivity
 rho_out = 300*ohm*cm
 
@@ -51,57 +50,59 @@ h_init = 0.7469
 # Differential equations
 # =============================================================================
 eqs = '''
-I_Na = P_Na*m**3*h*(v*F**2)/(R*T_kelvin) * (Na_e-Na_i*exp(v*F/(R*T_kelvin)))/(exp(v*F/(R*T_kelvin))-1) : amp/meter**2
-I_K = P_K*n**2*(v*F**2)/(R*T_kelvin) * (K_e-K_i*exp(v*F/(R*T_kelvin)))/(exp(v*F/(R*T_kelvin))-1) : amp/meter**2
+I_Na = g_Na*m**3*h* (E_Na-(v-V_res)) : amp/meter**2
+I_K = g_K*n**4*(E_K-(v-V_res)) : amp/meter**2
 I_L = g_L*(E_L-(v-V_res)) : amp/meter**2
 Im = I_Na + I_K + I_L: amp/meter**2
 I_stim = stimulus(t,i) : amp (point current)
 dm/dt = alpha_m * (1-m) - beta_m * m : 1
 dn/dt = alpha_n * (1-n) - beta_n * n : 1
 dh/dt = alpha_h * (1-h) - beta_h * h : 1
-alpha_m = 0.49/mV*((v-V_res)-25.41*mV)/(1-exp((25.41*mV-(v-V_res))/(6.06*mV))) * 2.2**(0.1*(T_celsius-20))/ms : Hz
-alpha_n = 0.02/mV*((v-V_res)-35*mV)/(1-exp((35*mV-(v-V_res))/(10*mV))) * 3**(0.1*(T_celsius-20))/ms : Hz
+alpha_m = 0.49/mV*((v-V_res)-25.41*mV)/(1-exp((25.41*mV-(v-V_res))/(6.06*mV))) * 2.9**(0.1*(T_celsius-20))/ms : Hz
+alpha_n = 0.02/mV*((v-V_res)-35*mV)/(1-exp((35*mV-(v-V_res))/(10*mV))) * 2.9**(0.1*(T_celsius-20))/ms : Hz
 alpha_h = 0.09/mV*(-27.74*mV-(v-V_res))/(1-exp(((v-V_res)+27.74*mV)/(9.06*mV))) * 2.9**(0.1*(T_celsius-20))/ms : Hz
-beta_m = 1.04/mV*(21*mV-(v-V_res))/(1-exp(((v-V_res)-21*mV)/(9.41*mV))) * 2.2**(0.1*(T_celsius-20))/ms : Hz
-beta_n = 0.05/mV*(10*mV-(v-V_res))/(1-exp(((v-V_res)-10*mV)/(10*mV))) * 3**(0.1*(T_celsius-20))/ms : Hz
+beta_m = 1.04/mV*(21*mV-(v-V_res))/(1-exp(((v-V_res)-21*mV)/(9.41*mV))) * 2.9**(0.1*(T_celsius-20))/ms : Hz
+beta_n = 0.05/mV*(10*mV-(v-V_res))/(1-exp(((v-V_res)-10*mV)/(10*mV))) * 2.9**(0.1*(T_celsius-20))/ms : Hz
 beta_h = 3.7/(1+exp((56*mV-(v-V_res))/(12.5*mV))) * 2.9**(0.1*(T_celsius-20))/ms : Hz
-P_Na : meter/second
-P_K : meter/second
-g_L : siemens/meter**2
+g_Na : siemens/meter**2
+g_K : siemens/meter**2
 '''
 
 # =============================================================================
 #  Morphologic data
 # ============================================================================= 
 ##### structure
-nof_internodes = 15
+nof_internodes = 20
 ##### lengths
-length_internodes = 1500*um
+length_peripheral_terminal = 10*um
+length_internodes = 250*um
 length_nodes = 1*um
 ##### diameters
-fiber_outer_diameter = 15*um
+fiber_inner_diameter = 1.5*um
 
 # =============================================================================
 # Capacities
 # =============================================================================
-##### membrane capacity
-c_m_layer = 2*uF/cm**2
+##### axolemma capacity
+c_m_axolemma = 0.9*uF/cm**2
+##### membrane sheath capacity
+c_m_myelin = 1e-3*uF/cm**2
 
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.000015*uA*np.sqrt(second/um**3)
+k_noise = 0.001*uA/np.sqrt(mS)
 
 # =============================================================================
 # Electrode
 # =============================================================================
-electrode_distance = 300*um #2*mm
+electrode_distance = 300*um
 
 # =============================================================================
 # Display name for plots
 # =============================================================================
-display_name = "Frijns et al. 1994"
-display_name_short = "Frijns 94"
+display_name = "Rudnicki 2018"
+display_name_short = "Rudnicki 18"
 
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
@@ -112,20 +113,6 @@ inter_pulse_intervals = np.append(np.linspace(0.62, 0.63, num=10, endpoint = Fal
 # =============================================================================
 # Calculations
 # =============================================================================
-###### Temperature in Kelvin
-T_kelvin = zero_celsius + T_celsius*kelvin
-
-##### Potentials
-# Resting potential (calculated with Goldman equation)
-V_res = (R*T_kelvin)/F * np.log((P_K*n_init**2*K_e + P_Na*h_init*m_init**3*Na_e)/
-         (P_K*n_init**2*K_i + P_Na*h_init*m_init**3*Na_i))
-
-# Nerst potential for leakage current
-E_L = (-1/g_L)*(P_Na*m_init**3*h_init*(V_res*F**2)/(R*T_kelvin) * 
-       (Na_e-Na_i*np.exp(V_res*F/(R*T_kelvin)))/(1-np.exp(V_res*F/(R*T_kelvin))) + 
-       P_K*n_init**2*(V_res*F**2)/(R*T_kelvin) *
-       (K_e-K_i*np.exp(V_res*F/(R*T_kelvin)))/(1-np.exp(V_res*F/(R*T_kelvin))))
-
 ##### structure of ANF
 # terminal = 0
 # internode = 1
@@ -133,12 +120,14 @@ E_L = (-1/g_L)*(P_Na*m_init**3*h_init*(V_res*F**2)/(R*T_kelvin) *
 # presomatic region = 3
 # Soma = 4
 # postsomatic region = 5)
-structure = np.array(list(np.tile([2,1],nof_internodes)) + [2])
+structure = np.array([0] + list(np.tile([1,2],nof_internodes)))
 nof_comps = len(structure)
 
 ##### Compartment lengths
 # initialize
 compartment_lengths = np.zeros_like(structure)*um
+# peripheral terminal
+compartment_lengths[np.where(structure == 0)] = length_peripheral_terminal
 # length internodes
 compartment_lengths[structure == 1] = length_internodes
 # length nodes
@@ -148,7 +137,7 @@ length_neuron = sum(compartment_lengths)
 
 ##### Compartment diameters
 compartment_diameters = np.zeros(nof_comps+1)*um
-fiber_inner_diameter = 0.7* fiber_outer_diameter
+fiber_outer_diameter = fiber_inner_diameter / 0.6 # uses ratio of Smit et al. 2009
 compartment_diameters[:] = fiber_inner_diameter
 
 #####  Compartment middle point distances (needed for plots)
@@ -156,17 +145,17 @@ distance_comps_middle = np.zeros_like(compartment_lengths)
 for ii in range(0,nof_comps-1):
     distance_comps_middle[ii+1] = 0.5* compartment_lengths[ii] + 0.5* compartment_lengths[ii+1]
 
-##### Capacitivites
+##### Capacities
 # initialize
 c_m = np.zeros_like(structure)*uF/cm**2
 # internodes
-c_m[np.where(structure == 1)] = 0*uF/cm**2
-# nodes
-c_m[np.where(structure == 2)] = c_m_layer
+c_m[np.where(structure == 1)] = c_m_myelin
+# nodes and peripheral terminal
+c_m[np.where(structure != 1)] = c_m_axolemma
 
 ##### Condactivities internodes
-# membrane condactivity is zero for internodes
 g_m = np.zeros_like(structure)*msiemens/cm**2
+g_m[np.where(structure == 1)] = g_L
 
 ##### Axoplasmatic resistances
 compartment_center_diameters = np.zeros(nof_comps)*um
@@ -182,9 +171,10 @@ A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]*
            for i in range(0,nof_comps)]
 
 ##### Noise term
-P_Na_vector = np.zeros(nof_comps)*um/second
-P_Na_vector[structure == 2] = P_Na
-noise_term = np.sqrt(A_surface*P_Na_vector)
+g_Na_vector = np.zeros(nof_comps)*msiemens/cm**2
+g_Na_vector[:] = g_Na
+g_Na_vector[structure == 1] = 0*msiemens/cm**2
+noise_term = np.sqrt(A_surface*g_Na_vector)
 
 ##### Compartments to plot
 comps_to_plot = range(1,nof_comps)
@@ -272,10 +262,6 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         # nodes
         model.c_m[np.where(model.structure == 2)] = model.c_m_layer
         
-        ##### Condactivities internodes
-        # membrane condactivity is zero for internodes
-        model.g_m = np.zeros_like(model.structure)*msiemens/cm**2
-        
         ##### Axoplasmatic resistances
         model.compartment_center_diameters = np.zeros(model.nof_comps)*um
         model.compartment_center_diameters = (model.compartment_diameters[0:-1] + model.compartment_diameters[1:]) / 2                                
@@ -310,36 +296,32 @@ def set_up_model(dt, model, update = False, model_name = "model"):
                            model = model.eqs,
                            Cm = model.c_m,
                            Ri = model.rho_in,
-                           method="rk4")
-    
+                           method="exponential_euler")
+            
     ##### initial values
-    neuron.v = V_res
+    neuron.v = model.V_res
     neuron.m = model.m_init
     neuron.n = model.n_init
     neuron.h = model.h_init
     
     ##### Set parameter values (parameters that were initialised in the equations eqs and which are different for different compartment types)
-    # permeabilities nodes
-    neuron.P_Na = model.P_Na
-    neuron.P_K = model.P_K
-    neuron.g_L = model.g_L
+    # conductances active compartments
+    neuron.g_Na = model.g_Na
+    neuron.g_K = model.g_K
     
-    # permeabilities internodes
-    neuron.P_Na[np.asarray(np.where(model.structure == 1))] = 0*meter/second
-    neuron.P_K[np.asarray(np.where(model.structure == 1))] = 0*meter/second
-    neuron.g_L[np.asarray(np.where(model.structure == 1))] = 0*siemens/meter**2
+    # conductances internodes
+    neuron.g_Na[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
+    neuron.g_K[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
     
     ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
     param_string = '''
     V_res = {}.V_res
     T_celsius = {}.T_celsius
-    T_kelvin = {}.T_kelvin
-    Na_i = {}.Na_i
-    Na_e = {}.Na_e
-    K_i = {}.K_i
-    K_e = {}.K_e
+    E_Na = {}.E_Na
+    E_K = {}.E_K
     E_L = {}.E_L
-    '''.format(model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name)
+    g_L = {}.g_L
+    '''.format(model_name,model_name,model_name,model_name,model_name,model_name)
     
     ##### remove spaces to avoid complications
     param_string = param_string.replace(" ", "")

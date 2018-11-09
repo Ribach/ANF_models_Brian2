@@ -6,6 +6,7 @@ import thorns as th
 from scipy.signal import savgol_filter
 from pytictoc import TicToc
 import peakutils as peak
+from importlib import reload
 import pandas as pd
 pd.options.mode.chained_assignment = None
 
@@ -22,6 +23,123 @@ import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
 import models.Negm_2014 as negm_14
+
+# =============================================================================
+#  Meassure latency
+# =============================================================================
+def get_latency(model_name,
+                dt,
+                stim_amp,
+                stimulus_node,
+                measurement_node,
+                phase_duration,
+                inter_phase_gap = 0*us,
+                stimulation_type = "extern",
+                pulse_form = "bi",
+                time_before = 2*ms,
+                time_after = 2*ms,
+                add_noise = False,
+                print_progress = True):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+    
+    Parameters
+    ----------
+    model : time
+        Lenght of one time step.
+    dt : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    phase_durations : string
+        Describes, which pulses are used; either "mono" or "bi" is possible
+    start_interval : time
+        Time until (first) pulse starts.
+    delta : time
+        Time which is still simulated after the end of the last pulse
+    stimulation_type : amp/[k_noise]
+        Is multiplied with k_noise.
+    pulse_form : amp/[k_noise]
+        Is multiplied with k_noise.
+    
+    Returns
+    -------
+    current matrix
+        Gives back a vector of currents for each timestep
+    runtime
+        Gives back the duration of the simulation
+    """
+    
+    ##### add quantity to phase_duration
+    phase_duration = float(phase_duration)*second
+    stim_amp = float(stim_amp)*amp
+    
+    ##### get model
+    model = eval(model_name)
+    
+    ##### get stimulus node location
+    stimulus_node_index = np.where(model.structure == 2)[0][stimulus_node-1]
+    
+    ##### extend model if needed
+    if len(np.where(model.structure == 2)[0]) < measurement_node:
+        if hasattr(model, "nof_internodes"):
+            model.nof_internodes = measurement_node + 5
+        else:
+            model.nof_axonal_internodes = measurement_node + 2
+     
+    ##### initialize model
+    neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
+    exec(param_string)
+    M = StateMonitor(neuron, 'v', record=True)
+    store('initialized')
+    
+    ##### get measurement node location
+    measurement_node_index = np.where(model.structure == 2)[0][measurement_node-1]
+    
+    ##### print progress
+    if print_progress: print("Model: {}; Stimulus amplitde: {} uA; measurement location: {}".format(model_name,
+                             np.round(stim_amp/uA,4), measurement_node))
+            
+    ##### define how the ANF is stimulated
+    I_stim, runtime = stim.get_stimulus_current(model = model,
+                                                dt = dt,
+                                                stimulation_type = stimulation_type,
+                                                pulse_form = pulse_form,
+                                                stimulated_compartment = stimulus_node_index,
+                                                time_before = time_before,
+                                                time_after = time_after,
+                                                add_noise = add_noise,
+                                                ##### monophasic stimulation
+                                                amp_mono = -stim_amp,
+                                                duration_mono = phase_duration,
+                                                ##### biphasic stimulation
+                                                amps_bi = [-stim_amp/amp,stim_amp/amp]*amp,
+                                                durations_bi = [phase_duration/second,inter_phase_gap/second,phase_duration/second]*second)
+
+    ##### get TimedArray of stimulus currents and run simulation
+    stimulus = TimedArray(np.transpose(I_stim), dt=dt)
+    
+    ##### reset state monitor
+    restore('initialized')
+    
+    ##### run simulation
+    run(runtime)
+    
+    ##### AP amplitude
+    AP_amp = max(M.v[measurement_node_index,:]-model.V_res)
+    
+    ##### AP time
+    AP_time = M.t[M.v[measurement_node_index,:]-model.V_res == AP_amp]
+    
+    ##### calculate latency
+    latency = (AP_time - time_before)[0]
+    
+    ##### set latency to zero if no AP could be measured
+    if max(M.v[measurement_node_index,:]-model.V_res) < 60*mV:
+        latency = 0
+    
+    ##### reload module
+    model = reload(model)
+    
+    return latency/second
 
 # =============================================================================
 #  Computational efficiency test

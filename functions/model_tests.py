@@ -29,6 +29,7 @@ def get_threshold(model_name,
                   phase_duration,
                   delta,
                   amps_start_interval,
+                  inter_phase_gap = 0*us,
                   parameter = None,
                   parameter_ratio = None,
                   pulse_form = "mono",
@@ -39,8 +40,9 @@ def get_threshold(model_name,
                   print_progress = True,
                   run_number = 0):
     
-    ##### add quantity to phase_duration
+    ##### add quantity to phase_duration and inter_phase_gap
     phase_duration = float(phase_duration)*second
+    inter_phase_gap = float(inter_phase_gap)*second
     
     ##### get model
     model = eval(model_name)
@@ -73,9 +75,9 @@ def get_threshold(model_name,
     
     ##### calculate runtime
     if pulse_form == "mono":
-        runtime = time_before + phase_duration + time_after
+        runtime = time_before + phase_duration + inter_phase_gap + time_after
     else:
-        runtime = time_before + phase_duration*2 + time_after
+        runtime = time_before + phase_duration*2 + inter_phase_gap + time_after
     
     ##### calculate number of timesteps
     nof_timesteps = int(np.ceil(runtime/dt))
@@ -91,7 +93,7 @@ def get_threshold(model_name,
     threshold = 0*amp
     lower_border = amps_start_interval[0]
     upper_border = amps_start_interval[1]
-    stim_amp = (upper_border-lower_border)/2
+    stim_amp = upper_border*0.01
     amp_diff = upper_border - lower_border
     
     ##### adjust stimulus amplitude until required accuracy is obtained
@@ -114,7 +116,7 @@ def get_threshold(model_name,
                                                     duration_mono = phase_duration,
                                                     ##### biphasic stimulation
                                                     amps_bi = [-stim_amp/amp,stim_amp/amp]*amp,
-                                                    durations_bi = [phase_duration/second,0,phase_duration/second]*second)
+                                                    durations_bi = [phase_duration/second,inter_phase_gap/second,phase_duration/second]*second)
     
         ##### get TimedArray of stimulus currents and run simulation
         stimulus = TimedArray(np.transpose(I_stim + I_noise), dt=dt)

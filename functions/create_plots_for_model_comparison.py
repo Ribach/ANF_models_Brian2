@@ -5,9 +5,6 @@ import pandas as pd
 import seaborn as sns
 sns.set(style="ticks", color_codes=True)
 
-##### import functions
-import functions.create_plots as plot
-
 ##### import models
 import models.Rattay_2001 as rattay_01
 import models.Frijns_1994 as frijns_94
@@ -148,6 +145,7 @@ def conduction_velocity_comparison(plot_name,
     ##### change strings to float
     model_data["velocity (m/s)"] = model_data["velocity (m/s)"].astype(float)
     model_data["outer diameter (um)"] = model_data["outer diameter (um)"].astype(float)
+    model_data["section"][model_data["section"] == "fiber"] = ""
     
     ##### experimental data of Hursh 1939
     x_Hursh = np.array([2,20])
@@ -160,11 +158,17 @@ def conduction_velocity_comparison(plot_name,
     x_Boyd_2 = np.array([10,20])
     y_Boyd_2 = x_Boyd_2*5.7
     
+    ##### define colors and markers
+    colors = ["black","black","black","red","red","red","yellow","yellow","yellow","blue","blue","blue"]
+    markers = ["o","v","s","o","v","s","o","v","s","o","v","s"]
+    edgecolors = ["black","black","black","red","red","red","black","black","black","blue","blue","blue"]
+    
     ##### close possibly open plots
     plt.close(plot_name)
     
     ##### generate figure
-    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(7, 6))
+    #fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(7, 6))
+    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(9, 5.5))
     
     ##### no grid
     axes.grid(False)
@@ -173,7 +177,7 @@ def conduction_velocity_comparison(plot_name,
     for ii in range(len(model_data)):
         
         ##### plot point
-        axes.scatter(model_data["outer diameter (um)"][ii], model_data["velocity (m/s)"][ii],
+        axes.scatter(model_data["outer diameter (um)"][ii], model_data["velocity (m/s)"][ii], color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii],
                                 label = "{} {}".format(model_data["model_name"][ii], model_data["section"][ii]))
     
     ##### Plot lines for the experiments
@@ -353,12 +357,17 @@ def paintal_rise_time_curve(plot_name,
     
     ##### get model names
     models = model_data["model_name"].tolist()
+    
+    ##### define colors and markers
+    colors = ["black","black","black","red","red","red","yellow","yellow","yellow","blue","blue","blue"]
+    markers = ["o","v","s","o","v","s","o","v","s","o","v","s"]
+    edgecolors = ["black","black","black","red","red","red","black","black","black","blue","blue","blue"]
 
     ##### close possibly open plots
     plt.close(plot_name)
     
     ##### generate figure
-    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(7, 5))
+    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(10.5, 6))
     
     ##### no grid
     axes.grid(False)
@@ -367,13 +376,14 @@ def paintal_rise_time_curve(plot_name,
     axes.plot(x_values,paintal_rise_time(x_values), color = "black", label = "Experimental data from Paintal 1965")
     
     ##### Plot AP rise time values of models
-    for model in models:
+    for ii,model in enumerate(models):
         
         ##### building a subset
         current_data = model_data[model_data["model_name"] == model]
         
         ##### plot point
-        axes.scatter(current_data["conduction velocity (m/s)"],current_data["rise time (us)"], label = "{}".format(model))
+        axes.scatter(current_data["conduction velocity (m/s)"],current_data["rise time (us)"],
+                                  color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = "{}".format(model))
 
     ##### show legend
     plt.legend()
@@ -423,12 +433,17 @@ def paintal_fall_time_curve(plot_name,
     
     ##### get model names
     models = model_data["model_name"].tolist()
+    
+    ##### define colors and markers
+    colors = ["black","black","black","red","red","red","yellow","yellow","yellow","blue","blue","blue"]
+    markers = ["o","v","s","o","v","s","o","v","s","o","v","s"]
+    edgecolors = ["black","black","black","red","red","red","black","black","black","blue","blue","blue"]
 
     ##### close possibly open plots
     plt.close(plot_name)
     
     ##### generate figure
-    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(7, 5))
+    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(10.5, 6))
     
     ##### no grid
     axes.grid(False)
@@ -437,13 +452,14 @@ def paintal_fall_time_curve(plot_name,
     axes.plot(x_values,paintal_fall_time(x_values), color = "black", label = "Experimental data from Paintal 1965")
     
     ##### Plot AP rise time values of models
-    for model in models:
+    for ii,model in enumerate(models):
         
         ##### building a subset
         current_data = model_data[model_data["model_name"] == model]
         
         ##### plot point
-        axes.scatter(current_data["conduction velocity (m/s)"],current_data["fall time (us)"], label = "{}".format(model))
+        axes.scatter(current_data["conduction velocity (m/s)"],current_data["fall time (us)"],
+                                  color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = "{}".format(model))
             
     ##### show legend
     plt.legend()
@@ -492,23 +508,33 @@ def strength_duration_curve_comparison(plot_name,
     y_min = -0.5
     y_max = max(threshold_matrix["threshold (uA)"]) + 1
     
+    ##### define colors and markers
+    colors = ["black","black","black","red","red","red","blue","blue","blue","yellow","yellow","yellow","blue","blue","blue"]
+    markers = ["o","v","s","o","v","s","o","v","s","o","v","s"]
+    edgecolors = ["black","black","black","red","red","red","blue","blue","blue","black","black","black","blue","blue","blue"]
+    line_styles = [":","-.","-",":","-.","-",":","-.","-",":","-.","-"]
+    
     ##### close possibly open plots
     plt.close(plot_name)
     
     ##### generate figure
-    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(7, 6))
+    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(10, 6))
     
     ##### no grid
     axes.grid(False)
     
     ##### loop over models
-    for model in models:
+    for ii, model in enumerate(models):
         
         ##### building a subset
         current_data = threshold_matrix[threshold_matrix["model"] == model]
 
         ##### plot strength duration curve    
-        axes.semilogx(current_data["phase duration (us)"], current_data["threshold (uA)"], label = model)
+        axes.semilogx(current_data["phase duration (us)"], current_data["threshold (uA)"],
+                                   color = colors[ii], linestyle = line_styles[ii], label = "_nolegend_")
+        
+        axes.scatter(current_data["phase duration (us)"].iloc[0], current_data["threshold (uA)"].iloc[0],
+                                  color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = model)
         
 #        ##### mark chronaxie
 #        axes.vlines(x=strength_duration_table["chronaxie (us)"][model],
@@ -691,4 +717,181 @@ def relative_spread_comparison(plot_name,
     plt.ylabel('Threshold / uA', fontsize=16)
         
     return fig
+
+# =============================================================================
+# Compare stochastic properties for different k_noise values
+# =============================================================================
+def stochastic_properties_comparison(plot_name,
+                                     stochasticity_table):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    time_vector : integer
+        Number of timesteps of whole simulation.
+    voltage_matrix : time
+        Lenght of one time step.
+    distance_comps_middle : current
+        Amplitude of current stimulus.
+    time_before_pulse : time
+        Time until pulse starts.
+    stimulus_duration : time
+        Duration of stimulus.
+                
+    Returns
+    -------
+    current vector
+        Gives back a vector of currents for each timestep
+    """
+    
+    ##### get model names
+    models = stochasticity_table["model"].unique().tolist()
+    
+    ##### define colors and markers
+    colors = ["black","black","black","red","red","red","blue","blue","blue","yellow","yellow","yellow","blue","blue","blue"]
+    markers = ["o","v","s","o","v","s","o","v","s","o","v","s"]
+    edgecolors = ["black","black","black","red","red","red","blue","blue","blue","black","black","black"]
+    
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### create figure
+    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(8.5,5.5))
+    
+    ##### create plots  
+    for ii, model in enumerate(models):
+                        
+        ##### building a subset
+        current_data = stochasticity_table[stochasticity_table["model"] == model]
+                                  
+        ##### plot threshold curve
+        axes.plot(current_data["jitter (us)"], current_data["relative spread (%)"], color = colors[ii], label = "_nolegend_")
+        
+        ##### show points
+        axes.scatter(current_data["jitter (us)"], current_data["relative spread (%)"],
+                                  color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = "{}".format(eval("{}.display_name".format(model))))
+    
+    ##### define axes ranges
+    axes.set_ylim([0,45])
+    axes.set_xlim([0,150])
+    
+    ##### plot experimental range
+    axes.fill_between([80,120],[5,5],[10,10], alpha = 0.4, edgecolor="black", label = "experimental range")
+                
+    ##### add legend
+    plt.legend()
+    
+    ##### Write relative spreads as percentage
+    vals = axes.get_yticks().astype(int)
+    axes.set_yticklabels(['{}%'.format(x) for x in vals])
+        
+    ##### no grid
+    axes.grid(False)
+    
+    ##### get labels for the axes
+    fig.text(0.5, 0.02, 'jitter / us', ha='center', fontsize=14)
+    fig.text(0.03, 0.5, 'relative spread of thresholds', va='center', rotation='vertical', fontsize=14)
+        
+    return fig
+
+# =============================================================================
+# Plot latencies over stimulus duration
+# =============================================================================
+def latencies_over_stimulus_duration(plot_name,
+                                     latency_models,
+                                     latency_measurements = None):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    time_vector : integer
+        Number of timesteps of whole simulation.
+    voltage_matrix : time
+        Lenght of one time step.
+    distance_comps_middle : current
+        Amplitude of current stimulus.
+    time_before_pulse : time
+        Time until pulse starts.
+    stimulus_duration : time
+        Duration of stimulus.
+                
+    Returns
+    -------
+    current vector
+        Gives back a vector of currents for each timestep
+    """
+    
+    ##### get model names
+    models = latency_models["model"].unique().tolist()
+    
+    ##### define colors and markers
+    colors = ["black","black","black","red","red","red","blue","blue","blue","yellow","yellow","yellow","blue","blue","blue"]
+    markers = ["o","v","s","o","v","s","o","v","s","o","v","s"]
+    edgecolors = ["black","black","black","red","red","red","blue","blue","blue","black","black","black"]
+    
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### create figure
+    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(8.5,5.5))
+    
+    ##### plot data from models  
+    for ii, model in enumerate(models):
+                        
+        ##### building a subset
+        current_data = latency_models[latency_models["model"] == model]
+                                  
+        ##### plot threshold curve
+        axes.plot(current_data["amplitude level"], current_data["latency (ms)"], color = colors[ii], label = "_nolegend_")
+        
+        ##### show points
+        axes.scatter(current_data["amplitude level"], current_data["latency (ms)"],
+                                  color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = "{}".format(eval("{}.display_name".format(model))))
+    
+    ##### plot data from measurements
+    if latency_measurements is not None:
+        
+        ##### get subjects
+        subjects = latency_measurements["subject"].unique().tolist()
+        
+        ##### loop over subjects
+        for ii, subject in enumerate(subjects):
+                    
+            ##### building a subset
+            current_data = latency_measurements[latency_measurements["subject"] == subject]
+                                      
+            ##### plot threshold curve
+            axes.plot(current_data["amplitude level"], current_data["latency (ms)"], color = colors[ii+len(models)], label = "_nolegend_")
+            
+            ##### show points
+            axes.scatter(current_data["amplitude level"], current_data["latency (ms)"],
+                                      color = colors[ii+len(models)], marker = markers[ii+len(models)], edgecolor = edgecolors[ii+len(models)], label = "{}".format(subject))
+                
+    ##### add legend
+    plt.legend()
+    
+    ##### no grid
+    axes.grid(False)
+    
+    ##### get labels for the axes
+    axes.set_xlabel('Stimulus amplitude / threshold', fontsize=16)
+    axes.set_ylabel('latency / ms', fontsize=16)  
+        
+    return fig
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

@@ -30,7 +30,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "rattay_01"
+model_name = "negm_14"
 model = eval(model_name)
 
 ##### save plots
@@ -81,6 +81,8 @@ refractory_curve = plot.refractory_curve(plot_name = "Refractory curve {}".forma
 ##### poststimulus time histogram plot
 post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
                                                                  psth_dataset = psth_table)
+
+post_stimulus_time_histogram.savefig("C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Zwischenvortrag/Bilder/post_stimulus_time_histogram {}.png".format(model.display_name), bbox_inches='tight')
 
 if save_plots:
     strength_duration_curve.savefig("test_battery_results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')

@@ -52,10 +52,10 @@ rho_out = 25000*ohm*mm
 # =============================================================================
 # Initial values for gating variables
 # =============================================================================
-m_init = 0.0795
-ns_init = 0.9265
-nf_init = 0.256
-h_init = 0.627
+m_init = 0.07746  #0.0795
+ns_init = 0.9254  #0.9265
+nf_init = 0.24755 #0.256
+h_init = 0.7474   #0.627
 
 # =============================================================================
 # Differential equations
@@ -90,7 +90,7 @@ g_myelin : siemens/meter**2
 #  Morphologic data
 # =============================================================================
 ##### structure
-nof_segments_internode = 9
+nof_segments_internodes = 9
 nof_internodes = 15
 ##### lengths
 length_internodes = 230*um
@@ -145,14 +145,14 @@ inter_pulse_intervals = np.append(np.append(np.linspace(0.47, 0.48, num=8, endpo
 # presomatic region = 3
 # Soma = 4
 # postsomatic region = 5)
-structure = np.array(list(np.tile([2] + np.tile([1],nof_segments_internode).tolist(),nof_internodes)) + [2])
+structure = np.array(list(np.tile([2] + np.tile([1],nof_segments_internodes).tolist(),nof_internodes)) + [2])
 nof_comps = len(structure)
 
 #####  Compartment lengths
 # initialize
 compartment_lengths = np.zeros_like(structure)*um
 # length internodes
-compartment_lengths[structure == 1] = length_internodes / nof_segments_internode
+compartment_lengths[structure == 1] = length_internodes / nof_segments_internodes
 # length nodes
 compartment_lengths[structure == 2] = length_nodes
 # total length neuron
@@ -220,7 +220,7 @@ noise_term = np.sqrt(A_surface*gamma_Na_vector*rho_Na)
 # get indexes of all compartments that are not segmented
 indexes_comps = np.where(structure == 2)[0]
 # calculate middle compartments of internodes
-middle_comps_internodes = np.ceil(indexes_comps[:-1] + nof_segments_internode/2).astype(int)
+middle_comps_internodes = np.ceil(indexes_comps[:-1] + nof_segments_internodes/2).astype(int)
 # create array with all compartments to plot
 comps_to_plot = np.sort(np.append(indexes_comps, middle_comps_internodes))
 
@@ -259,14 +259,14 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         # presomatic region = 3
         # Soma = 4
         # postsomatic region = 5)
-        model.structure = np.array(list(np.tile([2] + np.tile([1],model.nof_segments_internode).tolist(),model.nof_internodes)) + [2])
+        model.structure = np.array(list(np.tile([2] + np.tile([1],model.nof_segments_internodes).tolist(),model.nof_internodes)) + [2])
         model.nof_comps = len(model.structure)
         
         #####  Compartment lengths
         # initialize
         model.compartment_lengths = np.zeros_like(model.structure)*um
         # length internodes
-        model.compartment_lengths[model.structure == 1] = model.length_internodes / model.nof_segments_internode
+        model.compartment_lengths[model.structure == 1] = model.length_internodes / model.nof_segments_internodes
         # length nodes
         model.compartment_lengths[model.structure == 2] = model.length_nodes
         # total length neuron
@@ -325,7 +325,7 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         # get indexes of all compartments that are not segmented
         model.indexes_comps = np.where(model.structure == 2)[0]
         # calculate middle compartments of internodes
-        model.middle_comps_internodes = np.ceil(model.indexes_comps[:-1] + model.nof_segments_internode/2).astype(int)
+        model.middle_comps_internodes = np.ceil(model.indexes_comps[:-1] + model.nof_segments_internodes/2).astype(int)
         # create array with all compartments to plot
         model.comps_to_plot = np.sort(np.append(model.indexes_comps, model.middle_comps_internodes))
         

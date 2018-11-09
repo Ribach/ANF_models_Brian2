@@ -52,6 +52,9 @@ def voltage_course_lines(plot_name,
     plt.xlabel('Time/ms', fontsize=16)
     plt.ylabel('Position/mm [major] V/mV [minor]', fontsize=16)
     plt.gca().invert_yaxis() # inverts y-axis => - v_amp_factor*(.... has to be written above
+    
+    ##### no grid
+    plt.grid(False)
     plt.show(plot_name)
     
     return voltage_course
@@ -446,7 +449,7 @@ def post_stimulus_time_histogram(plot_name,
     """
     
     ##### convert spike times to ms
-    psth_dataset["spike times (us)"] = np.ceil(psth_dataset["spike times (us)"]/1000).astype(int)
+    #psth_dataset["spike times (us)"] = np.ceil(psth_dataset["spike times (us)"]/1000).astype(int)
     psth_dataset = psth_dataset.rename(index = str, columns={"spike times (us)" : "spike times (ms)"})
     
     ##### get amplitude levels and pulse rates
@@ -482,6 +485,7 @@ def post_stimulus_time_histogram(plot_name,
 
             ##### calculating the bin heights
             bin_heights = [sum((bin_width*kk < current_data["spike times (ms)"]) & (current_data["spike times (ms)"] < bin_width*kk+bin_width))/nof_runs for kk in range(0,nof_bins+1)]
+            bin_heights = [height / (current_data["pulse rate"][0]/second * bin_width*ms) for height in bin_heights]
                         
             ##### create barplot
             axes[ii][jj].bar(x = bin_edges, height = bin_heights, width = bin_width, color = "black", linewidth=0.3)
@@ -514,9 +518,16 @@ def post_stimulus_time_histogram(plot_name,
     for ii in range(nof_amplitudes):
         for jj in range(nof_pulse_rates):
             
+            #### building a subset of the relevant rows
+            current_data = psth_dataset[psth_dataset["amplitude"] == amplitudes[ii]][psth_dataset["pulse rate"] == pulse_rates[jj]]
+            
             ##### define y-achses range and tick numbers
-            axes[ii][jj].set_ylim([0,max_bin_height*1.25])
-            axes[ii][jj].set_yticks([0,round(max_bin_height/2),max_bin_height])
+            axes[ii][jj].set_ylim([0,1.25])
+            axes[ii][jj].set_yticks([0,0.5,1])
+            
+            ##### Write spiking efficiences as percentage
+            vals = (axes[ii][jj].get_yticks() * 100).astype(int)
+            axes[ii][jj].set_yticklabels(['{}%'.format(x) for x in vals])
             
             ##### write stimulus amplitdues in plots
             axes[ii][jj].text(np.ceil(max(bin_edges)/3.2), max_bin_height+0.1, "i={}mA".format(current_data["stimulus amplitude (uA)"][0]))
@@ -538,8 +549,9 @@ def post_stimulus_time_histogram(plot_name,
         ax.tick_params(axis = 'both', left = 'off', bottom = True)
     
     ##### get labels for the axes
-    fig.text(0.5, 0.02, 'Time after pulse train onset (ms)', ha='center')
-    fig.text(0.06, 0.5, 'Spikes per timebin ({} ms)'.format(bin_width), va='center', rotation='vertical')
+    fig.text(0.5, 0.02, 'Time after pulse train onset (ms)', ha='center', fontsize=14)
+    #fig.text(0.06, 0.5, 'Spikes per timebin ({} ms)'.format(bin_width), va='center', rotation='vertical')
+    fig.text(0.035, 0.5, 'firing efficiency', va='center', rotation='vertical', fontsize=14)
     
     return fig
 
