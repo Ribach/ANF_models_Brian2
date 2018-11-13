@@ -24,9 +24,9 @@ import models.Briaire_adap_2005 as briaire_adap_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
+import models.Imennov_adap_2009 as imennov_adap_09
 import models.Negm_2014 as negm_14
-import models.Negm2_2014 as negm2_14
-import models.Negm3_2014 as negm3_14
+import models.Negm_ANF_2014 as negm_ANF_14
 import models.Rudnicki_2018 as rudnicki_18
 
 ##### makes code faster and prevents warning
@@ -36,7 +36,7 @@ prefs.codegen.target = "numpy"
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = briaire_adap_05
+model = imennov_adap_09
 
 ##### initialize clock
 dt = 5*us
@@ -51,14 +51,16 @@ exec(param_string)
 M = StateMonitor(neuron, 'v', record=True)
 
 Mm = StateMonitor(neuron, 'm', record=True)
-Mn = StateMonitor(neuron, 'n', record=True)
 Mh = StateMonitor(neuron, 'h', record=True)
+Mns = StateMonitor(neuron, 'ns', record=True)
+Mnf = StateMonitor(neuron, 'nf', record=True)
 Mw = StateMonitor(neuron, 'w', record=True)
 Mz = StateMonitor(neuron, 'z', record=True)
 Mr = StateMonitor(neuron, 'r', record=True)
 
 M_I_Na = StateMonitor(neuron, 'I_Na', record=True)
-M_I_K = StateMonitor(neuron, 'I_K', record=True)
+M_I_Ks = StateMonitor(neuron, 'I_Ks', record=True)
+M_I_Kf = StateMonitor(neuron, 'I_Kf', record=True)
 M_I_KLT = StateMonitor(neuron, 'I_KLT', record=True)
 M_I_HCN = StateMonitor(neuron, 'I_HCN', record=True)
 M_I_L = StateMonitor(neuron, 'I_L', record=True)
@@ -87,16 +89,16 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 stimulation_type = "extern",
                                                 pulse_form = "mono",
                                                 stimulated_compartment = stim_comp_index,
-                                                nof_pulses = 200,
+                                                nof_pulses = 100,
                                                 time_before = 1*ms,
                                                 time_after = 2*ms,
-                                                add_noise = False,
+                                                add_noise = True,
                                                 ##### monophasic stimulation
                                                 amp_mono = -4*uA,
                                                 duration_mono = 100*us,
                                                 ##### biphasic stimulation
-                                                amps_bi = [-4,4]*uA,
-                                                durations_bi = [50,0,50]*us,
+                                                amps_bi = [-250,250]*uA,
+                                                durations_bi = [45,0,45]*us,
                                                 ##### multiple pulses / pulse trains
                                                 inter_pulse_gap = 0.5*ms)
     
@@ -126,12 +128,13 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                    distance_comps_middle = model.distance_comps_middle)
 
 ##### plot gating variables
-comp_index = np.where(model.structure == 3)[0][3]
+comp_index = np.where(model.structure == 2)[0][10]
 fig = plt.figure("gating variables")
 axes = fig.add_subplot(1, 1, 1)
 axes.plot(Mm.t/ms, Mm.m[comp_index,:], label = "m")
 axes.plot(Mh.t/ms, Mh.h[comp_index,:], label = "h")
-axes.plot(Mn.t/ms, Mn.n[comp_index,:], label = "n")
+axes.plot(Mns.t/ms, Mns.ns[comp_index,:], label = "ns")
+axes.plot(Mnf.t/ms, Mnf.nf[comp_index,:], label = "nf")
 axes.plot(Mw.t/ms, Mw.w[comp_index,:], label = "w")
 axes.plot(Mz.t/ms, Mz.z[comp_index,:], label = "z")
 axes.plot(Mr.t/ms, Mr.r[comp_index,:], label = "r")
@@ -141,7 +144,8 @@ plt.legend()
 fig = plt.figure("ion currents")
 axes = fig.add_subplot(1, 1, 1)
 axes.plot(M.t/ms, M_I_Na.I_Na[comp_index,:], label = "I_Na")
-axes.plot(M.t/ms, M_I_K.I_K[comp_index,:], label = "I_K")
+axes.plot(M.t/ms, M_I_Kf.I_Kf[comp_index,:], label = "I_Kf")
+axes.plot(M.t/ms, M_I_Ks.I_Ks[comp_index,:], label = "I_Ks")
 axes.plot(M.t/ms, M_I_KLT.I_KLT[comp_index,:], label = "I_KLT")
 axes.plot(M.t/ms, M_I_HCN.I_HCN[comp_index,:], label = "I_HCN")
 axes.plot(M.t/ms, M_I_L.I_L[comp_index,:], label = "I_L")

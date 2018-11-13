@@ -5,6 +5,7 @@ import numpy as np
 import thorns as th
 from scipy.signal import savgol_filter
 import peakutils as peak
+from importlib import reload
 import pandas as pd
 pd.options.mode.chained_assignment = None
 
@@ -139,10 +140,8 @@ def get_threshold(model_name,
         amp_diff = upper_border - lower_border
     
     if parameter is not None:
-        ##### reset model parameter
-        exec("model.{} = original_param_value".format(parameter))
-        neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
-        exec(param_string)
+        ##### reload module
+        model = reload(model)
 
     return threshold
 
@@ -391,10 +390,8 @@ def get_single_node_response(model_name,
     time_vector = (M.t[int(np.floor(time_before/dt)):]/second).tolist()
     
     if parameter is not None:
-        ##### reset model parameter
-        exec("model.{} = original_param_value".format(parameter))
-        neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
-        exec(param_string)
+        ##### reload module
+        model = reload(model)
     
     return AP_amp/volt, AP_rise_time/second, AP_fall_time/second, latency/second, voltage_course, time_vector
 

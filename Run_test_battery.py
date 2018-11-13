@@ -12,7 +12,7 @@ import matplotlib.pyplot as plt
 import itertools as itl
 import os
 
-###### set working directory to folder of script
+##### set working directory to folder of script
 #abspath = os.path.abspath(__file__)
 #dname = os.path.dirname(abspath)
 #os.chdir(dname)
@@ -25,12 +25,17 @@ import functions.calculations as calc
 
 ##### import models
 import models.Rattay_2001 as rattay_01
+import models.Rattay_adap_2001 as rattay_adap_01
 import models.Frijns_1994 as frijns_94
 import models.Briaire_2005 as briaire_05
+import models.Briaire_adap_2005 as briaire_adap_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
+import models.Imennov_adap_2009 as imennov_adap_09
 import models.Negm_2014 as negm_14
+import models.Negm_ANF_2014 as negm_ANF_14
+import models.Rudnicki_2018 as rudnicki_18
 
 ##### makes code faster and prevents warning
 prefs.codegen.target = "numpy"
@@ -591,7 +596,7 @@ if all_tests or psth_test:
     pulse_forms = list(itl.compress(pulse_forms, [thresholds[ii] != 0 for ii in range(len(thresholds))]))
 
     ##### stimulus levels (will be multiplied with the threshold for a certain stimulation)
-    stim_amp_level = [1,1.2,1.5]
+    stim_amp_level = [1,1.5,2]
     
     ##### number of runs
     nof_runs = 50

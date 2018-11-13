@@ -145,10 +145,6 @@ m_init = alpha_m_0 / (alpha_m_0 + beta_m_0)
 n_init = alpha_n_0 / (alpha_n_0 + beta_n_0)
 h_init = alpha_h_0 / (alpha_h_0 + beta_h_0)                                  
 
-##### calculate resting potential
-#g_total = g_Na + g_K
-#V_res = -(g_Na/g_total)*E_Na - (g_K/g_total)*E_K
-
 ##### calculate Nerst potential for leakage current
 E_L = -(1/g_L)* (g_Na*m_init**3*h_init* E_Na + g_K*n_init**4*E_K)
 
@@ -305,10 +301,6 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         model.m_init = alpha_m_0 / (alpha_m_0 + beta_m_0)
         model.n_init = alpha_n_0 / (alpha_n_0 + beta_n_0)
         model.h_init = alpha_h_0 / (alpha_h_0 + beta_h_0)                                  
-        
-        ##### calculate resting potential
-#        model.g_total = model.g_Na + model.g_K
-#        model.V_res = -(model.g_Na/model.g_total)*E_Na - (model.g_K/model.g_total)*model.E_K
                                           
         ##### calculate Nerst potential for leakage current
         model.E_L = -(1/model.g_L)* (model.g_Na*model.m_init**3*model.h_init* model.E_Na + model.g_K*model.n_init**4*model.E_K)

@@ -14,6 +14,9 @@ T_celsius = 37
 # =============================================================================
 # Permeabilities
 # =============================================================================
+##### Dividing factor for permeabilities in the somatic region (makes currents smaller)
+dividing_factor = 30
+##### Permeabilities
 P_Na = 51.5*um/second
 P_K = 2.0*um/second
 
@@ -38,21 +41,6 @@ K_e = 4.2*mole/meter**3
 rho_in = 70*ohm*cm
 ##### external resistivity
 rho_out = 300*ohm*cm
-
-# =============================================================================
-# Initial values for gating variables (steady state values at resting potential)
-# =============================================================================
-m_init = 0.00775
-n_init = 0.0268
-h_init = 0.7469
-
-# =============================================================================
-# Other parameters
-# =============================================================================
-##### Myelin layers soma and presomatic region
-myelin_layers_somatic_region = 4
-##### Dividing factor for ion currents in the somatic region (makes currents smaller)
-dividing_factor = 30
 
 # =============================================================================
 # Differential equations
@@ -97,6 +85,8 @@ diameter_dendrite = 3*um
 diameter_somatic_region = 2*um
 diameter_soma = 10*um
 diameter_axon = 3*um
+##### myelin sheath
+myelin_layers_somatic_region = 4
 
 # =============================================================================
 # Capacitivites
@@ -138,6 +128,19 @@ inter_pulse_intervals = np.append(np.append(np.linspace(0.8, 0.85, num=20, endpo
 # =============================================================================
 ##### Temperature
 T_kelvin = zero_celsius + T_celsius*kelvin
+
+##### rates for resting potential
+alpha_m_0 = 0.49*(-25.41)/(1-np.exp(25.41/6.06)) * 2.2**(0.1*(T_celsius-20))
+alpha_n_0 = 0.02*(-35)/(1-np.exp(35/10)) * 3**(0.1*(T_celsius-20))
+alpha_h_0 = 0.09*(-27.74)/(1-np.exp(27.74/9.06)) * 2.9**(0.1*(T_celsius-20))
+beta_m_0 = 1.04*21/(1-np.exp(-21/9.41)) * 2.2**(0.1*(T_celsius-20))
+beta_n_0 = 0.05*10/(1-np.exp(-10/10)) * 3**(0.1*(T_celsius-20))
+beta_h_0 = 3.7/(1+np.exp(56/12.5)) * 2.9**(0.1*(T_celsius-20))
+
+##### initial values for gating variables
+m_init = alpha_m_0 / (alpha_m_0 + beta_m_0)
+n_init = alpha_n_0 / (alpha_n_0 + beta_n_0)
+h_init = alpha_h_0 / (alpha_h_0 + beta_h_0)
 
 ##### Potentials
 # Resting potential (calculated with Goldman equation)
@@ -287,6 +290,19 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     if update:
         ##### Temperature
         model.T_kelvin = model.zero_celsius + model.T_celsius*kelvin
+
+        ##### rates for resting potential
+        alpha_m_0 = 0.49*(-25.41)/(1-np.exp(25.41/6.06)) * 2.2**(0.1*(model.T_celsius-20))
+        alpha_n_0 = 0.02*(-35)/(1-np.exp(35/10)) * 3**(0.1*(model.T_celsius-20))
+        alpha_h_0 = 0.09*(-27.74)/(1-np.exp(27.74/9.06)) * 2.9**(0.1*(model.T_celsius-20))
+        beta_m_0 = 1.04*21/(1-np.exp(-21/9.41)) * 2.2**(0.1*(model.T_celsius-20))
+        beta_n_0 = 0.05*10/(1-np.exp(-10/10)) * 3**(0.1*(model.T_celsius-20))
+        beta_h_0 = 3.7/(1+np.exp(56/12.5)) * 2.9**(0.1*(model.T_celsius-20))
+        
+        ##### initial values for gating variables
+        model.m_init = alpha_m_0 / (alpha_m_0 + beta_m_0)
+        model.n_init = alpha_n_0 / (alpha_n_0 + beta_n_0)
+        model.h_init = alpha_h_0 / (alpha_h_0 + beta_h_0)
         
         ##### Potentials
         # Resting potential (calculated with Goldman equation)

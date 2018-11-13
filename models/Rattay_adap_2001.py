@@ -14,6 +14,8 @@ T_celsius = 37
 # =============================================================================
 # Nernst potentials
 # =============================================================================
+##### Resting potential of cell
+V_res = -65*mV
 ##### Nernst potential sodium
 E_Na = 115*mV
 ##### Nernst potential potassium
@@ -173,10 +175,6 @@ w_init = 1/(np.exp(13/5)+1)**(1/4)
 z_init = 1/(2*(np.exp(0.74)+1))+0.5
 r_init = 1/(np.exp(+62/35)+1)
 
-##### calculate resting potential
-g_total = g_Na + g_K + g_KLT + g_HCN
-V_res = -(g_Na/g_total)*E_Na - (g_K/g_total)*E_K - (g_KLT/g_total)*E_K - (g_HCN/g_total)*E_HCN
-                                  
 ##### calculate Nerst potential for leakage current
 E_L = -(1/g_L)* (g_Na*m_init**3*h_init* E_Na + g_K*n_init**4*E_K + g_KLT*w_init**4*z_init*E_K + g_HCN*r_init*E_HCN)
 E_L_presomatic_region = -(1/g_L)* (g_Na*m_init**3*h_init* E_Na + g_K*n_init**4*E_K + g_KLT_soma*w_init**4*z_init*E_K + g_HCN_soma*r_init*E_HCN)
@@ -339,10 +337,6 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         model.z_init = 1/(2*(np.exp(0.74)+1))+0.5
         model.r_init = 1/(np.exp(+62/35)+1)
         
-        ##### calculate resting potential
-        model.g_total = model.g_Na + model.g_K + model.g_KLT + model.g_HCN
-        model.V_res = -(model.g_Na/model.g_total)*model.E_Na - (model.g_K/model.g_total)*model.E_K - (model.g_KLT/model.g_total)*model.E_K - (model.g_HCN/model.g_total)*model.E_HCN
-                                          
         ##### calculate Nerst potential for leakage current
         model.E_L = -(1/model.g_L)* (model.g_Na*model.m_init**3*model.h_init* model.E_Na + model.g_K*model.n_init**4*model.E_K + model.g_KLT*model.w_init**4*model.z_init*model.E_K + model.g_HCN*model.r_init*model.E_HCN)
         model.E_L_presomatic_region = -(1/model.g_L)* (model.g_Na*model.m_init**3*model.h_init* model.E_Na + model.g_K*model.n_init**4*model.E_K + model.g_KLT_soma*model.w_init**4*model.z_init*model.E_K + model.g_HCN_soma*model.r_init*model.E_HCN)
@@ -522,8 +516,7 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     E_Na = {}.E_Na
     E_K = {}.E_K
     E_HCN = {}.E_HCN
-    E_L = {}.E_L
-    '''.format(model_name,model_name,model_name,model_name,model_name,model_name)
+    '''.format(model_name,model_name,model_name,model_name,model_name)
     
     ##### remove spaces to avoid complications
     param_string = param_string.replace(" ", "")

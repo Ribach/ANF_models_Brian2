@@ -19,13 +19,13 @@ dividing_factor = 30
 ##### permeabilites active compartments
 P_Na = 51.5*um/second
 P_K = 2.0*um/second
-P_KLT = 0*um/second
-P_HCN = 0*um/second
+P_KLT = 0.018*um/second
+P_HCN = 0.0108*um/second
 ##### permeabilites somatic region
 P_Na_somatic_region = P_Na / dividing_factor
 P_K_somatic_region = P_K / dividing_factor
-P_KLT_somatic_region = 20*um/second / dividing_factor
-P_HCN_somatic_region = 12*um/second / dividing_factor
+P_KLT_somatic_region = P_KLT / dividing_factor
+P_HCN_somatic_region = P_HCN / dividing_factor
 
 # =============================================================================
 # Conductivities
@@ -147,8 +147,8 @@ electrode_distance = 300*um
 # =============================================================================
 # Display name for plots
 # =============================================================================
-display_name = "Briaire and Frijns 2005"
-display_name_short = "Briaire 05"
+display_name = "Briaire and Frijns 2005 a."
+display_name_short = "Briaire 05 a."
 
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
@@ -340,6 +340,45 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     if update:
         ##### Temperature
         model.T_kelvin = model.zero_celsius + model.T_celsius*kelvin
+
+        ##### rates for resting potential
+        alpha_m_0 = 0.49*(-25.41)/(1-np.exp(25.41/6.06)) * 2.2**(0.1*(model.T_celsius-20))
+        alpha_n_0 = 0.02*(-35)/(1-np.exp(35/10)) * 3**(0.1*(model.T_celsius-20))
+        alpha_h_0 = 0.09*(-27.74)/(1-np.exp(27.74/9.06)) * 2.9**(0.1*(model.T_celsius-20))
+        beta_m_0 = 1.04*21/(1-np.exp(-21/9.41)) * 2.2**(0.1*(model.T_celsius-20))
+        beta_n_0 = 0.05*10/(1-np.exp(-10/10)) * 3**(0.1*(model.T_celsius-20))
+        beta_h_0 = 3.7/(1+np.exp(56/12.5)) * 2.9**(0.1*(model.T_celsius-20))
+        
+        ##### initial values for gating variables
+        model.m_init = alpha_m_0 / (alpha_m_0 + beta_m_0)
+        model.n_init = alpha_n_0 / (alpha_n_0 + beta_n_0)
+        model.h_init = alpha_h_0 / (alpha_h_0 + beta_h_0)
+        
+        ##### Potentials
+        # Resting potential (calculated with Goldman equation)
+        model.V_res = (model.R*model.T_kelvin)/model.F * np.log((model.P_K*model.n_init**2*model.K_e + model.P_Na*model.h_init*model.m_init**3*model.Na_e +
+                      model.P_KLT*model.z_init*model.w_init**4*model.K_e + model.P_HCN*model.r_init*model.C_e)/
+                 (model.P_K*model.n_init**2*model.K_i + model.P_Na*model.h_init*model.m_init**3*model.Na_i +
+                  model.P_KLT*model.z_init*model.w_init**4*model.K_i + model.P_HCN*model.r_init*model.C_i))
+        
+        # Nerst potential for leakage current
+        model.E_L = (-1/model.g_L)*(model.P_Na*model.m_init**3*model.h_init*(model.V_res*model.F**2)/(model.R*model.T_kelvin) *
+                     (model.Na_e-model.Na_i*np.exp(model.V_res*model.F/(model.R*model.T_kelvin)))/(1-np.exp(model.V_res*model.F/(model.R*model.T_kelvin))) +
+                     model.P_K*model.n_init**2*(model.V_res*model.F**2)/(model.R*model.T_kelvin) *
+                     (model.K_e-model.K_i*np.exp(model.V_res*model.F/(model.R*model.T_kelvin)))/(1-np.exp(model.V_res*model.F/(model.R*model.T_kelvin))) +
+                     model.P_KLT*model.z_init*model.w_init**4*(model.V_res*model.F**2)/(model.R*model.T_kelvin) *
+                     (model.K_e-model.K_i*np.exp(model.V_res*model.F/(model.R*model.T_kelvin)))/(1-np.exp(model.V_res*model.F/(model.R*model.T_kelvin))) +
+                     model.P_HCN*model.r_init*(model.V_res*model.F**2)/(model.R*model.T_kelvin) *
+                     (model.C_e-model.C_i*np.exp(model.V_res*model.F/(model.R*model.T_kelvin)))/(1-np.exp(model.V_res*model.F/(model.R*model.T_kelvin))))
+        
+        model.E_L_somatic_region = (-1/model.g_L_somatic_region)*(model.P_Na_somatic_region*model.m_init**3*model.h_init*(model.V_res*model.F**2)/(model.R*model.T_kelvin) *
+                                     (model.Na_e-model.Na_i*np.exp(model.V_res*model.F/(model.R*model.T_kelvin)))/(1-np.exp(model.V_res*model.F/(model.R*model.T_kelvin))) +
+                                     model.P_K_somatic_region*model.n_init**2*(model.V_res*model.F**2)/(model.R*model.T_kelvin) *
+                                     (model.K_e-model.K_i*np.exp(model.V_res*model.F/(model.R*model.T_kelvin)))/(1-np.exp(model.V_res*model.F/(model.R*model.T_kelvin))) +
+                                     model.P_KLT_somatic_region*model.z_init*model.w_init**4*(model.V_res*model.F**2)/(model.R*model.T_kelvin) *
+                                     (model.K_e-model.K_i*np.exp(model.V_res*model.F/(model.R*model.T_kelvin)))/(1-np.exp(model.V_res*model.F/(model.R*model.T_kelvin))) +
+                                     model.P_HCN_somatic_region*model.r_init*(model.V_res*model.F**2)/(model.R*model.T_kelvin) *
+                                     (model.C_e-model.C_i*np.exp(model.V_res*model.F/(model.R*model.T_kelvin)))/(1-np.exp(model.V_res*model.F/(model.R*model.T_kelvin))))
         
         ##### Potentials
         # Resting potential (calculated with Goldman equation)
@@ -482,7 +521,7 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     neuron.r = model.r_init
     
     ##### Set parameter values (parameters that were initialised in the equations eqs and which are different for different compartment types)
-    # permeabilities presomatic region and active compartments
+    # permeabilities peripheral terminal and active compartments
     neuron.P_Na[np.asarray(np.where(np.logical_or(model.structure == 0, model.structure == 2)))] = model.P_Na
     neuron.P_K[np.asarray(np.where(np.logical_or(model.structure == 0, model.structure == 2)))] = model.P_K
     neuron.P_KLT[np.asarray(np.where(np.logical_or(model.structure == 0, model.structure == 2)))] = model.P_KLT
@@ -496,20 +535,27 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     neuron.P_HCN[np.asarray(np.where(model.structure == 1))] = 0*meter/second
     neuron.g_L[np.asarray(np.where(model.structure == 1))] = 0*siemens/meter**2
     
-    # permeabilities somatic region
+    # conductances
+    neuron.g_myelin = model.g_m
+    
+    # permeabilities presomatic region
     neuron.P_Na[index_presomatic_region] = model.P_Na_somatic_region
     neuron.P_K[index_presomatic_region] = model.P_K_somatic_region
     neuron.P_KLT[index_presomatic_region] = model.P_KLT_somatic_region
     neuron.P_HCN[index_presomatic_region] = model.P_HCN_somatic_region
     neuron.g_L[index_presomatic_region] = model.g_L_somatic_region
     
+    # permeabilities soma
+    neuron.P_Na[index_soma] = model.P_Na_somatic_region
+    neuron.P_K[index_soma] = model.P_K_somatic_region
+    neuron.P_KLT[index_soma] = model.P_KLT_somatic_region
+    neuron.P_HCN[index_soma] = model.P_HCN_somatic_region
+    neuron.g_L[index_soma] = model.g_L_somatic_region
+    
     # Nernst potential for leakage current
     neuron.E_Leak = model.E_L
     neuron.E_Leak[index_presomatic_region] = E_L_somatic_region
     neuron.E_Leak[model.index_soma] = E_L_somatic_region
-    
-    # conductances
-    neuron.g_myelin = model.g_m
     
     ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
     param_string = '''
@@ -522,8 +568,7 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     K_e = {}.K_e
     C_i = {}.C_i
     C_e = {}.C_e
-    E_L = {}.E_L
-    '''.format(model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name)
+    '''.format(model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name)
     
     ##### remove spaces to avoid complications
     param_string = param_string.replace(" ", "")

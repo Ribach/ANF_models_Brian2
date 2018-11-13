@@ -854,20 +854,22 @@ def latencies_over_stimulus_duration(plot_name,
     if latency_measurements is not None:
         
         ##### get subjects
-        subjects = latency_measurements["subject"].unique().tolist()
-        
+        subjects = latency_measurements[["subject", "ear"]].drop_duplicates()
+                
         ##### loop over subjects
-        for ii, subject in enumerate(subjects):
+        for ii in range(len(subjects)):
                     
             ##### building a subset
-            current_data = latency_measurements[latency_measurements["subject"] == subject]
-                                      
+            current_data = latency_measurements[latency_measurements["subject"] == subjects["subject"].tolist()[ii]]
+            current_data = current_data[current_data["ear"] == subjects["ear"].tolist()[ii]]
+            
             ##### plot threshold curve
             axes.plot(current_data["amplitude level"], current_data["latency (ms)"], color = colors[ii+len(models)], label = "_nolegend_")
             
             ##### show points
             axes.scatter(current_data["amplitude level"], current_data["latency (ms)"],
-                                      color = colors[ii+len(models)], marker = markers[ii+len(models)], edgecolor = edgecolors[ii+len(models)], label = "{}".format(subject))
+                                      color = colors[ii+len(models)], marker = markers[ii+len(models)], edgecolor = edgecolors[ii+len(models)],
+                                      label = "{}, {} ear".format(subjects["subject"].tolist()[ii],subjects["ear"].tolist()[ii]))
                 
     ##### add legend
     plt.legend()

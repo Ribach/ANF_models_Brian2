@@ -26,18 +26,29 @@ E_HCN = -43*mV - V_res
 # =============================================================================
 # Conductivities
 # =============================================================================
-##### conductivities nodes
+##### dividing factor for conductances of peripheral terminal and somatic region (makes currents smalller)
+dividing_factor_conductances = 15
+##### conductances nodes
 gamma_Na = 25.69*psiemens
 gamma_K = 50*psiemens
 gamma_KLT = 13*psiemens
 gamma_HCN = 13*psiemens
-##### dividing factor for conductances of peripheral terminal
-dividing_factor = 15
+##### conductances peripheral terminal
+gamma_Na_terminal = gamma_Na / dividing_factor_conductances
+gamma_K_terminal = gamma_K / dividing_factor_conductances
+gamma_KLT_terminal = gamma_KLT / dividing_factor_conductances
+gamma_HCN_terminal = gamma_HCN / dividing_factor_conductances
+##### conductances somatic region
+gamma_Na_somatic_region = gamma_Na / dividing_factor_conductances
+gamma_K_somatic_region = gamma_K / dividing_factor_conductances
+gamma_KLT_somatic_region = gamma_KLT / dividing_factor_conductances *0
+gamma_HCN_somatic_region = gamma_HCN / dividing_factor_conductances *0
 
 # =============================================================================
 #  Morphologic data
 # =============================================================================
 ##### structure
+nof_segments_presomatic_region = 3
 nof_segments_soma = 20
 nof_segments_internodes = 9
 nof_axonal_internodes = 10
@@ -47,9 +58,10 @@ length_internodes_dendrite = 150*um
 length_internodes_axon = [150,200,250,300,350]*um # the last value defines the lengths of further internodes
 length_nodes_dendrite = 1*um
 length_nodes_axon = 1*um
+length_presomatic_region = 60*um
 ##### diameters
 diameter_dendrite = 1.2*um
-diameter_soma = 30*um
+diameter_soma = 25*um
 diameter_axon = 2.3*um
 ##### myelin sheath thicknes
 thicknes_myelin_sheath = 1*um
@@ -57,12 +69,14 @@ thicknes_myelin_sheath = 1*um
 e_r = 1.27
 ##### usual nodal suface aria (as in some cases absolute values were given and values per aria needed
 # and nodal dimesions were not defined in the paper by Negm and Bruce 2014)
-aria = 5*um*1*um*np.pi
+aria = 10*um*1*um*np.pi
 
 # =============================================================================
 # Conductivity of leakage channels
 # =============================================================================
 g_L = (1953.49*Mohm)**-1/aria
+g_L_terminal = (1953.49*Mohm)**-1/aria / dividing_factor_conductances
+g_L_somatic_region = (1953.49*Mohm)**-1/aria / dividing_factor_conductances
 
 # =============================================================================
 # Resistivity of internodes
@@ -86,16 +100,6 @@ rho_in = 50*ohm*cm
 rho_out = 300*ohm*cm
 
 # =============================================================================
-# Initial values for gating variables
-# =============================================================================
-m_init = 0.01053
-n_init = 0.01158
-h_init = 0.7553
-w_init = 0.5074
-z_init = 0.6642
-r_init = 0.1498
-
-# =============================================================================
 # Differential equations
 # =============================================================================
 eqs = '''
@@ -103,7 +107,7 @@ I_Na = gamma_Na*rho_Na*m**3*h* (E_Na-(v-V_res)) : amp/meter**2
 I_K = gamma_K*rho_K*n**4*(E_K-(v-V_res)) : amp/meter**2
 I_KLT = gamma_KLT*rho_KLT*w**4*z*(E_K-(v-V_res)) : amp/meter**2
 I_HCN = gamma_HCN*rho_HCN*r*(E_HCN-(v-V_res)) : amp/meter**2
-I_L = g_L*(E_L-(v-V_res)) : amp/meter**2
+I_L = g_L*(E_Leak-(v-V_res)) : amp/meter**2
 Im = I_Na + I_K + I_KLT + I_HCN + I_L + g_myelin*(-(v-V_res)): amp/meter**2
 I_stim = stimulus(t,i) : amp (point current)
 dm/dt = alpha_m * (1-m) - beta_m * m : 1
@@ -136,6 +140,7 @@ gamma_KLT : siemens
 gamma_HCN : siemens
 g_L : siemens/meter**2
 g_myelin : siemens/meter**2
+E_Leak : volt
 '''
 
 # =============================================================================
@@ -143,6 +148,8 @@ g_myelin : siemens/meter**2
 # =============================================================================
 ##### cell membrane capacity of axolemma
 c_m_axolemma = 0.0714*pF/aria
+##### dividing factor for somatic region
+dividing_factor_capacitances = 4
 
 # =============================================================================
 # Noise factor
@@ -157,8 +164,8 @@ electrode_distance = 300*um
 # =============================================================================
 # Display name for plots
 # =============================================================================
-display_name = "Negm and Bruce ANF 2014"
-display_name_short = "Negm ANF 14"
+display_name = "Negm and Bruce 2014 ANF"
+display_name_short = "Negm 14 ANF"
 
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
@@ -169,6 +176,30 @@ inter_pulse_intervals = np.append(np.linspace(1.5, 1.6, num=29, endpoint = False
 # =============================================================================
 # Calculations
 # =============================================================================
+##### rates for resting potential
+alpha_m_0 = 1.875*(-25.41)/(1-np.exp(25.41/6.6))
+beta_m_0 = 3.973*(21.001)/(1-np.exp(-21.001/9.41))
+alpha_h_0 = -0.549*27.74/(1-np.exp(27.74/9.06))
+beta_h_0 = 22.57/(1+np.exp(56.0/12.5))
+alpha_n_0 = 0.129*(-35)/(1-np.exp((35)/10))
+beta_n_0 = 0.3236*35/(1-np.exp(-35/10))
+
+##### initial values for gating variables
+m_init = alpha_m_0 / (alpha_m_0 + beta_m_0)
+n_init = alpha_n_0 / (alpha_n_0 + beta_n_0)
+h_init = alpha_h_0 / (alpha_h_0 + beta_h_0)                                  
+w_init = 1/(np.exp(13/5)+1)**(1/4)
+z_init = 1/(2*(np.exp(0.74)+1))+0.5
+r_init = 1/(np.exp(+62/35)+1)
+
+
+##### calculate Nerst potential for leakage current
+E_L = -(1/g_L)* (gamma_Na*rho_Na*m_init**3*h_init* E_Na + gamma_K*rho_K*n_init**4*E_K + gamma_KLT*rho_KLT*w_init**4*z_init*E_K + gamma_HCN*rho_HCN*r_init*E_HCN)
+E_L_terminal = -(1/g_L_terminal)* (gamma_Na_terminal*rho_Na*m_init**3*h_init* E_Na + gamma_K_terminal*rho_K*n_init**4*E_K +
+                gamma_KLT_terminal*rho_KLT*w_init**4*z_init*E_K + gamma_HCN_terminal*rho_HCN*r_init*E_HCN)
+E_L_somatic_region = -(1/g_L_somatic_region)* (gamma_Na_somatic_region*rho_Na*m_init**3*h_init* E_Na + gamma_K_somatic_region*rho_K*n_init**4*E_K +
+                      gamma_KLT_somatic_region*rho_KLT*w_init**4*z_init*E_K + gamma_HCN_somatic_region*rho_HCN*r_init*E_HCN)
+
 #####  Structure of ANF
 # terminal = 0
 # internode = 1
@@ -176,8 +207,12 @@ inter_pulse_intervals = np.append(np.linspace(1.5, 1.6, num=29, endpoint = False
 # presomatic region = 3
 # Soma = 4
 # postsomatic region = 5
-structure = np.array([0] + list(np.tile(np.tile([1],nof_segments_internodes).tolist() + [2],3)) +
+structure = np.array([0] + list(np.tile(np.tile([1],nof_segments_internodes).tolist() + [2],5)) + list(np.tile([3],nof_segments_presomatic_region)) +
                      list(np.tile([4],nof_segments_soma)) + list(np.tile([2] + np.tile([1],nof_segments_internodes).tolist(),nof_axonal_internodes)))
+
+# indexes presomatic region
+index_presomatic_region = np.argwhere(structure == 3)
+start_index_presomatic_region = int(index_presomatic_region[0])
 # indexes of soma
 index_soma = np.argwhere(structure == 4)
 start_index_soma = int(index_soma[0])
@@ -201,6 +236,8 @@ compartment_lengths[end_index_soma+1:][structure[end_index_soma+1:] == 1] = np.r
 compartment_lengths[0:start_index_soma][structure[0:start_index_soma] == 2] = length_nodes_dendrite
 # nodes axon
 compartment_lengths[end_index_soma+1:][structure[end_index_soma+1:] == 2] = length_nodes_axon
+# presomatic region
+compartment_lengths[structure == 3] = length_presomatic_region/nof_segments_presomatic_region
 # soma
 compartment_lengths[structure == 4] = diameter_soma/nof_segments_soma
 # total length neuron
@@ -252,17 +289,15 @@ c_m[structure == 2] = c_m_axolemma
 # internodes (formula in paper gives capacitances so its divided by the internodal surface arias)
 c_m[structure == 1] = (2*e_0*e_r)/np.log((compartment_diameters[:-1][structure == 1] + thicknes_myelin_sheath*2)/compartment_diameters[:-1][structure == 1])/\
                       compartment_diameters[:-1][structure == 1]
-# soma (formula in paper gives capacitances so its divided by the somatic surface arias)
-soma_middle_diameters = (compartment_diameters[:-1][structure == 4] + compartment_diameters[1:][structure == 4])/2
-c_m[structure == 4] = (2*e_0*e_r)/np.log((soma_middle_diameters + thicknes_myelin_sheath*2)/soma_middle_diameters)/soma_middle_diameters
-                      
-##### Condactivities internodes and soma
+# somatic region
+c_m[index_presomatic_region] = c_m_axolemma/dividing_factor_capacitances
+c_m[index_soma] = c_m_axolemma/dividing_factor_capacitances
+
+##### Conductivities internodes and soma
 # initialize
 g_m = np.zeros_like(structure)*msiemens/cm**2
 # internodes (formula in paper gives conductance so its divided by the internodal surface arias)
 g_m[structure == 1] = (2*compartment_diameters[:-1][structure == 1])/(rho_m*thicknes_myelin_sheath*2)/compartment_diameters[:-1][structure == 1]
-# soma (formula in paper gives conductance so its divided by the somatic surface arias)
-g_m[structure == 4] = (2*soma_middle_diameters)/(rho_m*thicknes_myelin_sheath*2)/soma_middle_diameters
 
 ##### Axoplasmatic resistances
 compartment_center_diameters = np.zeros(nof_comps)*um
@@ -272,18 +307,19 @@ R_a = (compartment_lengths*rho_in) / ((compartment_center_diameters*0.5)**2*np.p
 ##### Noise term
 gamma_Na_vector = np.zeros(nof_comps)*psiemens
 gamma_Na_vector[structure == 2] = gamma_Na
-gamma_Na_vector[structure == 0] = gamma_Na / dividing_factor
-gamma_Na_vector[structure == 3] = gamma_Na / dividing_factor
-gamma_Na_vector[structure == 4] = gamma_Na / dividing_factor
+gamma_Na_vector[structure == 0] = gamma_Na / dividing_factor_conductances
+gamma_Na_vector[structure == 3] = gamma_Na / dividing_factor_conductances
+gamma_Na_vector[structure == 4] = gamma_Na / dividing_factor_conductances
 noise_term = np.sqrt(A_surface*gamma_Na_vector*rho_Na)
 
 ##### Compartments to plot
 # get indexes of all compartments that are not segmented
 indexes_comps = np.where(np.logical_or(structure == 0, structure == 2))[0]
-# calculate middle compartments of internodes and soma
+# calculate middle compartments of internodes
 middle_comps_internodes = np.ceil(indexes_comps[:-1] + nof_segments_internodes/2).astype(int)
 middle_comps_internodes = middle_comps_internodes[np.logical_or(middle_comps_internodes < start_index_soma, middle_comps_internodes > end_index_soma)]
-# calculate middle compartments of soma
+# calculate middle compartments of somatic region
+middle_comp_presomatic_region = int(start_index_presomatic_region + np.floor((nof_segments_presomatic_region)/2))
 middle_comp_soma = int(start_index_soma + np.floor((nof_segments_soma)/2))
 # create array with all compartments to plot
 comps_to_plot = np.sort(np.append(np.append(indexes_comps, middle_comps_internodes), middle_comp_soma))
@@ -429,20 +465,40 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     neuron.gamma_HCN = model.gamma_HCN
     neuron.g_L = model.g_L
     
-    # conductances peripheral terminal
-    neuron.gamma_Na[np.where(model.structure == 0)[0]] = model.gamma_Na / model.dividing_factor
-    neuron.gamma_K[np.where(model.structure == 0)[0]] = model.gamma_K / model.dividing_factor
-    neuron.gamma_KLT[np.where(model.structure == 0)[0]] = model.gamma_KLT / model.dividing_factor
-    neuron.gamma_HCN[np.where(model.structure == 0)[0]] = model.gamma_HCN / model.dividing_factor
-    neuron.g_L[np.where(model.structure == 0)[0]] = model.g_L / model.dividing_factor
-
-    # conductances internodes and soma
+    # conductances internodes
     neuron.g_myelin = model.g_m
-    neuron.gamma_Na[np.where(np.logical_or(model.structure == 1,model.structure == 4))[0]] = 0*psiemens
-    neuron.gamma_K[np.where(np.logical_or(model.structure == 1,model.structure == 4))[0]] = 0*psiemens
-    neuron.gamma_KLT[np.where(np.logical_or(model.structure == 1,model.structure == 4))[0]] = 0*psiemens
-    neuron.gamma_HCN[np.where(np.logical_or(model.structure == 1,model.structure == 4))[0]] = 0*psiemens
-    neuron.g_L[np.where(np.logical_or(model.structure == 1,model.structure == 4))[0]] = 0*msiemens/cm**2
+    neuron.gamma_Na[np.asarray(np.where(model.structure == 1))] = 0*psiemens
+    neuron.gamma_K[np.asarray(np.where(model.structure == 1))] = 0*psiemens
+    neuron.gamma_KLT[np.asarray(np.where(model.structure == 1))] = 0*psiemens
+    neuron.gamma_HCN[np.asarray(np.where(model.structure == 1))] = 0*psiemens
+    neuron.g_L[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
+    
+    # conductances peripheral terminal
+    neuron.gamma_Na[np.where(model.structure == 0)[0]] = model.gamma_Na_terminal
+    neuron.gamma_K[np.where(model.structure == 0)[0]] = model.gamma_K_terminal
+    neuron.gamma_KLT[np.where(model.structure == 0)[0]] = model.gamma_KLT_terminal
+    neuron.gamma_HCN[np.where(model.structure == 0)[0]] = model.gamma_HCN_terminal
+    neuron.g_L[np.where(model.structure == 0)[0]] = model.g_L_terminal
+    
+    # conductances presomatic terminal
+    neuron.gamma_Na[index_presomatic_region] = model.gamma_Na_somatic_region
+    neuron.gamma_K[index_presomatic_region] = model.gamma_K_somatic_region
+    neuron.gamma_KLT[index_presomatic_region] = model.gamma_KLT_somatic_region
+    neuron.gamma_HCN[index_presomatic_region] = model.gamma_HCN_somatic_region
+    neuron.g_L[index_presomatic_region] = model.g_L_somatic_region
+    
+    # conductances soma
+    neuron.gamma_Na[index_soma] = model.gamma_Na_somatic_region
+    neuron.gamma_K[index_soma] = model.gamma_K_somatic_region
+    neuron.gamma_KLT[index_soma] = model.gamma_KLT_somatic_region
+    neuron.gamma_HCN[index_soma] = model.gamma_HCN_somatic_region
+    neuron.g_L[index_soma] = model.g_L_somatic_region
+    
+    # Nernst potential for leakage current
+    neuron.E_Leak = model.E_L
+    neuron.E_Leak[np.where(model.structure == 0)[0]] = E_L_terminal
+    neuron.E_Leak[model.index_presomatic_region] = E_L_somatic_region
+    neuron.E_Leak[model.index_soma] = E_L_somatic_region
     
     ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
     param_string = '''
@@ -451,12 +507,11 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     E_Na = {}.E_Na
     E_K = {}.E_K
     E_HCN = {}.E_HCN
-    E_L = {}.E_L
     rho_Na = {}.rho_Na
     rho_K = {}.rho_K
     rho_KLT = {}.rho_KLT
     rho_HCN = {}.rho_HCN
-    '''.format(model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name)
+    '''.format(model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name)
     
     ##### remove spaces to avoid complications
     param_string = param_string.replace(" ", "")

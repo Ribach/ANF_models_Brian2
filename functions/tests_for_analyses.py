@@ -36,6 +36,7 @@ def get_latency(model_name,
                 inter_phase_gap = 0*us,
                 stimulation_type = "extern",
                 pulse_form = "bi",
+                electrode_distance = 300*um,
                 time_before = 2*ms,
                 time_after = 2*ms,
                 add_noise = False,
@@ -68,9 +69,10 @@ def get_latency(model_name,
         Gives back the duration of the simulation
     """
     
-    ##### add quantity to phase_duration
+    ##### add quantity to phase_duration, stim_amp and electrode_distance
     phase_duration = float(phase_duration)*second
     stim_amp = float(stim_amp)*amp
+    electrode_distance = float(electrode_distance)*meter
     
     ##### get model
     model = eval(model_name)
@@ -84,6 +86,9 @@ def get_latency(model_name,
             model.nof_internodes = measurement_node + 5
         else:
             model.nof_axonal_internodes = measurement_node + 2
+    
+    ##### adjust electrode distance
+    model.electrode_distance = electrode_distance
      
     ##### initialize model
     neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
@@ -140,6 +145,100 @@ def get_latency(model_name,
     model = reload(model)
     
     return latency/second
+
+# =============================================================================
+# Calculate electrode distance to obtain a certain threshold
+# =============================================================================
+def get_electrode_distance(model_name,
+                           dt,
+                           threshold,
+                           phase_duration,
+                           delta,
+                           distances_start_interval,
+                           inter_phase_gap = 0*us,
+                           pulse_form = "mono",
+                           stimulation_type = "extern",
+                           time_before = 3*ms,
+                           time_after = 3*ms,
+                           print_progress = True):
+    
+    ##### add quantity to phase_duration and inter_phase_gap
+    phase_duration = float(phase_duration)*second
+    inter_phase_gap = float(inter_phase_gap)*second
+    
+    ##### get model
+    model = eval(model_name)
+    
+    ##### compartment for measurements
+    comp_index = np.where(model.structure == 2)[0][10]
+    
+    ##### initializations
+    electrode_distance = 0*meter
+    lower_border = distances_start_interval[0]
+    upper_border = distances_start_interval[1]
+    distance = (upper_border - lower_border)/2
+    distance_diff = upper_border - lower_border
+    
+    ##### initialize model
+    model.electrode_distance = distance
+    neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
+    exec(param_string)
+    M = StateMonitor(neuron, 'v', record=True)
+    store('initialized')
+    
+    ##### adjust stimulus amplitude until required accuracy is obtained
+    while distance_diff > delta:
+        
+        ##### print progress
+        if print_progress: print("Model: {}; Threshold: {} uA; Distance: {} mm".format(model_name,
+                                 np.round(threshold/uA),np.round(distance/mm,3)))
+        
+        ##### initialize model with new distance
+        model.electrode_distance = distance
+        neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
+        exec(param_string)
+        M = StateMonitor(neuron, 'v', record=True)
+        store('initialized')
+        
+        ##### define how the ANF is stimulated
+        I_stim, runtime = stim.get_stimulus_current(model = model,
+                                                    dt = dt,
+                                                    stimulation_type = stimulation_type,
+                                                    pulse_form = pulse_form,
+                                                    add_noise = False,
+                                                    time_before = time_before,
+                                                    time_after = time_after,
+                                                    ##### monophasic stimulation
+                                                    amp_mono = -threshold,
+                                                    duration_mono = phase_duration,
+                                                    ##### biphasic stimulation
+                                                    amps_bi = [-threshold/amp,threshold/amp]*amp,
+                                                    durations_bi = [phase_duration/second,inter_phase_gap/second,phase_duration/second]*second)
+    
+        ##### get TimedArray of stimulus currents and run simulation
+        stimulus = TimedArray(np.transpose(I_stim), dt=dt)
+        
+        ##### reset state monitor
+        restore('initialized')
+        
+        ##### run simulation
+        run(runtime)
+        
+        ##### test if there was a spike
+        if max(M.v[comp_index,:]-model.V_res) < 60*mV:
+            electrode_distance = distance
+            upper_border = distance
+            distance = (distance + lower_border)/2
+        else:
+            lower_border = distance
+            distance = (distance + upper_border)/2
+            
+        distance_diff = upper_border - lower_border
+    
+    ##### reload module
+    model = reload(model)
+
+    return electrode_distance
 
 # =============================================================================
 #  Computational efficiency test

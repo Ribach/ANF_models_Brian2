@@ -7,6 +7,11 @@ import numpy as np
 import functions.calculations as calc
 
 # =============================================================================
+# Temperature
+# =============================================================================
+T_celsius = 37
+
+# =============================================================================
 # Constriction factor (constricts surface aria of nodes)
 # =============================================================================
 cons_fac = 1/2
@@ -20,7 +25,8 @@ V_res = -84*mV
 E_Na = 50*mV - V_res
 ##### Nernst potential potassium
 E_K = -84*mV - V_res
-
+##### Reversal potential hyperpolarization-activated cation (HCN) channels
+E_HCN = 35*mV
 # =============================================================================
 # Conductivities
 # =============================================================================
@@ -28,6 +34,8 @@ E_K = -84*mV - V_res
 gamma_Na = 20*psiemens
 gamma_Ks = 10*psiemens
 gamma_Kf = 10*psiemens
+gamma_KLT = 170*psiemens
+gamma_HCN = 170*psiemens
 
 ##### cell membrane conductivity nodes
 g_L = 1/(8310*ohm*mm**2) * cons_fac
@@ -38,6 +46,8 @@ g_L = 1/(8310*ohm*mm**2) * cons_fac
 rho_Na = 618/um**2 * cons_fac
 rho_Kf = 20.3/um**2 * cons_fac
 rho_Ks = 41.2/um**2 * cons_fac
+rho_KLT = 20/um**2 * cons_fac
+rho_HCN = 12/um**2 * cons_fac
 
 # =============================================================================
 # Resistivities
@@ -54,13 +64,18 @@ eqs = '''
 I_Na = gamma_Na*rho_Na*m**3*h* (E_Na-(v-V_res)) : amp/meter**2
 I_Ks = gamma_Ks*rho_Ks*ns**4*(E_K-(v-V_res)) : amp/meter**2
 I_Kf = gamma_Kf*rho_Kf*nf**4*(E_K-(v-V_res)) : amp/meter**2
-I_L = g_L*(E_L-(v-V_res)) : amp/meter**2
-Im = I_Na + I_Ks + I_Kf + I_L + g_myelin*(-(v-V_res)): amp/meter**2
+I_KLT = gamma_KLT*rho_KLT*w**4*z*(E_K-(v-V_res)) : amp/meter**2
+I_HCN = gamma_HCN*rho_HCN*r*(E_HCN-(v-V_res)) : amp/meter**2
+I_L = g_L*(E_Leak-(v-V_res)) : amp/meter**2
+Im = I_Na + I_Ks + I_Kf + I_KLT + I_HCN + I_L + g_myelin*(-(v-V_res)): amp/meter**2
 I_stim = stimulus(t,i) : amp (point current)
-dm/dt = alpha_m * (1-m) - beta_m * m : 1
-dns/dt = alpha_ns * (1-ns) - beta_ns * ns : 1
-dnf/dt = alpha_nf * (1-nf) - beta_nf * nf : 1
-dh/dt = alpha_h * (1-h) - beta_h * h : 1
+dm/dt = (alpha_m * (1-m) - beta_m * m) : 1
+dns/dt = (alpha_ns * (1-ns) - beta_ns * ns) : 1
+dnf/dt = (alpha_nf * (1-nf) - beta_nf * nf) : 1
+dh/dt = (alpha_h * (1-h) - beta_h * h) : 1
+dw/dt = alpha_w * (1-w) - beta_w * w : 1
+dz/dt = alpha_z * (1-z) - beta_z * z : 1
+dr/dt = alpha_r * (1-r) - beta_r * r : 1
 alpha_m = 6.57/mV*(v-(-27.4*mV))/(1-exp(((-27.4*mV)-v)/(10.3*mV)))/ms : Hz
 alpha_ns = 0.3/mV*(v-(-12.5*mV))/(1-exp(((-12.5*mV)-v)/(23.6*mV)))/ms : Hz
 alpha_nf = 0.0462/mV*(v-(-93.2*mV))/(1-exp(((-93.2*mV)-v)/(1.1*mV)))/ms : Hz
@@ -69,11 +84,26 @@ beta_m = 0.304/mV*((-25.7*mV)-v)/(1-exp((v-(-25.7*mV))/(9.16*mV)))/ms : Hz
 beta_ns = 0.003631/mV*((-80.1*mV)-v)/(1-exp((v-(-80.1*mV))/(21.8*mV)))/ms : Hz
 beta_nf = 0.0824/mV*((-76*mV)-v)/(1-exp((v-(-76*mV))/(10.5*mV)))/ms : Hz
 beta_h = 12.6/(1+exp(((-31.8*mV)-v)/(13.4*mV)))/ms : Hz
+w_inf = 1/(exp(13/5-(v-V_res)/(6*mV))+1)**(1/4) : 1
+tau_w = 0.2887 + (17.53*exp((v-V_res)/(45*mV)))/(3*exp(17*(v-V_res)/(90*mV))+15.791) : 1
+alpha_w = w_inf/tau_w * 3**(0.1*(T_celsius-37))/ms : Hz
+beta_w = (1-w_inf)/tau_w * 3**(0.1*(T_celsius-37))/ms : Hz
+z_inf = 1/(2*(exp((v-V_res)/(10*mV)+0.74)+1))+0.5 : 1
+tau_z = 9.6225 + (2073.6*exp((v-V_res)/(8*mV)))/(9*(exp(7*(v-V_res)/(40*mV))+1.8776)) : 1
+alpha_z = z_inf/tau_z * 3**(0.1*(T_celsius-37))/ms : Hz
+beta_z = (1-z_inf)/tau_z * 3**(0.1*(T_celsius-37))/ms : Hz
+r_inf = 1/(exp((v-V_res)/(7*mV)+62/35)+1) : 1
+tau_r = 50000/(711*exp((v-V_res)/(12*mV)-3/10)+51*exp(9/35-(v-V_res)/(14*mV)))+25/6 : 1
+alpha_r = r_inf/tau_r * 3.3**(0.1*(T_celsius-37))/ms : Hz
+beta_r = (1-r_inf)/tau_r * 3.3**(0.1*(T_celsius-37))/ms : Hz
 gamma_Na : siemens
 gamma_Ks : siemens
 gamma_Kf : siemens
+gamma_KLT : siemens
+gamma_HCN : siemens
 g_L : siemens/meter**2
 g_myelin : siemens/meter**2
+E_Leak : volt
 '''
 
 # =============================================================================
@@ -115,8 +145,8 @@ electrode_distance = 300*um
 # =============================================================================
 # Display name for plots
 # =============================================================================
-display_name = "Imennov and Rubinstein 2009"
-display_name_short = "Imennov 09"
+display_name = "Imennov and Rubinstein 2009 a."
+display_name_short = "Imennov 09 a."
 
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
@@ -143,9 +173,13 @@ m_init = alpha_m_0 / (alpha_m_0 + beta_m_0)
 ns_init = alpha_ns_0 / (alpha_ns_0 + beta_ns_0)
 nf_init = alpha_nf_0 / (alpha_nf_0 + beta_nf_0)
 h_init = alpha_h_0 / (alpha_h_0 + beta_h_0)                                  
+w_init = 1/(np.exp(13/5)+1)**(1/4)
+z_init = 1/(2*(np.exp(0.74)+1))+0.5
+r_init = 1/(np.exp(+62/35)+1)
 
 ##### calculate Nerst potential for leakage current
-E_L = -(1/g_L)* (gamma_Na*rho_Na*m_init**3*h_init* E_Na + gamma_Ks*rho_Ks*nf_init**4*E_K + gamma_Kf*rho_Kf*ns_init**4*E_K)
+E_L = -(1/g_L)* (gamma_Na*rho_Na*m_init**3*h_init* E_Na + gamma_Ks*rho_Ks*nf_init**4*E_K +
+       gamma_Kf*rho_Kf*ns_init**4*E_K + gamma_KLT*rho_KLT*w_init**4*z_init*E_K + gamma_HCN*rho_HCN*r_init*E_HCN)
 
 ##### structure of ANF
 # terminal = 0
@@ -379,12 +413,17 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     neuron.ns = model.ns_init
     neuron.nf = model.nf_init
     neuron.h = model.h_init
+    neuron.w = model.w_init
+    neuron.z = model.z_init
+    neuron.r = model.r_init
     
     ##### Set parameter values (parameters that were initialised in the equations eqs and which are different for different compartment types)
     # conductances active compartments
     neuron.gamma_Na = model.gamma_Na
     neuron.gamma_Ks = model.gamma_Ks
     neuron.gamma_Kf = model.gamma_Kf
+    neuron.gamma_KLT = model.gamma_KLT
+    neuron.gamma_HCN = model.gamma_HCN
     neuron.g_L = model.g_L
     
     # conductances internodes
@@ -392,18 +431,26 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     neuron.gamma_Na[np.where(model.structure == 1)[0]] = 0*psiemens
     neuron.gamma_Ks[np.where(model.structure == 1)[0]] = 0*psiemens
     neuron.gamma_Kf[np.where(model.structure == 1)[0]] = 0*psiemens
+    neuron.gamma_KLT[np.where(model.structure == 1)[0]] = 0*psiemens
+    neuron.gamma_HCN[np.where(model.structure == 1)[0]] = 0*psiemens
     neuron.g_L[np.where(model.structure == 1)[0]] = 0*msiemens/cm**2
+    
+    # Nernst potential for leakage current
+    neuron.E_Leak = model.E_L
     
     ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
     param_string = '''
+    T_celsius = {}.T_celsius
     V_res = {}.V_res
     E_Na = {}.E_Na
     E_K = {}.E_K
-    E_L = {}.E_L
+    E_HCN = {}.E_HCN
     rho_Na = {}.rho_Na
     rho_Ks = {}.rho_Ks
     rho_Kf = {}.rho_Kf
-    '''.format(model_name,model_name,model_name,model_name,model_name,model_name,model_name)
+    rho_KLT = {}.rho_KLT
+    rho_HCN = {}.rho_HCN
+    '''.format(model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name)
     
     ##### remove spaces to avoid complications
     param_string = param_string.replace(" ", "")
