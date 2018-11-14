@@ -44,7 +44,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "smit_10"
+model_name = "rattay_adap_01"
 model = eval(model_name)
 
 ##### initialize clock
@@ -579,7 +579,7 @@ if all_tests or psth_test:
     # Post Stimulus Time Histogram
     # =============================================================================
     ##### pulse rates to test
-    pulses_per_second = [300,800,2000,5000]
+    pulses_per_second = [400,800,2000,5000]
 
     ##### define phase durations to test (in us)
     phase_durations = [50,50,50,50]

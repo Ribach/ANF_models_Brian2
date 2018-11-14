@@ -43,14 +43,6 @@ rho_in = 25*ohm*cm * (1/1.35)**((T_celsius-37)/10)
 rho_out = 300*ohm*cm
 
 # =============================================================================
-# Initial values for gating variables
-# =============================================================================
-m_t_init = 0.05
-m_p_init = 0.05
-n_init = 0.32
-h_init = 0.6
-
-# =============================================================================
 # Differential equations
 # =============================================================================
 eqs = '''
@@ -138,8 +130,25 @@ T_kelvin = zero_celsius + T_celsius*kelvin
 E_Na = R*T_kelvin/F * np.log(Na_ratio) - V_res
 # Nernst potential potassium
 E_K = R*T_kelvin/F * np.log(K_ratio) - V_res
-# Reversal potential of leakage current
-E_L = R*T_kelvin/F * np.log(Leak_ratio) - V_res
+
+##### rates for resting potential
+alpha_m_t_0 = 4.42*2.5/(np.exp(2.5)-1) * 2.23**(0.1*(T_celsius-20))
+alpha_m_p_0 = 2.06*(2.5-0.1*(-20))/(1*(np.exp(2.5-0.1*(-20)))-1) * 1.99**(0.1*(T_celsius-20))
+alpha_n_0 = 0.2*1.0/(10*(np.exp(1)-1)) * 1.5**(0.1*(T_celsius-20))
+alpha_h_0 = 1.47*0.07 * 1.5**(0.1*(T_celsius-20))
+beta_m_t_0 = 4.42*4.0 * 2.23**(0.1*(T_celsius-20))
+beta_m_p_0 = 2.06*4.0*np.exp(20/18) * 1.99**(0.1*(T_celsius-20))
+beta_n_0 = 0.2*0.125*1 * 1.5**(0.1*(T_celsius-20))
+beta_h_0 = 1.47/(1+np.exp(3.0)) * 1.5**(0.1*(T_celsius-20))
+
+##### initial values for gating variables
+m_t_init = alpha_m_t_0 / (alpha_m_t_0 + beta_m_t_0)
+m_p_init = alpha_m_p_0 / (alpha_m_p_0 + beta_m_p_0)
+n_init = alpha_n_0 / (alpha_n_0 + beta_n_0)
+h_init = alpha_h_0 / (alpha_h_0 + beta_h_0)               
+
+##### calculate Nerst potential for leakage current
+E_L = -(1/g_L)* (0.975*g_Na*m_t_init**3*h_init* E_Na + 0.025*g_Na*m_p_init**3*h_init* E_Na + g_K*n_init**4*E_K)
 
 ##### structure of ANF
 # terminal = 0
@@ -249,9 +258,27 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         model.E_Na = model.R*model.T_kelvin/model.F * np.log(model.Na_ratio) - model.V_res
         # Nernst potential potassium
         model.E_K = model.R*model.T_kelvin/model.F * np.log(model.K_ratio) - model.V_res
-        # Reversal potential of leakage current
-        model.E_L = model.R*model.T_kelvin/model.F * np.log(model.Leak_ratio) - model.V_res
         
+        ##### rates for resting potential
+        alpha_m_t_0 = 4.42*2.5/(np.exp(2.5)-1) * 2.23**(0.1*(model.T_celsius-20))
+        alpha_m_p_0 = 2.06*(2.5-0.1*(-20))/(1*(np.exp(2.5-0.1*(-20)))-1) * 1.99**(0.1*(model.T_celsius-20))
+        alpha_n_0 = 0.2*1.0/(10*(np.exp(1)-1)) * 1.5**(0.1*(model.T_celsius-20))
+        alpha_h_0 = 1.47*0.07 * 1.5**(0.1*(model.T_celsius-20))
+        beta_m_t_0 = 4.42*4.0 * 2.23**(0.1*(model.T_celsius-20))
+        beta_m_p_0 = 2.06*4.0*np.exp(20/18) * 1.99**(0.1*(model.T_celsius-20))
+        beta_n_0 = 0.2*0.125*1 * 1.5**(0.1*(model.T_celsius-20))
+        beta_h_0 = 1.47/(1+np.exp(3.0)) * 1.5**(0.1*(model.T_celsius-20))
+        
+        ##### initial values for gating variables
+        model.m_t_init = alpha_m_t_0 / (alpha_m_t_0 + beta_m_t_0)
+        model.m_p_init = alpha_m_p_0 / (alpha_m_p_0 + beta_m_p_0)
+        model.n_init = alpha_n_0 / (alpha_n_0 + beta_n_0)
+        model.h_init = alpha_h_0 / (alpha_h_0 + beta_h_0)               
+        
+        ##### calculate Nerst potential for leakage current
+        model.E_L = -(1/model.g_L)* (0.975*model.g_Na*model.m_t_init**3*model.h_init* model.E_Na +
+                     0.025*model.g_Na*model.m_p_init**3*model.h_init* model.E_Na + model.g_K*model.n_init**4*model.E_K)
+
         ##### structure of ANF
         # terminal = 0
         # internode = 1

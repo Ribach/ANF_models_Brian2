@@ -31,8 +31,6 @@ V_res = -79.4*mV *1.035**((T_celsius-6.3)/10)
 E_Na_Rat = 115*mV
 ##### Nernst potential potassium
 E_K_Rat = -12*mV
-##### Nerst potential for leakage current
-E_L_Rat = 10.6*mV
 
 # =============================================================================
 # Conductivities Smit + Rattay
@@ -59,22 +57,8 @@ rho_in = 25*ohm*cm * (1/1.35)**((T_celsius-37)/10)
 rho_out = 300*ohm*cm
 
 # =============================================================================
-# Initial values for gating variables
-# =============================================================================
-##### Smit
-m_t_init_Smit = 0.05
-m_p_init_Smit = 0.05
-n_init_Smit = 0.32
-h_init_Smit = 0.6
-##### Rattay
-m_init_Rat = 0.05
-n_init_Rat = 0.3
-h_init_Rat = 0.6
-
-# =============================================================================
 # Differential equations
 # =============================================================================
-#Im = 1*g_Na*m_t**3*h* ((v-V_res)-E_Na) + 0*g_Na*m_p**3*h* ((v-V_res)-E_Na) + g_K*n**4*((v-V_res)-E_K) + g_L*((v-V_res)-E_L) + g_myelin*(-(v-V_res)): amp/meter**2
 eqs = '''
 I_Na_persistent_Smit = 0.975*g_Na_Smit*m_t_Smit**3*h_Smit*(E_Na_Smit-(v-V_res)) : amp/meter**2
 I_Na_transient_Smit = 0.025*g_Na_Smit*m_p_Smit**3*h_Smit*(E_Na_Smit-(v-V_res)) : amp/meter**2
@@ -198,8 +182,36 @@ T_kelvin = zero_celsius + T_celsius*kelvin
 E_Na_Smit = R*T_kelvin/F * np.log(Na_ratio) - V_res
 # Nernst potential potassium
 E_K_Smit = R*T_kelvin/F * np.log(K_ratio) - V_res
-# Nerst potential for leakage current
-E_L_Smit = R*T_kelvin/F * np.log(Leak_ratio) - V_res
+
+##### rates for resting potential
+alpha_m_Rat_0 = 0.1*25/(np.exp(25/10) - 1)
+beta_m_Rat_0 = 4
+alpha_h_Rat_0 = 0.07
+beta_h_Rat_0 = 1/(np.exp(3) + 1)
+alpha_n_Rat_0 = 0.01 * 10 / (np.exp(1) - 1)
+beta_n_Rat_0 = 0.125
+alpha_m_t_Smit_0 = 4.42*2.5/(np.exp(2.5)-1) * 2.23**(0.1*(T_celsius-20))
+alpha_m_p_Smit_0 = 2.06*(2.5-0.1*(-20))/(1*(np.exp(2.5-0.1*(-20)))-1) * 1.99**(0.1*(T_celsius-20))
+alpha_n_Smit_0 = 0.2*1.0/(10*(np.exp(1)-1)) * 1.5**(0.1*(T_celsius-20))
+alpha_h_Smit_0 = 1.47*0.07 * 1.5**(0.1*(T_celsius-20))
+beta_m_t_Smit_0 = 4.42*4.0 * 2.23**(0.1*(T_celsius-20))
+beta_m_p_Smit_0 = 2.06*4.0*np.exp(20/18) * 1.99**(0.1*(T_celsius-20))
+beta_n_Smit_0 = 0.2*0.125*1 * 1.5**(0.1*(T_celsius-20))
+beta_h_Smit_0 = 1.47/(1+np.exp(3.0)) * 1.5**(0.1*(T_celsius-20))
+
+##### initial values for gating variables
+m_init_Rat = alpha_m_Rat_0 / (alpha_m_Rat_0 + beta_m_Rat_0)
+n_init_Rat = alpha_n_Rat_0 / (alpha_n_Rat_0 + beta_n_Rat_0)
+h_init_Rat = alpha_h_Rat_0 / (alpha_h_Rat_0 + beta_h_Rat_0)  
+m_t_init_Smit = alpha_m_t_Smit_0 / (alpha_m_t_Smit_0 + beta_m_t_Smit_0)
+m_p_init_Smit = alpha_m_p_Smit_0 / (alpha_m_p_Smit_0 + beta_m_p_Smit_0)
+n_init_Smit = alpha_n_Smit_0 / (alpha_n_Smit_0 + beta_n_Smit_0)
+h_init_Smit = alpha_h_Smit_0 / (alpha_h_Smit_0 + beta_h_Smit_0)               
+
+##### calculate Nerst potential for leakage current
+E_L_Rat = -(1/g_L_Rat)* (g_Na_Rat*m_init_Rat**3*h_init_Rat* E_Na_Rat + g_K_Rat*n_init_Rat**4*E_K_Rat)
+E_L_Smit = -(1/g_L_Smit)* (0.975*g_Na_Smit*m_t_init_Smit**3*h_init_Smit* E_Na_Smit + 0.025*g_Na_Smit*m_p_init_Smit**3*h_init_Smit* E_Na_Smit +
+            g_K_Smit*n_init_Smit**4*E_K_Smit)
 
 ##### structure of ANF
 # terminal = 0
@@ -353,8 +365,36 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         model.E_Na_Smit = model.R*model.T_kelvin/model.F * np.log(model.Na_ratio) - model.V_res
         # Nernst potential potassium
         model.E_K_Smit = model.R*model.T_kelvin/model.F * np.log(model.K_ratio) - model.V_res
-        # Nerst potential for leakage current
-        model.E_L_Smit = model.R*model.T_kelvin/model.F * np.log(model.Leak_ratio) - model.V_res
+        
+        ##### rates for resting potential
+        alpha_m_Rat_0 = 0.1*25/(np.exp(25/10) - 1)
+        beta_m_Rat_0 = 4
+        alpha_h_Rat_0 = 0.07
+        beta_h_Rat_0 = 1/(np.exp(3) + 1)
+        alpha_n_Rat_0 = 0.01 * 10 / (np.exp(1) - 1)
+        beta_n_Rat_0 = 0.125
+        alpha_m_t_Smit_0 = 4.42*2.5/(np.exp(2.5)-1) * 2.23**(0.1*(model.T_celsius-20))
+        alpha_m_p_Smit_0 = 2.06*(2.5-0.1*(-20))/(1*(np.exp(2.5-0.1*(-20)))-1) * 1.99**(0.1*(model.T_celsius-20))
+        alpha_n_Smit_0 = 0.2*1.0/(10*(np.exp(1)-1)) * 1.5**(0.1*(model.T_celsius-20))
+        alpha_h_Smit_0 = 1.47*0.07 * 1.5**(0.1*(model.T_celsius-20))
+        beta_m_t_Smit_0 = 4.42*4.0 * 2.23**(0.1*(model.T_celsius-20))
+        beta_m_p_Smit_0 = 2.06*4.0*np.exp(20/18) * 1.99**(0.1*(model.T_celsius-20))
+        beta_n_Smit_0 = 0.2*0.125*1 * 1.5**(0.1*(model.T_celsius-20))
+        beta_h_Smit_0 = 1.47/(1+np.exp(3.0)) * 1.5**(0.1*(model.T_celsius-20))
+        
+        ##### initial values for gating variables
+        model.m_init_Rat = alpha_m_Rat_0 / (alpha_m_Rat_0 + beta_m_Rat_0)
+        model.n_init_Rat = alpha_n_Rat_0 / (alpha_n_Rat_0 + beta_n_Rat_0)
+        model.h_init_Rat = alpha_h_Rat_0 / (alpha_h_Rat_0 + beta_h_Rat_0)  
+        model.m_t_init_Smit = alpha_m_t_Smit_0 / (alpha_m_t_Smit_0 + beta_m_t_Smit_0)
+        model.m_p_init_Smit = alpha_m_p_Smit_0 / (alpha_m_p_Smit_0 + beta_m_p_Smit_0)
+        model.n_init_Smit = alpha_n_Smit_0 / (alpha_n_Smit_0 + beta_n_Smit_0)
+        model.h_init_Smit = alpha_h_Smit_0 / (alpha_h_Smit_0 + beta_h_Smit_0)               
+        
+        ##### calculate Nerst potential for leakage current
+        model.E_L_Rat = -(1/model.g_L_Rat)* (model.g_Na_Rat*model.m_init_Rat**3*model.h_init_Rat* model.E_Na_Rat + model.g_K_Rat*model.n_init_Rat**4*model.E_K_Rat)
+        model.E_L_Smit = -(1/model.g_L_Smit)* (0.975*model.g_Na_Smit*model.m_t_init_Smit**3*model.h_init_Smit* model.E_Na_Smit + 0.025*model.g_Na_Smit*model.m_p_init_Smit**3*model.h_init_Smit* model.E_Na_Smit +
+                    model.g_K_Smit*model.n_init_Smit**4*model.E_K_Smit)
         
         ##### structure of ANF
         # terminal = 0

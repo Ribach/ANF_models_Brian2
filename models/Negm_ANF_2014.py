@@ -61,7 +61,7 @@ length_nodes_axon = 1*um
 length_presomatic_region = 60*um
 ##### diameters
 diameter_dendrite = 1.2*um
-diameter_soma = 25*um
+diameter_soma = 30*um
 diameter_axon = 2.3*um
 ##### myelin sheath thicknes
 thicknes_myelin_sheath = 1*um
@@ -266,13 +266,6 @@ m = [np.sqrt(abs(compartment_diameters[i+1] - compartment_diameters[i])**2 + com
 # total surfaces
 A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]*0.5
            for i in range(0,nof_comps)]
-
-##### Reverse potential of leakage channels
-# The reverse potential of the leakage channels is calculated by using
-# I_Na + I_K + I_KLT + I_HCN * I_L = 0 with v = V_res and the initial values for
-# the gating variables.
-E_L = -(gamma_Na*rho_Na*m_init**3*h_init*E_Na +  gamma_K*rho_K*n_init**4*(E_K+V_res) +
-        gamma_KLT*rho_KLT*w_init**4*z_init*E_K + gamma_HCN*rho_HCN*r_init*E_HCN) / g_L
         
 #####  Compartment middle point distances (needed for plots)
 distance_comps_middle = np.zeros_like(compartment_lengths)
@@ -388,13 +381,6 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         # total surfaces
         model.A_surface = [(model.compartment_diameters[i+1] + model.compartment_diameters[i])*np.pi*m[i]*0.5
                    for i in range(0,model.nof_comps)]
-    
-        ##### Reverse potential of leakage channels
-        # The reverse potential of the leakage channels is calculated by using
-        # I_Na + I_K + I_KLT + I_HCN * I_L = 0 with v = V_res and the initial values for
-        # the gating variables.
-        model.E_L = -(model.gamma_Na*rho_Na*model.m_init**3*model.h_init*model.E_Na +  model.gamma_K*rho_K*model.n_init**4*(model.E_K+model.V_res) +\
-                      model.gamma_KLT*rho_KLT*model.w_init**4*model.z_init*model.E_K + model.gamma_HCN*rho_HCN*model.r_init*model.E_HCN) / g_L
                 
         #####  Compartment middle point distances (needed for plots)
         model.distance_comps_middle = np.zeros_like(model.compartment_lengths)

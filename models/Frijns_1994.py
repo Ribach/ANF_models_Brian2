@@ -41,13 +41,6 @@ rho_in = 70*ohm*cm
 rho_out = 300*ohm*cm
 
 # =============================================================================
-# Initial values for gating variables (steady state values at resting potential)
-# =============================================================================
-m_init = 0.00775
-n_init = 0.0268
-h_init = 0.7469
-
-# =============================================================================
 # Differential equations
 # =============================================================================
 eqs = '''
@@ -115,16 +108,29 @@ inter_pulse_intervals = np.append(np.linspace(0.62, 0.63, num=10, endpoint = Fal
 ###### Temperature in Kelvin
 T_kelvin = zero_celsius + T_celsius*kelvin
 
+##### rates for resting potential
+alpha_m_0 = 0.49*(-25.41)/(1-np.exp(25.41/6.06)) * 2.2**(0.1*(T_celsius-20))
+alpha_n_0 = 0.02*(-35)/(1-np.exp(35/10)) * 3**(0.1*(T_celsius-20))
+alpha_h_0 = 0.09*(-27.74)/(1-np.exp(27.74/9.06)) * 2.9**(0.1*(T_celsius-20))
+beta_m_0 = 1.04*21/(1-np.exp(-21/9.41)) * 2.2**(0.1*(T_celsius-20))
+beta_n_0 = 0.05*10/(1-np.exp(-10/10)) * 3**(0.1*(T_celsius-20))
+beta_h_0 = 3.7/(1+np.exp(56/12.5)) * 2.9**(0.1*(T_celsius-20))
+
+##### initial values for gating variables
+m_init = alpha_m_0 / (alpha_m_0 + beta_m_0)
+n_init = alpha_n_0 / (alpha_n_0 + beta_n_0)
+h_init = alpha_h_0 / (alpha_h_0 + beta_h_0)
+
 ##### Potentials
 # Resting potential (calculated with Goldman equation)
 V_res = (R*T_kelvin)/F * np.log((P_K*n_init**2*K_e + P_Na*h_init*m_init**3*Na_e)/
          (P_K*n_init**2*K_i + P_Na*h_init*m_init**3*Na_i))
 
 # Nerst potential for leakage current
-E_L = (-1/g_L)*(P_Na*m_init**3*h_init*(V_res*F**2)/(R*T_kelvin) * 
-       (Na_e-Na_i*np.exp(V_res*F/(R*T_kelvin)))/(1-np.exp(V_res*F/(R*T_kelvin))) + 
-       P_K*n_init**2*(V_res*F**2)/(R*T_kelvin) *
-       (K_e-K_i*np.exp(V_res*F/(R*T_kelvin)))/(1-np.exp(V_res*F/(R*T_kelvin))))
+E_L = (-1/g_L)*(P_Na*m_init**3*h_init*(V_res*F**2)/(R*T_kelvin) *
+             (Na_e-Na_i*np.exp(V_res*F/(R*T_kelvin)))/(1-np.exp(V_res*F/(R*T_kelvin))) +
+             P_K*n_init**2*(V_res*F**2)/(R*T_kelvin) *
+             (K_e-K_i*np.exp(V_res*F/(R*T_kelvin)))/(1-np.exp(V_res*F/(R*T_kelvin))))
 
 ##### structure of ANF
 # terminal = 0
@@ -220,17 +226,29 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         ###### Temperature in Kelvin
         model.T_kelvin = model.zero_celsius + model.T_celsius*kelvin
         
+        ##### rates for resting potential
+        alpha_m_0 = 0.49*(-25.41)/(1-np.exp(25.41/6.06)) * 2.2**(0.1*(model.T_celsius-20))
+        alpha_n_0 = 0.02*(-35)/(1-np.exp(35/10)) * 3**(0.1*(model.T_celsius-20))
+        alpha_h_0 = 0.09*(-27.74)/(1-np.exp(27.74/9.06)) * 2.9**(0.1*(model.T_celsius-20))
+        beta_m_0 = 1.04*21/(1-np.exp(-21/9.41)) * 2.2**(0.1*(model.T_celsius-20))
+        beta_n_0 = 0.05*10/(1-np.exp(-10/10)) * 3**(0.1*(model.T_celsius-20))
+        beta_h_0 = 3.7/(1+np.exp(56/12.5)) * 2.9**(0.1*(model.T_celsius-20))
+        
+        ##### initial values for gating variables
+        model.m_init = alpha_m_0 / (alpha_m_0 + beta_m_0)
+        model.n_init = alpha_n_0 / (alpha_n_0 + beta_n_0)
+        model.h_init = alpha_h_0 / (alpha_h_0 + beta_h_0)
+        
         ##### Potentials
         # Resting potential (calculated with Goldman equation)
         model.V_res = (model.R*model.T_kelvin)/model.F * np.log((model.P_K*model.n_init**2*model.K_e + model.P_Na*model.h_init*model.m_init**3*model.Na_e)/\
                  (model.P_K*model.n_init**2*model.K_i + model.P_Na*model.h_init*model.m_init**3*model.Na_i))
         
-        # Nerst potential for leakage current; leakage chanels were excluded but could be added by using: g_L*(E_L-(v-V_res))  
-        model.E_L = (-1/model.g_L)*(model.P_Na*model.m_init**3*model.h_init*(model.V_res*model.F**2)/(model.R*model.T_kelvin) * \
-               (model.Na_e-model.Na_i*exp(model.V_res*model.F/(model.R*model.T_kelvin)))/(1-np.exp(model.V_res*model.F/(model.R*model.T_kelvin))) + \
-               model.P_K*model.n_init**2*(model.V_res*model.F**2)/(model.R*model.T_kelvin) *\
-               (model.K_e-model.K_i*np.exp(model.V_res*model.F/(model.R*model.T_kelvin)))/(1-np.exp(model.V_res*model.F/(model.R*model.T_kelvin))))
-        
+        # Nerst potential for leakage current
+        model.E_L = (-1/model.g_L)*(model.P_Na*model.m_init**3*model.h_init*(model.V_res*model.F**2)/(model.R*model.T_kelvin) *\
+                     (model.Na_e-model.Na_i*np.exp(model.V_res*model.F/(model.R*model.T_kelvin)))/(1-np.exp(model.V_res*model.F/(model.R*model.T_kelvin))) +\
+                     model.P_K*model.n_init**2*(model.V_res*F**2)/(model.R*model.T_kelvin) *\
+                     (model.K_e-model.K_i*np.exp(model.V_res*model.F/(model.R*model.T_kelvin)))/(1-np.exp(model.V_res*model.F/(model.R*model.T_kelvin))))
         
         ##### structure of ANF
         # terminal = 0

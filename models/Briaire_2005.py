@@ -147,7 +147,7 @@ h_init = alpha_h_0 / (alpha_h_0 + beta_h_0)
 V_res = (R*T_kelvin)/F * np.log((P_K*n_init**2*K_e + P_Na*h_init*m_init**3*Na_e)/
          (P_K*n_init**2*K_i + P_Na*h_init*m_init**3*Na_i))
 
-# Nerst potential for leakage current; leakage chanels were excluded but could be added by using: g_L*(E_L-(v-V_res))  
+# Nerst potential for leakage current
 E_L = (-1/g_L)*(P_Na*m_init**3*h_init*(V_res*F**2)/(R*T_kelvin) *
              (Na_e-Na_i*np.exp(V_res*F/(R*T_kelvin)))/(1-np.exp(V_res*F/(R*T_kelvin))) +
              P_K*n_init**2*(V_res*F**2)/(R*T_kelvin) *
@@ -309,7 +309,7 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         model.V_res = (model.R*model.T_kelvin)/model.F * np.log((model.P_K*model.n_init**2*model.K_e + model.P_Na*model.h_init*model.m_init**3*model.Na_e)/\
                  (model.P_K*model.n_init**2*model.K_i + model.P_Na*model.h_init*model.m_init**3*model.Na_i))
         
-        # Nerst potential for leakage current; leakage chanels were excluded but could be added by using: g_L*(E_L-(v-V_res))  
+        # Nerst potential for leakage current
         model.E_L = (-1/model.g_L)*(model.P_Na*model.m_init**3*model.h_init*(model.V_res*model.F**2)/(model.R*model.T_kelvin) *\
                      (model.Na_e-model.Na_i*np.exp(model.V_res*model.F/(model.R*model.T_kelvin)))/(1-np.exp(model.V_res*model.F/(model.R*model.T_kelvin))) +\
                      model.P_K*model.n_init**2*(model.V_res*F**2)/(model.R*model.T_kelvin) *\

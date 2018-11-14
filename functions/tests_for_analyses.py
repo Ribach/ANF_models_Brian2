@@ -17,12 +17,119 @@ import functions.model_tests as test
 
 ##### import models
 import models.Rattay_2001 as rattay_01
+import models.Rattay_adap_2001 as rattay_adap_01
 import models.Frijns_1994 as frijns_94
 import models.Briaire_2005 as briaire_05
+import models.Briaire_adap_2005 as briaire_adap_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
+import models.Imennov_adap_2009 as imennov_adap_09
 import models.Negm_2014 as negm_14
+import models.Negm_ANF_2014 as negm_ANF_14
+import models.Rudnicki_2018 as rudnicki_18
+
+# =============================================================================
+# Calculate the number of the node where a certain latency can be measured 
+# =============================================================================
+def get_node_number_for_latency(model_name,
+                                dt,
+                                latency_desired,
+                                stim_amp,
+                                phase_duration,
+                                delta,
+                                numbers_start_interval,
+                                inter_phase_gap = 0*us,
+                                pulse_form = "mono",
+                                stimulation_type = "extern",
+                                time_before = 2*ms,
+                                time_after = 3*ms,
+                                print_progress = True):
+    
+    ##### add quantity to phase_duration, inter_phase_gap, latency and stim_amp
+    phase_duration = float(phase_duration)*second
+    inter_phase_gap = float(inter_phase_gap)*second
+    latency = float(latency)*second
+    stim_amp = float(stim_amp)*amp
+    
+    ##### get model
+    model = eval(model_name)
+    
+    ##### initializations
+    node_number = 0
+    lower_border = numbers_start_interval[0]
+    upper_border = numbers_start_interval[1]
+    node = round((upper_border - lower_border)/2)
+    node_diff = upper_border - lower_border
+    
+    ##### extend model
+    if len(np.where(model.structure == 2)[0]) < upper_border:
+        if hasattr(model, "nof_internodes"):
+            model.nof_internodes = upper_border
+        else:
+            model.nof_axonal_internodes = upper_border
+            
+    ##### initialize model
+    neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
+    exec(param_string)
+    M = StateMonitor(neuron, 'v', record=True)
+    store('initialized')
+    
+    ##### adjust stimulus amplitude until required accuracy is obtained
+    while node_diff > delta:
+        
+        ##### print progress
+        if print_progress: print("Model: {}; Node Number: {}".format(model_name, node))
+        
+        ##### define how the ANF is stimulated
+        I_stim, runtime = stim.get_stimulus_current(model = model,
+                                                    dt = dt,
+                                                    stimulation_type = stimulation_type,
+                                                    pulse_form = pulse_form,
+                                                    add_noise = False,
+                                                    time_before = time_before,
+                                                    time_after = time_after,
+                                                    ##### monophasic stimulation
+                                                    amp_mono = -stim_amp,
+                                                    duration_mono = phase_duration,
+                                                    ##### biphasic stimulation
+                                                    amps_bi = [-stim_amp/amp,stim_amp/amp]*amp,
+                                                    durations_bi = [phase_duration/second,inter_phase_gap/second,phase_duration/second]*second)
+    
+        ##### get TimedArray of stimulus currents and run simulation
+        stimulus = TimedArray(np.transpose(I_stim), dt=dt)
+        
+        ##### reset state monitor
+        restore('initialized')
+        
+        ##### run simulation
+        run(runtime)
+        
+        ##### calculate latency
+        node_index = np.where(model.structure == 2)[0][node-1]
+        AP_amp = max(M.v[node_index,:]-model.V_res)
+        AP_time = M.t[M.v[node_index,:]-model.V_res == AP_amp]
+        latency = (AP_time - time_before)[0]
+        
+        ##### set latency to zero if no AP could be measured
+        if max(M.v[node_index,:]-model.V_res) < 60*mV:
+            latency = 0
+        
+        ##### test if there was a spike
+        if latency > latency_desired or latency == 0:
+            node_number = node
+            upper_border = node
+            node = (node + lower_border)/2
+        else:
+            lower_border = node
+            node = (node + upper_border)/2
+            
+        node_diff = upper_border - lower_border
+    
+    ##### reload module
+    model = reload(model)
+
+    return node_number
 
 # =============================================================================
 #  Meassure latency
@@ -100,8 +207,8 @@ def get_latency(model_name,
     measurement_node_index = np.where(model.structure == 2)[0][measurement_node-1]
     
     ##### print progress
-    if print_progress: print("Model: {}; Stimulus amplitde: {} uA; measurement location: {}".format(model_name,
-                             np.round(stim_amp/uA,4), measurement_node))
+    if print_progress: print("Model: {}; Stimulus amplitde: {} uA;  electrode distance: {}; measurement location: {}".format(model_name,
+                             np.round(stim_amp/uA,4),electrode_distance, measurement_node))
             
     ##### define how the ANF is stimulated
     I_stim, runtime = stim.get_stimulus_current(model = model,

@@ -33,10 +33,18 @@ import models.Rudnicki_2018 as rudnicki_18
 prefs.codegen.target = "numpy"
 
 # =============================================================================
+# Simulations to be done / Plots to be shown
+# =============================================================================
+plot_voltage_course_lines = True
+plot_voltage_course_colored = True
+plot_gating_variables = True
+plot_ion_currents = True
+
+# =============================================================================
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = imennov_adap_09
+model = negm_ANF_14
 
 ##### initialize clock
 dt = 5*us
@@ -50,33 +58,37 @@ exec(param_string)
 ##### record the membrane voltage
 M = StateMonitor(neuron, 'v', record=True)
 
-Mm = StateMonitor(neuron, 'm', record=True)
-Mh = StateMonitor(neuron, 'h', record=True)
-Mns = StateMonitor(neuron, 'ns', record=True)
-Mnf = StateMonitor(neuron, 'nf', record=True)
-Mw = StateMonitor(neuron, 'w', record=True)
-Mz = StateMonitor(neuron, 'z', record=True)
-Mr = StateMonitor(neuron, 'r', record=True)
+##### record gating variables
+if plot_gating_variables:
+    if model in [rattay_01,rattay_adap_01,frijns_94,briaire_05,briaire_adap_05,negm_14,negm_ANF_14,rudnicki_18]:
+        M_gate = StateMonitor(neuron, ['m','n','h'], record=True)
+    if model == smit_09:
+        M_gate = StateMonitor(neuron, ['m_t','m_p','n','h'], record=True)
+    if model == smit_10:
+        M_gate = StateMonitor(neuron, ['m_t_Smit','m_p_Smit','h_Smit','n_Smit','m_Rat','h_Rat','n_Rat'], record=True)
+    if model in [imennov_09,imennov_adap_09]:
+        M_gate = StateMonitor(neuron, ['m','h','ns','nf'], record=True)
+    if model in [negm_14,rattay_adap_01,briaire_adap_05,negm_ANF_14,imennov_adap_09]:
+        M_adap = StateMonitor(neuron, ['w','z','r'], record=True)
 
-M_I_Na = StateMonitor(neuron, 'I_Na', record=True)
-M_I_Ks = StateMonitor(neuron, 'I_Ks', record=True)
-M_I_Kf = StateMonitor(neuron, 'I_Kf', record=True)
-M_I_KLT = StateMonitor(neuron, 'I_KLT', record=True)
-M_I_HCN = StateMonitor(neuron, 'I_HCN', record=True)
-M_I_L = StateMonitor(neuron, 'I_L', record=True)
+##### record currents
+if plot_ion_currents:
+    if model in [rattay_01,rattay_adap_01,frijns_94,briaire_05,briaire_adap_05,negm_14,negm_ANF_14,rudnicki_18]:
+        I = StateMonitor(neuron, ['I_Na','I_K','I_L'], record=True)
+    if model == smit_09:
+        I = StateMonitor(neuron, ['I_Na','I_Na_p','I_K','I_L'], record=True)
+    if model == smit_10:
+        I = StateMonitor(neuron, ['I_Na_transient_Smit','I_Na_persistent_Smit','I_K_Smit','I_L_Smit','I_Na_Rat','I_K_Rat','I_L_Rat'], record=True)
+    if model in [imennov_09,imennov_adap_09]:
+        I = StateMonitor(neuron, ['I_Na','I_Ks','I_Kf','I_L'], record=True)
+    if model in [negm_14,negm_ANF_14,rattay_adap_01,briaire_adap_05,imennov_adap_09]:
+        I_adap = StateMonitor(neuron, ['I_KLT','I_HCN'], record=True)
 
 ##### get compartment number of second node
 stim_comp_index = np.where(model.structure == 2)[0][1]
 
 ##### save initialization of the monitor(s)
 store('initialized')
-
-# =============================================================================
-# Simulations to be done / Plots to be shown
-# =============================================================================
-plot_voltage_course_lines = True
-plot_voltage_course_colored = True
-measure_single_node_response = False
 
 # =============================================================================
 # Run simulation and observe voltage courses for each compartment
@@ -89,16 +101,16 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 stimulation_type = "extern",
                                                 pulse_form = "mono",
                                                 stimulated_compartment = stim_comp_index,
-                                                nof_pulses = 100,
+                                                nof_pulses = 1,
                                                 time_before = 1*ms,
                                                 time_after = 2*ms,
-                                                add_noise = True,
+                                                add_noise = False,
                                                 ##### monophasic stimulation
-                                                amp_mono = -4*uA,
+                                                amp_mono = -24*uA,
                                                 duration_mono = 100*us,
                                                 ##### biphasic stimulation
                                                 amps_bi = [-250,250]*uA,
-                                                durations_bi = [45,0,45]*us,
+                                                durations_bi = [45,2,45]*us,
                                                 ##### multiple pulses / pulse trains
                                                 inter_pulse_gap = 0.5*ms)
     
@@ -113,7 +125,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
 
     ##### Plot membrane potential of all compartments over time (2 plots)
     if plot_voltage_course_lines:
-        plot.voltage_course_lines(plot_name = "Voltage course {} symetric pulses".format(model.display_name),
+        plot.voltage_course_lines(plot_name = "Voltage course {}".format(model.display_name),
                                   time_vector = M.t,
                                   voltage_matrix = M.v,
                                   comps_to_plot = model.comps_to_plot,
@@ -127,58 +139,66 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                    voltage_matrix = M.v,
                                    distance_comps_middle = model.distance_comps_middle)
 
-##### plot gating variables
-comp_index = np.where(model.structure == 2)[0][10]
-fig = plt.figure("gating variables")
-axes = fig.add_subplot(1, 1, 1)
-axes.plot(Mm.t/ms, Mm.m[comp_index,:], label = "m")
-axes.plot(Mh.t/ms, Mh.h[comp_index,:], label = "h")
-axes.plot(Mns.t/ms, Mns.ns[comp_index,:], label = "ns")
-axes.plot(Mnf.t/ms, Mnf.nf[comp_index,:], label = "nf")
-axes.plot(Mw.t/ms, Mw.w[comp_index,:], label = "w")
-axes.plot(Mz.t/ms, Mz.z[comp_index,:], label = "z")
-axes.plot(Mr.t/ms, Mr.r[comp_index,:], label = "r")
-plt.legend()
+if plot_gating_variables:
+    ##### plot gating variables
+    comp_index = np.where(model.structure == 2)[0][10]
+    fig = plt.figure("gating variables")
+    axes = fig.add_subplot(1, 1, 1)
+    if model in [rattay_01,rattay_adap_01,frijns_94,briaire_05,briaire_adap_05,negm_14,negm_ANF_14,rudnicki_18]:
+        axes.plot(M.t/ms, M_gate.m[comp_index,:], label = "m")
+        axes.plot(M.t/ms, M_gate.h[comp_index,:], label = "h")
+        axes.plot(M.t/ms, M_gate.n[comp_index,:], label = "n")
+    if model == smit_09:
+        axes.plot(M.t/ms, M_gate.m_t[comp_index,:], label = "m_t")
+        axes.plot(M.t/ms, M_gate.m_p[comp_index,:], label = "m_p")
+        axes.plot(M.t/ms, M_gate.n[comp_index,:], label = "n")
+        axes.plot(M.t/ms, M_gate.h[comp_index,:], label = "h")
+    if model == smit_10:
+        axes.plot(M.t/ms, M_gate.m_t_Smit[comp_index,:], label = "m_t_Smit")
+        axes.plot(M.t/ms, M_gate.m_p_Smit[comp_index,:], label = "m_p_Smit")
+        axes.plot(M.t/ms, M_gate.h_Smit[comp_index,:], label = "h_Smit")
+        axes.plot(M.t/ms, M_gate.n_Smit[comp_index,:], label = "n_Smit")
+        axes.plot(M.t/ms, M_gate.m_Rat[comp_index,:], label = "m_Rat")
+        axes.plot(M.t/ms, M_gate.h_Rat[comp_index,:], label = "h_Rat")
+        axes.plot(M.t/ms, M_gate.n_Rat[comp_index,:], label = "n_Rat")
+    if model in [imennov_09, imennov_adap_09]:
+        axes.plot(M.t/ms, M_gate.m[comp_index,:], label = "m")
+        axes.plot(M.t/ms, M_gate.h[comp_index,:], label = "h")
+        axes.plot(M.t/ms, M_gate.ns[comp_index,:], label = "ns")
+        axes.plot(M.t/ms, M_gate.nf[comp_index,:], label = "nf")
+    if model in [negm_14,negm_ANF_14,rattay_adap_01,briaire_adap_05,imennov_adap_09]:
+        axes.plot(M.t/ms, M_adap.w[comp_index,:], label = "w")
+        axes.plot(M.t/ms, M_adap.z[comp_index,:], label = "z")
+        axes.plot(M.t/ms, M_adap.r[comp_index,:], label = "r")
+    plt.legend()
 
-##### plot currents
-fig = plt.figure("ion currents")
-axes = fig.add_subplot(1, 1, 1)
-axes.plot(M.t/ms, M_I_Na.I_Na[comp_index,:], label = "I_Na")
-axes.plot(M.t/ms, M_I_Kf.I_Kf[comp_index,:], label = "I_Kf")
-axes.plot(M.t/ms, M_I_Ks.I_Ks[comp_index,:], label = "I_Ks")
-axes.plot(M.t/ms, M_I_KLT.I_KLT[comp_index,:], label = "I_KLT")
-axes.plot(M.t/ms, M_I_HCN.I_HCN[comp_index,:], label = "I_HCN")
-axes.plot(M.t/ms, M_I_L.I_L[comp_index,:], label = "I_L")
-plt.legend()
-        
-# =============================================================================
-# Now a simulation will be run several times to calculate the
-# following temporal characteristics of the model:
-# - average AP amplitude
-# - average AP rise time
-# - average AP fall time
-# - average latency 
-# - jitter
-# =============================================================================
-if measure_single_node_response:
-
-    ##### Possible parameter types are all model attributes, "model", "stim_amp", "phase_duration" and "stochastic_runs"
-    voltage_data, node_response_data_summary = \
-    test.get_single_node_response(model = [rattay_01, negm_14, smit_10, briaire_05],
-                                   dt = dt,
-                                   param_1 = "length_internodes",
-                                   param_1_ratios = [0.6, 0.8, 1, 2, 3],
-                                   param_2 = "nof_segments_internode",
-                                   param_2_ratios = [0.6, 0.8, 1, 2, 3],
-                                   stimulation_type = "extern",
-                                   pulse_form = "bi",
-                                   time_after_stimulation = 1.5*ms,
-                                   stim_amp = 2*uA,
-                                   phase_duration = 200*us,
-                                   nof_runs = 10)
-    
-    ##### plot voltage courses of single node
-    plot.single_node_response_voltage_course(voltage_data = voltage_data)
-    
-    ##### plot results in bar plot
-    plot.single_node_response_bar_plot(data = node_response_data_summary)
+if plot_ion_currents:
+    ##### plot currents
+    fig = plt.figure("ion currents")
+    axes = fig.add_subplot(1, 1, 1)
+    if model in [rattay_01,rattay_adap_01,frijns_94,briaire_05,briaire_adap_05,negm_14,negm_ANF_14,rudnicki_18]:
+        axes.plot(M.t/ms, I.I_Na[comp_index,:], label = "I_Na")
+        axes.plot(M.t/ms, I.I_K[comp_index,:], label = "I_K")
+        axes.plot(M.t/ms, I.I_L[comp_index,:], label = "I_L")
+    if model == smit_09:
+        axes.plot(M.t/ms, I.I_Na[comp_index,:], label = "I_Na")
+        axes.plot(M.t/ms, I.I_Na_p[comp_index,:], label = "I_Na_p")
+        axes.plot(M.t/ms, I.I_K[comp_index,:], label = "I_K")
+        axes.plot(M.t/ms, I.I_L[comp_index,:], label = "I_L")
+    if model == smit_10:
+        axes.plot(M.t/ms, I.I_Na_transient_Smit[comp_index,:], label = "I_Na_t")
+        axes.plot(M.t/ms, I.I_Na_persistent_Smit[comp_index,:], label = "I_Na_p")
+        axes.plot(M.t/ms, I.I_K_Smit[comp_index,:], label = "I_K_Smit")
+        axes.plot(M.t/ms, I.I_L_Smit[comp_index,:], label = "I_L_Smit")
+        axes.plot(M.t/ms, I.I_Na_Rat[comp_index,:], label = "I_Na_Rat")
+        axes.plot(M.t/ms, I.I_K_Rat[comp_index,:], label = "I_K_Rat")
+        axes.plot(M.t/ms, I.I_L_Rat[comp_index,:], label = "I_L_Rat")
+    if model in [imennov_09, imennov_adap_09]:
+        axes.plot(M.t/ms, I.I_Na[comp_index,:], label = "I_Na")
+        axes.plot(M.t/ms, I.I_Ks[comp_index,:], label = "I_Ks")
+        axes.plot(M.t/ms, I.I_Kf[comp_index,:], label = "I_Kf")
+        axes.plot(M.t/ms, I.I_L[comp_index,:], label = "I_L")
+    if model in [negm_14,negm_ANF_14,rattay_adap_01,briaire_adap_05,imennov_adap_09]:
+        axes.plot(M.t/ms, I_adap.I_KLT[comp_index,:], label = "I_KLT")
+        axes.plot(M.t/ms, I_adap.I_HCN[comp_index,:], label = "I_HCN")
+    plt.legend()
