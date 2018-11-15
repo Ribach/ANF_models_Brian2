@@ -49,7 +49,7 @@ def get_node_number_for_latency(model_name,
     ##### add quantity to phase_duration, inter_phase_gap, latency and stim_amp
     phase_duration = float(phase_duration)*second
     inter_phase_gap = float(inter_phase_gap)*second
-    latency = float(latency)*second
+    latency_desired = float(latency_desired)*second
     stim_amp = float(stim_amp)*amp
     
     ##### get model
@@ -62,25 +62,24 @@ def get_node_number_for_latency(model_name,
     node = round((upper_border - lower_border)/2)
     node_diff = upper_border - lower_border
     
-    ##### extend model
-    if len(np.where(model.structure == 2)[0]) < upper_border:
-        if hasattr(model, "nof_internodes"):
-            model.nof_internodes = upper_border
-        else:
-            model.nof_axonal_internodes = upper_border
-            
-    ##### initialize model
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
-    exec(param_string)
-    M = StateMonitor(neuron, 'v', record=True)
-    store('initialized')
-    
     ##### adjust stimulus amplitude until required accuracy is obtained
     while node_diff > delta:
         
         ##### print progress
         if print_progress: print("Model: {}; Node Number: {}".format(model_name, node))
         
+        ##### extend model
+        if hasattr(model, "nof_internodes"):
+            model.nof_internodes = upper_border
+        else:
+            model.nof_axonal_internodes = upper_border
+        
+        ##### initialize model
+        neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
+        exec(param_string)
+        M = StateMonitor(neuron, 'v', record=True)
+        store('initialized')
+            
         ##### define how the ANF is stimulated
         I_stim, runtime = stim.get_stimulus_current(model = model,
                                                     dt = dt,
@@ -119,10 +118,10 @@ def get_node_number_for_latency(model_name,
         if latency > latency_desired or latency == 0:
             node_number = node
             upper_border = node
-            node = (node + lower_border)/2
+            node = round((node + lower_border)/2)
         else:
             lower_border = node
-            node = (node + upper_border)/2
+            node = round((node + upper_border)/2)
             
         node_diff = upper_border - lower_border
     

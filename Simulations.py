@@ -37,14 +37,14 @@ prefs.codegen.target = "numpy"
 # =============================================================================
 plot_voltage_course_lines = True
 plot_voltage_course_colored = True
-plot_gating_variables = True
-plot_ion_currents = True
+plot_gating_variables = False
+plot_ion_currents = False
 
 # =============================================================================
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = negm_ANF_14
+model = rattay_01
 
 ##### initialize clock
 dt = 5*us
@@ -99,9 +99,9 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     I_stim, runtime = stim.get_stimulus_current(model = model,
                                                 dt = dt,
                                                 stimulation_type = "extern",
-                                                pulse_form = "mono",
+                                                pulse_form = "bi",
                                                 stimulated_compartment = stim_comp_index,
-                                                nof_pulses = 1,
+                                                nof_pulses = 500,
                                                 time_before = 1*ms,
                                                 time_after = 2*ms,
                                                 add_noise = False,
@@ -109,8 +109,8 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 amp_mono = -24*uA,
                                                 duration_mono = 100*us,
                                                 ##### biphasic stimulation
-                                                amps_bi = [-250,250]*uA,
-                                                durations_bi = [45,2,45]*us,
+                                                amps_bi = [-8,8]*uA,
+                                                durations_bi = [15,2,15]*us,
                                                 ##### multiple pulses / pulse trains
                                                 inter_pulse_gap = 0.5*ms)
     

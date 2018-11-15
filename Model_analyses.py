@@ -48,11 +48,12 @@ generate_plots = True
 
 ##### define which tests to run
 all_tests = False
+latency_over_stim_amp_test = True
+thresholds_for_pulse_trains = False
 voltage_courses_comparison = False
 computational_efficiency_test = False
 pulse_train_refractory_test = False
 stochastic_properties_test = False
-latency_over_stim_amp_test = True
 
 if any([all_tests, stochastic_properties_test]):
     # =============================================================================
@@ -95,6 +96,67 @@ if any([all_tests, stochastic_properties_test]):
     ##### add unit to phase duration and inter phase gap
     threshold_table["phase duration (us)"] = [round(ii*1e6) for ii in threshold_table["phase duration (us)"]]
     threshold_table["inter phase gap (us)"] = [round(ii*1e6,1) for ii in threshold_table["inter phase gap (us)"]]
+    
+if all_tests or thresholds_for_pulse_trains:
+    # =============================================================================
+    # Measure thresholds for pulse trains
+    # =============================================================================
+    ##### define stimulation parameters
+    phase_duration = 15*us
+    inter_phase_gap = 2*us
+    
+    ##### define pulse train durations in ms
+    pulse_train_durations = [0.1,0.2,0.5,1,2,5,10,20,50,100,200,500,1000]
+    
+    ##### define pulse rates
+    pulses_per_second = [1200,3000,5000,25000]
+    
+    ##### initialize dataframe with all stimulation information
+    stim_table = pd.DataFrame(list(itl.product(pulse_train_durations, pulses_per_second)), columns=["pulse train durations (ms)", "pulses per second"])
+    
+    ##### calculate number of pulses for each train duration - pulse rate combination
+    stim_table["number of pulses"] = np.floor(stim_table["pulse train durations (ms)"]*1e-3 * stim_table["pulses per second"]).astype(int)
+        
+    ##### calculate inter_pulse_gap
+    stim_table["inter pulse gap (us)"] = np.round(1e6/stim_table["pulses per second"] - phase_duration*2/us - inter_phase_gap/us).astype(int)
+    
+    ##### drop rows with no pulse
+    stim_table = stim_table[stim_table["number of pulses"] != 0]
+    
+    ##### define varied parameters 
+    params = [{"model_name" : model,
+               "nof_pulses" : stim_table["number of pulses"].iloc[ii],
+               "inter_pulse_gap" : stim_table["inter pulse gap (us)"].iloc[ii]}
+                for model in models
+                for ii in range(len(stim_table))]
+    
+    ##### get thresholds
+    threshold_table = th.util.map(func = test.get_threshold,
+                                  space = params,
+                                  backend = backend,
+                                  cache = "no",
+                                  kwargs = {"dt" : 5*us,
+                                            "phase_duration" : phase_duration,
+                                            "inter_phase_gap" : inter_phase_gap,
+                                            "delta" : 0.001*uA,
+                                            "amps_start_interval" : [0,400]*uA,
+                                            "pulse_form" = "bi"})
+    
+    
+    
+    ##### change index to column
+    threshold_table.reset_index(inplace=True)
+    
+    ##### change column names
+    threshold_table = threshold_table.rename(index = str, columns={"model_name" : "model",
+                                                                   "phase_duration" : "phase duration (us)",
+                                                                   "inter_phase_gap" : "inter phase gap (us)",
+                                                                   "pulse_form" : "pulse form",
+                                                                   0:"threshold"})
+    
+    ##### add unit to phase duration and inter phase gap
+    threshold_table["phase duration (us)"] = [round(ii*1e6) for ii in threshold_table["phase duration (us)"]]
+    threshold_table["inter phase gap (us)"] = [round(ii*1e6,1) for ii in threshold_table["inter phase gap (us)"]]
 
 if all_tests or latency_over_stim_amp_test:
 # =============================================================================
@@ -103,7 +165,6 @@ if all_tests or latency_over_stim_amp_test:
 ##### define stimulus parameters
 phase_duration = 45*us
 inter_phase_gap = 2*us
-stimulation_type = "extern"
 pulse_form = "bi"
 stim_node = 2
 
@@ -130,7 +191,6 @@ thresholds = th.util.map(func = test.get_threshold,
                                    "inter_phase_gap" : inter_phase_gap,
                                    "delta" : 0.0001*uA,
                                    "pulse_form" : pulse_form,
-                                   "stimulation_type" : "extern",
                                    "amps_start_interval" : [0,10]*mA})
 
 ##### change index to column
@@ -158,35 +218,30 @@ measurement_nodes = th.util.map(func = aly.get_node_number_for_latency,
                                           "phase_duration" : phase_duration,
                                           "inter_phase_gap" : inter_phase_gap,
                                           "delta" : 1,
-                                          "numbers_start_interval" : [10,1000],
-                                          "stimulation_type" : stimulation_type,
+                                          "numbers_start_interval" : [10,1200],
                                           "pulse_form" : "bi",
-                                          "time_after" : 10*ms})
+                                          "time_after" : 5*ms})
 
-#model_name = "rattay_01"
-#dt = 1*us
-#latency_desired = 2.5*ms 
-#stim_amp = thresholds["threshold (uA)"][thresholds["model"] == model][thresholds["parameter ratio"] == 1][0]
-#phase_duration = 45*us
-#delta = 1
-#numbers_start_interval = [10,1000]
-#inter_phase_gap = 2*us
-#pulse_form = "bi"
-#time_after = 5*ms
+##### change index to column
+measurement_nodes.reset_index(inplace=True)
 
-##### index of nodes, where latency is measured in order to obtain latency values near the measured values (is different for each model)
-measurement_node = [60, 110, 800]
+##### change column names
+measurement_nodes = measurement_nodes.rename(index = str, columns={"model_name" : "model",
+                                                                   "stim_amp" : "stimulus amplitude (uA)",
+                                                                   0:"measurement node"})
 
-##### define varied parameters 
+##### convert stimulus amplitude to uA
+measurement_nodes["stimulus amplitude (uA)"] = [ii*1e6 for ii in measurement_nodes["stimulus amplitude (uA)"]]
+
+##### get latencies for all stimulus amplitudes and electrode distances
 params = [{"model_name" : model,
            "stim_amp" : thresholds["threshold (uA)"][thresholds["model"] == model][thresholds["parameter ratio"] == electrode_distance_ratio][0] * stim_amp_level,
-           "measurement_node" : measurement_node[ii],
+           "measurement_node" : measurement_nodes["measurement node"][measurement_nodes["model"] == model][0],
            "electrode_distance" : thresholds["electrode distance (um)"][thresholds["model"] == model][thresholds["parameter ratio"] == electrode_distance_ratio][0]*1e-6}
-            for ii, model in enumerate(models)\
+            for model in models\
             for electrode_distance_ratio in electrode_distance_ratios\
             for stim_amp_level in stim_amp_levels]
 
-##### get latencies
 latency_table = th.util.map(func = aly.get_latency,
                             space = params,
                             backend = backend,
@@ -196,7 +251,6 @@ latency_table = th.util.map(func = aly.get_latency,
                                       "inter_phase_gap" : 2*us,
                                       "stimulus_node" : stim_node,
                                       "time_after" : 5*ms,
-                                      "stimulation_type" : "extern",
                                       "pulse_form" : "bi"})
 
 ##### change index to column
@@ -233,14 +287,14 @@ latency_measurements = pd.read_csv("Measurements/Latency_data/latency_measuremen
 ##### add stimulus amplitude levels to latency_measurements
 latency_measurements["amplitude level"] = latency_measurements["stimulus amplitude (uA)"] / latency_measurements["threshold"]
 
-##### plot latencies over stimulus amplitudes
-latencies_over_stimulus_duration_plot = plot.latencies_over_stimulus_duration(plot_name = "Latencies over stimulus durations",
-                                                                              latency_models = latency_table,
-                                                                              latency_measurements = latency_measurements)
-
-if generate_plots:
-    ##### save plot
-    latencies_over_stimulus_duration_plot.savefig("test_battery_results/Analyses/latencies_over_stimulus_duration_plot {}.png", bbox_inches='tight')
+###### plot latencies over stimulus amplitudes
+#latencies_over_stimulus_duration_plot = plot.latencies_over_stimulus_duration(plot_name = "Latencies over stimulus durations",
+#                                                                              latency_models = latency_table,
+#                                                                              latency_measurements = latency_measurements)
+#
+#if generate_plots:
+#    ##### save plot
+#    latencies_over_stimulus_duration_plot.savefig("test_battery_results/Analyses/latencies_over_stimulus_duration_plot {}.png", bbox_inches='tight')
 
 if all_tests or computational_efficiency_test:
     # =============================================================================

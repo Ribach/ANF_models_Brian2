@@ -43,8 +43,10 @@ def get_threshold(model_name,
                   parameter_ratio = None,
                   pulse_form = "mono",
                   stimulation_type = "extern",
-                  time_before = 3*ms,
+                  time_before = 2*ms,
                   time_after = 3*ms,
+                  nof_pulses = 1,
+                  inter_pulse_gap = 1*ms,
                   add_noise = False,
                   print_progress = True,
                   run_number = 0):
@@ -52,6 +54,7 @@ def get_threshold(model_name,
     ##### add quantity to phase_duration and inter_phase_gap
     phase_duration = float(phase_duration)*second
     inter_phase_gap = float(inter_phase_gap)*second
+    inter_pulse_gap = float(inter_pulse_gap)*second
     
     ##### get model
     model = eval(model_name)
@@ -59,11 +62,8 @@ def get_threshold(model_name,
     ##### initialize model
     if parameter is not None:
         
-        ##### get parameter value of model
-        original_param_value = eval("model.{}".format(parameter))
-        
         ##### adjust model parameter
-        exec("model.{} = parameter_ratio*original_param_value".format(parameter))
+        exec("model.{} = parameter_ratio*model.{}".format(parameter,parameter))
             
         ##### initialize model with changed parameter
         neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
@@ -120,13 +120,16 @@ def get_threshold(model_name,
                                                     add_noise = False,
                                                     time_before = time_before,
                                                     time_after = time_after,
+                                                    nof_pulses = 1,
                                                     ##### monophasic stimulation
                                                     amp_mono = -stim_amp,
                                                     duration_mono = phase_duration,
                                                     ##### biphasic stimulation
                                                     amps_bi = [-stim_amp/amp,stim_amp/amp]*amp,
-                                                    durations_bi = [phase_duration/second,inter_phase_gap/second,phase_duration/second]*second)
-    
+                                                    durations_bi = [phase_duration/second,inter_phase_gap/second,phase_duration/second]*second,
+                                                    ##### multiple pulses / pulse trains
+                                                    inter_pulse_gap = inter_pulse_gap)
+        
         ##### get TimedArray of stimulus currents and run simulation
         stimulus = TimedArray(np.transpose(I_stim + I_noise), dt=dt)
         
@@ -923,7 +926,7 @@ def post_stimulus_time_histogram(model_name,
     comp_index = np.where(model.structure == 2)[0][10]
 
     ##### calculate nof_pulses
-    nof_pulses = round(pulses_per_second*stim_duration/second)
+    nof_pulses = np.floor(pulses_per_second*stim_duration/second)
         
     ##### calculate inter_pulse_gap
     if pulse_form == "mono":
