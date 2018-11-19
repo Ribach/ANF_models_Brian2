@@ -29,18 +29,18 @@ E_HCN = 35*mV
 ##### conductivities active compartments
 g_Na = 1200*msiemens/cm**2
 g_K = 360*msiemens/cm**2
-g_KLT = 0*msiemens/cm**2
-g_HCN = 0*msiemens/cm**2
+g_KLT = 20*msiemens/cm**2
+g_HCN = 12*msiemens/cm**2
 g_L = 3*msiemens/cm**2
 ##### conductivities soma
 g_Na_soma = 120*msiemens/cm**2
 g_K_soma = 36*msiemens/cm**2
-g_KLT_soma = 5*msiemens/cm**2
-g_HCN_soma = 3*msiemens/cm**2
+g_KLT_soma = 2.5*msiemens/cm**2
+g_HCN_soma = 1.5*msiemens/cm**2
 g_L_soma = 0.3*msiemens/cm**2
 ##### conductivities somatic region
-g_KLT_somatic_region = 10*msiemens/cm**2
-g_HCN_somatic_region = 6*msiemens/cm**2
+g_KLT_somatic_region = 10*msiemens/cm**2 *0
+g_HCN_somatic_region = 6*msiemens/cm**2 *0
 
 # =============================================================================
 # Resistivities

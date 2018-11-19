@@ -449,7 +449,7 @@ def post_stimulus_time_histogram(plot_name,
     """
     
     ##### convert spike times to ms
-    #psth_dataset["spike times (us)"] = np.ceil(psth_dataset["spike times (us)"]/1000).astype(int)
+    psth_dataset["spike times (us)"] = np.ceil(psth_dataset["spike times (us)"]*1000).astype(int)
     psth_dataset = psth_dataset.rename(index = str, columns={"spike times (us)" : "spike times (ms)"})
     
     ##### get amplitude levels and pulse rates
@@ -468,7 +468,7 @@ def post_stimulus_time_histogram(plot_name,
     nof_bins = int((max(psth_dataset["spike times (ms)"])+1) / bin_width)
 
     ##### get bin edges
-    bin_edges = [ii*bin_width for ii in range(nof_bins+1)]
+    bin_edges = [ii*bin_width+0.5*bin_width for ii in range(nof_bins+1)]
     
     ##### create figure
     fig, axes = plt.subplots(nof_amplitudes, nof_pulse_rates, sharex=True, sharey=True, num = plot_name, figsize=(2*nof_pulse_rates, 2*nof_amplitudes))

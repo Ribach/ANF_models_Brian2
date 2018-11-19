@@ -44,7 +44,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "rattay_adap_01"
+model_name = "rattay_01"
 model = eval(model_name)
 
 ##### initialize clock
@@ -61,12 +61,12 @@ all_tests = False
 strength_duration_test = False
 relative_spread_test = False
 conduction_velocity_test = False
-single_node_response_test = True
+single_node_response_test = False
 refractory_periods = False
 refractory_curve = False
-psth_test = False
+psth_test = True
 
-if any([all_tests, single_node_response_test, refractory_periods, refractory_curve, psth_test]):
+if any([all_tests, single_node_response_test, refractory_periods, refractory_curve]):
     # =============================================================================
     # Get thresholds for certain stimulation types and stimulus durations
     # =============================================================================
@@ -579,31 +579,51 @@ if all_tests or psth_test:
     # Post Stimulus Time Histogram
     # =============================================================================
     ##### pulse rates to test
-    pulses_per_second = [400,800,2000,5000]
+    pulses_per_second = [400,800,2000,5000]/second
 
     ##### define phase durations to test (in us)
-    phase_durations = [50,50,50,50]
-    pulse_forms = ["bi", "bi", "bi", "bi"]
+    phase_duration = 50*us
+    pulse_form = "bi"
+    
+    ##### get thresholds for pulse trains
+    stim_length = 30*ms
+    inter_pulse_gaps = [np.round((1/pps - phase_duration*2)/us).astype(int) for pps in pulses_per_second]*us
+    params = [{"nof_pulses" : np.round(pulses_per_second[ii]*stim_length).astype(int),
+               "inter_pulse_gap" : inter_pulse_gaps[ii]/second}
+                for ii in range(len(pulses_per_second))]
+    
+    pulse_train_thresholds = th.util.map(func = test.get_threshold,
+                                         space = params,
+                                         backend = backend,
+                                         cache = "no",
+                                         kwargs = {"model_name" : model_name,
+                                                   "dt" : 5*us,
+                                                   "phase_duration" : phase_duration,
+                                                   "delta" : 0.001*uA,
+                                                   "amps_start_interval" : [0,50]*uA,
+                                                   "pulse_form" : pulse_form,
+                                                   "add_noise" : False})
+    
+    ##### change indexes to column
+    pulse_train_thresholds.reset_index(inplace=True)
+    
+    ##### change column name
+    pulse_train_thresholds = pulse_train_thresholds.rename(index = str, columns={0 : "threshold"})
     
     ##### look up thresholds
-    thresholds = [threshold_table["threshold"][threshold_table["pulse form"] == pulse_forms[ii]]\
-                                             [threshold_table["phase duration (us)"] == phase_durations[ii]].iloc[0]\
-                                             for ii in range(len(phase_durations))]
+    thresholds = [pulse_train_thresholds["threshold"][pulse_train_thresholds["inter_pulse_gap"] == ipg][0] for ipg in inter_pulse_gaps]
     
-    ##### exclude pulse rates, phase durations and pulse forms, where no threshold was found
+    ##### exclude pulse rates where no threshold was found
     pulses_per_second = list(itl.compress(pulses_per_second, [thresholds[ii] != 0 for ii in range(len(thresholds))]))
-    phase_durations = list(itl.compress(phase_durations, [thresholds[ii] != 0 for ii in range(len(thresholds))]))
-    pulse_forms = list(itl.compress(pulse_forms, [thresholds[ii] != 0 for ii in range(len(thresholds))]))
 
     ##### stimulus levels (will be multiplied with the threshold for a certain stimulation)
-    stim_amp_level = [1,1.5,2]
+    stim_amp_level = [1,1.2,1.5]
     
     ##### number of runs
     nof_runs = 50
     
     ##### define varied parameters 
-    params = [{"pulses_per_second" : pulses_per_second[ii],
-               "phase_duration" : phase_durations[ii]*1e-6,
+    params = [{"pulses_per_second" : np.round(pulses_per_second[ii]*second).astype(int),
                "stim_amp" : stim_amp_level[jj]*thresholds[ii],
                "run_number" : kk}
                 for ii in range(len(pulses_per_second))\
@@ -617,16 +637,16 @@ if all_tests or psth_test:
                              cache = "no",
                              kwargs = {"model_name" : model_name,
                                        "dt" : dt,
+                                       "phase_duration" : phase_duration,
                                        "stim_duration" : 300*ms,
                                        "stimulation_type" : "extern",
-                                       "pulse_form" : "bi"})
+                                       "pulse_form" : pulse_form})
     
     ##### change index to column
     psth_table.reset_index(inplace=True)
     
     ##### change column names
-    psth_table = psth_table.rename(index = str, columns={"phase_duration" : "phase duration (us)",
-                                                         "pulses_per_second" : "pulse rate",
+    psth_table = psth_table.rename(index = str, columns={"pulses_per_second" : "pulse rate",
                                                          "stim_amp" : "stimulus amplitude (uA)",
                                                          "run_number" : "run",
                                                          0 : "spike times (us)"})
@@ -638,20 +658,18 @@ if all_tests or psth_test:
                                 for kk in range(nof_runs)]
     
     ##### built subset of dataframe
-    psth_table = psth_table[["phase duration (us)", "pulse rate", "stimulus amplitude (uA)", "amplitude", "run", "spike times (us)"]]
+    psth_table = psth_table[["pulse rate", "stimulus amplitude (uA)", "amplitude", "run", "spike times (us)"]]
     
     ##### split lists in spike times column to multiple rows
     psth_table = calc.explode(psth_table, ["spike times (us)"])
     
-    ##### change units from second to us and form amp to uA
-    psth_table["phase duration (us)"] = round(psth_table["phase duration (us)"]*1e6).astype(int)
+    ##### convert stimulus amplitude form amp to uA
     psth_table["stimulus amplitude (uA)"] = round(psth_table["stimulus amplitude (uA)"]*1e6,2)
-    psth_table["spike times (us)"] = round(psth_table["spike times (us)"]*1e6).astype(int)
     
     if generate_plots:
         ##### plot post_stimulus_time_histogram
         post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
-                                                                         psth_dataset = psth_table)
+                                                                         psth_dataset = psth_table.copy())
         
         ###### save post_stimulus_time_histogram
         post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name), bbox_inches='tight')

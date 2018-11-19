@@ -84,9 +84,9 @@ def get_threshold(model_name,
     
     ##### calculate runtime
     if pulse_form == "mono":
-        runtime = time_before + phase_duration + inter_phase_gap + time_after
+        runtime = time_before + nof_pulses*phase_duration + (nof_pulses-1)*inter_pulse_gap + time_after
     else:
-        runtime = time_before + phase_duration*2 + inter_phase_gap + time_after
+        runtime = time_before + nof_pulses*(phase_duration*2 + inter_phase_gap) + (nof_pulses-1)*inter_pulse_gap + time_after
     
     ##### calculate number of timesteps
     nof_timesteps = int(np.ceil(runtime/dt))
@@ -120,7 +120,7 @@ def get_threshold(model_name,
                                                     add_noise = False,
                                                     time_before = time_before,
                                                     time_after = time_after,
-                                                    nof_pulses = 1,
+                                                    nof_pulses = nof_pulses,
                                                     ##### monophasic stimulation
                                                     amp_mono = -stim_amp,
                                                     duration_mono = phase_duration,
@@ -926,7 +926,7 @@ def post_stimulus_time_histogram(model_name,
     comp_index = np.where(model.structure == 2)[0][10]
 
     ##### calculate nof_pulses
-    nof_pulses = np.floor(pulses_per_second*stim_duration/second)
+    nof_pulses = np.floor(pulses_per_second*stim_duration/second).astype(int)
         
     ##### calculate inter_pulse_gap
     if pulse_form == "mono":

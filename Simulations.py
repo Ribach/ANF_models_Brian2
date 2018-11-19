@@ -37,14 +37,14 @@ prefs.codegen.target = "numpy"
 # =============================================================================
 plot_voltage_course_lines = True
 plot_voltage_course_colored = True
-plot_gating_variables = False
-plot_ion_currents = False
+plot_gating_variables = True
+plot_ion_currents = True
 
 # =============================================================================
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = rattay_01
+model = rattay_adap_01
 
 ##### initialize clock
 dt = 5*us
@@ -99,17 +99,17 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     I_stim, runtime = stim.get_stimulus_current(model = model,
                                                 dt = dt,
                                                 stimulation_type = "extern",
-                                                pulse_form = "bi",
+                                                pulse_form = "mono",
                                                 stimulated_compartment = stim_comp_index,
-                                                nof_pulses = 500,
+                                                nof_pulses = 200,
                                                 time_before = 1*ms,
                                                 time_after = 2*ms,
-                                                add_noise = False,
+                                                add_noise = True,
                                                 ##### monophasic stimulation
-                                                amp_mono = -24*uA,
-                                                duration_mono = 100*us,
+                                                amp_mono = -2*uA,
+                                                duration_mono = 50*us,
                                                 ##### biphasic stimulation
-                                                amps_bi = [-8,8]*uA,
+                                                amps_bi = [-10,10]*uA,
                                                 durations_bi = [15,2,15]*us,
                                                 ##### multiple pulses / pulse trains
                                                 inter_pulse_gap = 0.5*ms)
@@ -125,23 +125,23 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
 
     ##### Plot membrane potential of all compartments over time (2 plots)
     if plot_voltage_course_lines:
-        plot.voltage_course_lines(plot_name = "Voltage course {}".format(model.display_name),
-                                  time_vector = M.t,
-                                  voltage_matrix = M.v,
-                                  comps_to_plot = model.comps_to_plot,
-                                  distance_comps_middle = model.distance_comps_middle,
-                                  length_neuron = model.length_neuron,
-                                  V_res = model.V_res)
+       voltage_course_lines = plot.voltage_course_lines(plot_name = "Voltage course {}".format(model.display_name),
+                                                        time_vector = M.t,
+                                                        voltage_matrix = M.v,
+                                                        comps_to_plot = model.comps_to_plot,
+                                                        distance_comps_middle = model.distance_comps_middle,
+                                                        length_neuron = model.length_neuron,
+                                                        V_res = model.V_res)
     
     if plot_voltage_course_colored:
-        plot.voltage_course_colors(plot_name = "Voltage course {} (colored)".format(model.display_name),
-                                   time_vector = M.t,
-                                   voltage_matrix = M.v,
-                                   distance_comps_middle = model.distance_comps_middle)
+        voltage_course_colors = plot.voltage_course_colors(plot_name = "Voltage course {} (colored)".format(model.display_name),
+                                                           time_vector = M.t,
+                                                           voltage_matrix = M.v,
+                                                           distance_comps_middle = model.distance_comps_middle)
 
 if plot_gating_variables:
     ##### plot gating variables
-    comp_index = np.where(model.structure == 2)[0][10]
+    comp_index = np.where(model.structure == 2)[0][3]
     fig = plt.figure("gating variables")
     axes = fig.add_subplot(1, 1, 1)
     if model in [rattay_01,rattay_adap_01,frijns_94,briaire_05,briaire_adap_05,negm_14,negm_ANF_14,rudnicki_18]:

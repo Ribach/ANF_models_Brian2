@@ -795,12 +795,12 @@ def stochastic_properties_comparison(plot_name,
         
     return fig
 
-# =============================================================================
-# Plot latencies over stimulus duration
-# =============================================================================
-def latencies_over_stimulus_duration(plot_name,
-                                     latency_models,
-                                     latency_measurements = None):
+## =============================================================================
+## Plot latencies over stimulus duration
+## =============================================================================
+def latencies_over_stimulus_duration_old(plot_name,
+                                         latency_models,
+                                         latency_measurements = None):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -843,7 +843,7 @@ def latencies_over_stimulus_duration(plot_name,
         ##### building a subset
         current_data = latency_models[latency_models["model"] == model]
                                   
-        ##### plot threshold curve
+        ##### plot latency curve
         axes.plot(current_data["amplitude level"], current_data["latency (ms)"], color = colors[ii], label = "_nolegend_")
         
         ##### show points
@@ -863,7 +863,7 @@ def latencies_over_stimulus_duration(plot_name,
             current_data = latency_measurements[latency_measurements["subject"] == subjects["subject"].tolist()[ii]]
             current_data = current_data[current_data["ear"] == subjects["ear"].tolist()[ii]]
             
-            ##### plot threshold curve
+            ##### plot latency curve
             axes.plot(current_data["amplitude level"], current_data["latency (ms)"], color = colors[ii+len(models)], label = "_nolegend_")
             
             ##### show points
@@ -883,9 +883,302 @@ def latencies_over_stimulus_duration(plot_name,
         
     return fig
 
+# =============================================================================
+#  Plot latencies over stimulus duration for different electrode distances
+# =============================================================================
+def latencies_over_stimulus_duration(plot_name,
+                                     latency_models,
+                                     latency_measurements = None):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
 
+    Parameters
+    ----------
+    time_vector : integer
+        Number of timesteps of whole simulation.
+    voltage_matrix : time
+        Lenght of one time step.
+    distance_comps_middle : current
+        Amplitude of current stimulus.
+    time_before_pulse : time
+        Time until pulse starts.
+    stimulus_duration : time
+        Duration of stimulus.
+                
+    Returns
+    -------
+    current vector
+        Gives back a vector of currents for each timestep
+    """
+    
+    ##### get model names
+    models = latency_models["model"].unique().tolist()
+    
+    ##### get electrode distances
+    electrode_distances = latency_models["electrode distance (um)"].unique().tolist()
+    
+    ##### define number of columns
+    nof_cols = 2
+    
+    ##### get number of plots
+    nof_plots = len(models)
+    if latency_measurements is not None:
+        nof_plots = nof_plots + 1
+    
+    ##### get number of rows
+    nof_rows = np.ceil(nof_plots/nof_cols).astype(int)
+    
+    ##### get x- axes ranges
+    x_min = 0.8
+    x_max = max(latency_models["amplitude level"]) + 0.2
+    
+    ##### define colors and markers
+    colors_ABR = ["black","red","blue","black","red","blue","black","red","blue","black","red","blue"]
+    markers_ABR = ["o","o","o","v","v","v","s","s","s","o","o","o","v","v","v","s","s","s"]
+    edgecolors_ABR = ["black","red","blue","black","red","blue","black","red","blue","black","red","blue"]
+    
+    colors = ["#ffffcc","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"]
+    markers = ["o","v","s","d","o","v","s","d","o","v","s","d"]
+    edgecolors = ["#ffeda0","#ffeda0","#fed976","#feb24c","#fd8d3c","#fc4e2a","#e31a1c","#bd0026","#800026"]
 
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### create figure
+    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=False, num = plot_name, figsize=(8*nof_cols, 5*nof_rows))
+    
+    ##### plot experimental results if provided
+    if latency_measurements is not None:
+        
+        ##### define y axis range
+        y_min = min(latency_measurements["latency (ms)"]) - (max(latency_measurements["latency (ms)"]) - min(latency_measurements["latency (ms)"]))*0.1
+        y_max = max(latency_measurements["latency (ms)"]) + (max(latency_measurements["latency (ms)"]) - min(latency_measurements["latency (ms)"]))*0.2
+        axes[0][0].set_ylim([y_min,y_max])
+        
+        ##### define axes ranges
+        axes[0][0].set_xlim([x_min,x_max])
+        
+        ##### turn off x-labels for all but the bottom plots
+        if (nof_plots - 0) > nof_cols:
+             plt.setp(axes[0][0].get_xticklabels(), visible=False)
+                
+        ##### get subjects
+        subjects = latency_measurements[["subject", "ear"]].drop_duplicates()
+                
+        ##### loop over subjects
+        for ii in range(len(subjects)):
+                    
+            ##### building a subset
+            current_data = latency_measurements[latency_measurements["subject"] == subjects["subject"].tolist()[ii]]
+            current_data = current_data[current_data["ear"] == subjects["ear"].tolist()[ii]]
+            
+            ##### plot latency curve
+            axes[0][0].plot(current_data["amplitude level"], current_data["latency (ms)"], color = colors_ABR[ii], label = "_nolegend_")
+            
+            ##### show points
+            axes[0][0].scatter(current_data["amplitude level"], current_data["latency (ms)"],
+                              color = colors_ABR[ii], marker = markers_ABR[ii], edgecolor = edgecolors_ABR[ii],
+                              label = "{}, {} ear".format(subjects["subject"].tolist()[ii],subjects["ear"].tolist()[ii]))
+            
+            ##### add legend
+            axes[0][0].legend()
+            
+        ##### write description in plots
+        axes[0][0].text(1.2, y_max-0.1*(max(latency_measurements["latency (ms)"]) - min(latency_measurements["latency (ms)"])), "ABR measurements", fontsize=14)
+    
+        ##### remove top and right lines
+        axes[0][0].spines['top'].set_visible(False)
+        axes[0][0].spines['right'].set_visible(False)
+        
+        ##### define start plot number for model plots
+        model_plot_start = 1
+        
+    else:
+        model_plot_start = 0
+    
+    ##### loop over plots 
+    for ii in range(model_plot_start, nof_rows*nof_cols):
+        
+        ##### get row and column number
+        row = np.floor(ii/nof_cols).astype(int)
+        col = ii-row*nof_cols
+        
+        ##### turn off x-labels for all but the bottom plots
+        if (nof_plots - ii) > nof_cols:
+             plt.setp(axes[row][col].get_xticklabels(), visible=False)
+        
+        ##### remove not needed subplots
+        if ii >= nof_plots:
+            fig.delaxes(axes[row][col])
+        
+        ##### plot latencies
+        if ii < nof_plots:
+            
+            ##### building a subset for current model
+            model = models[ii-model_plot_start]
+            current_model = latency_models[latency_models["model"] == model]
+            
+            ##### define y axis range
+            y_min = min(current_model["latency (ms)"]) - (max(current_model["latency (ms)"]) - min(current_model["latency (ms)"]))*0.05
+            y_max = max(current_model["latency (ms)"]) + (max(current_model["latency (ms)"]) - min(current_model["latency (ms)"]))*0.2
+            axes[row][col].set_ylim([y_min,y_max])
+            
+            ##### define x-axis ranges
+            axes[row][col].set_xlim([x_min,x_max])
+            
+            ##### loop over electrode distances
+            for jj, electrode_distance in enumerate(electrode_distances):
+                
+                ##### built subset for current electrode distance
+                current_data = current_model[current_model["electrode distance (um)"] == electrode_distance]
+                
+                ##### plot latency curve
+                axes[row][col].plot(current_data["amplitude level"], current_data["latency (ms)"], color = colors[jj], label = "_nolegend_")
+                
+                ##### show points
+                axes[row][col].scatter(current_data["amplitude level"], current_data["latency (ms)"],
+                                          color = colors[jj], marker = markers[jj], edgecolor = edgecolors[jj], label = "{} um".format(electrode_distance))
+                
+            ##### remove top and right lines
+            axes[row][col].spines['top'].set_visible(False)
+            axes[row][col].spines['right'].set_visible(False)
+                
+            ##### write model name in plots
+            axes[row][col].text(1.2, y_max-0.1*(max(current_model["latency (ms)"]) - min(current_model["latency (ms)"])), "{}".format(eval("{}.display_name".format(model))), fontsize=14)
+                
+            ##### no grid
+            axes[row][col].grid(False)
+            
+            ##### add legend
+            axes[row][col].legend(title = "electrode distance:")
+    
+    ##### bring subplots close to each other.
+    fig.subplots_adjust(hspace=0.05, wspace=0.1)
+    
+    ##### get labels for the axes
+    fig.text(0.5, 0.055, 'stimulus amplitude / threshold', ha='center', fontsize=14)
+    fig.text(0.08, 0.5, 'latency / ms', va='center', rotation='vertical', fontsize=14)
+        
+    return fig
 
+# =============================================================================
+#  Plot thresholds for pulse trains
+# =============================================================================
+def thresholds_for_pulse_trains(plot_name,
+                                threshold_data):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    time_vector : integer
+        Number of timesteps of whole simulation.
+    voltage_matrix : time
+        Lenght of one time step.
+    distance_comps_middle : current
+        Amplitude of current stimulus.
+    time_before_pulse : time
+        Time until pulse starts.
+    stimulus_duration : time
+        Duration of stimulus.
+                
+    Returns
+    -------
+    current vector
+        Gives back a vector of currents for each timestep
+    """
+    
+    ##### get model names
+    models = threshold_data["model"].unique().tolist()
+    
+    ##### get pulse rates
+    pulse_rates = threshold_data["pulses per second"].unique().tolist()
+    
+    ##### define number of columns
+    nof_cols = 2
+    
+    ##### get number of plots
+    nof_plots = len(models)
+    
+    ##### get number of rows
+    nof_rows = np.ceil(nof_plots/nof_cols).astype(int)
+    
+    ##### define colors and markers
+    colors = ["black","red","blue","#33a02c","black","red","blue","#33a02c"]
+    markers = ["o","v","s","d","o","v","s","d"]
+    edgecolors = ["black","red","blue","#33a02c","black","red","blue","#33a02c"]
+              
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### create figure
+    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=False, num = plot_name, figsize=(8*nof_cols, 5*nof_rows))
+    
+    ##### loop over plots 
+    for ii in range(nof_rows*nof_cols):
+        
+        ##### get row and column number
+        row = np.floor(ii/nof_cols).astype(int)
+        col = ii-row*nof_cols
+        
+        ##### turn off x-labels for all but the bottom plots
+        if (nof_plots - ii) > nof_cols:
+             plt.setp(axes[row][col].get_xticklabels(), visible=False)
+        
+        ##### remove not needed subplots
+        if ii >= nof_plots:
+            fig.delaxes(axes[row][col])
+        
+        ##### plot thresholds
+        if ii < nof_plots:
+            
+            ##### building a subset for current model
+            model = models[ii]
+            current_model = threshold_data[threshold_data["model"] == model]
+            
+            ##### define y axis range
+            y_min = min(current_model["threshold (uA)"]) - (max(current_model["threshold (uA)"]) - min(current_model["threshold (uA)"]))*0.05
+            y_max = max(current_model["threshold (uA)"]) + (max(current_model["threshold (uA)"]) - min(current_model["threshold (uA)"]))*0.2
+            axes[row][col].set_ylim([y_min,y_max])
+            
+            ##### loop over electrode distances
+            for jj, pps in enumerate(pulse_rates):
+                
+                ##### built subset for current electrode distance
+                current_data = current_model[current_model["pulses per second"] == pps]
+                
+                ##### plot latency curve
+                axes[row][col].plot(current_data["number of pulses"], current_data["threshold (uA)"], color = colors[jj], label = "_nolegend_")
+                
+                ##### show points
+                axes[row][col].scatter(current_data["number of pulses"], current_data["threshold (uA)"],
+                    color = colors[jj], marker = markers[jj], edgecolor = edgecolors[jj], label = pps)
+                
+            ##### logarithmic x achsis
+            axes[row][col].set_xscale('log')
+                
+            ##### remove top and right lines
+            axes[row][col].spines['top'].set_visible(False)
+            axes[row][col].spines['right'].set_visible(False)
+                
+            ##### write model name in plots
+            axes[row][col].text(1, y_max-0.1*(max(current_model["threshold (uA)"]) - min(current_model["threshold (uA)"])),
+                "{}".format(eval("{}.display_name".format(model))), fontsize=14)
+                
+            ##### no grid
+            axes[row][col].grid(False)
+            
+            ##### add legend
+            axes[row][col].legend(title = "Pulses per second:")
+    
+    ##### bring subplots close to each other.
+    fig.subplots_adjust(hspace=0.05, wspace=0.1)
+    
+    ##### get labels for the axes
+    fig.text(0.5, 0.055, 'number of pulses', ha='center', fontsize=14)
+    fig.text(0.07, 0.5, 'threshold / uA', va='center', rotation='vertical', fontsize=14)
+        
+    return fig
 
 
 
