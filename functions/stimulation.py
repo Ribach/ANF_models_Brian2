@@ -6,8 +6,8 @@ import numpy as np
 # =============================================================================
 def get_stimulus_current(model,
                          dt = 5*ms,
-                         stimulation_type = "extern",
                          pulse_form = "mono",
+                         stimulation_type = "extern",
                          stimulated_compartment = None,
                          time_before = 0*ms,
                          time_after = 1*ms,
@@ -23,12 +23,16 @@ def get_stimulus_current(model,
 
     Parameters
     ----------
+    model : module
+        Module that contains all parameters for a certain model
     dt : time
-        Lenght of one time step.
-    stimulation_type : string
-        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+        Sampling timestep.
     pulse_form : string
         Describes, which pulses are used; either "mono" or "bi" is possible
+    stimulation_type : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    stimulated_compartment : integer
+        Index of compartment which is stimulated.
     time_before : time
         Time until (first) pulse starts.
     time_after : time
@@ -47,27 +51,14 @@ def get_stimulus_current(model,
         Vector of length three, which includes the durations of the first phase, the interphase gap and the second phase, resepectively.
     inter_pulse_gap : time
         Time interval between pulses for nof_pulses > 1.
-    compartment_lengths : measure of length vector
-        Contains the lengths of all compartments.
-    stimulated_compartment : integer
-        Index of compartment which is stimulated.
-    electrode_distance : measure of length
-        Shortest distance between electrode and axon (for external stimulation).
-    rho_out : resistance*measure of length
-        Extracellular resistivity (for external stimulation) .
-    axoplasmatic_resistances : resistance vector
-        Axoplasmatic resistances of each compartment (for external stimulation).
-    k_noise : amp/[noise_term]
-        Defines the noise strength if add_noise = True.
-    noise_term : amp/[k_noise]
-        Is multiplied with k_noise.
                 
     Returns
     -------
     current matrix
-        Gives back a vector of currents for each timestep
+        Gives back a matrix of stumulus currents with one row for each compartment
+        and one column for each timestep.
     runtime
-        Gives back the duration of the simulation
+        Gives back the duration of the simulation        
     """
     
     ##### use second node for stimulation if no index is given

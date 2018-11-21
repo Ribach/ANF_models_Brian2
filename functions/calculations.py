@@ -1,3 +1,7 @@
+# =============================================================================
+# This script provides some functions that are useful for certain calculations
+# and transformations.
+# =============================================================================
 from brian2 import *
 import numpy as np
 import pandas as pd
@@ -9,8 +13,8 @@ def get_soma_diameters(nof_segments,
                        dendrite_diameter,
                        soma_diameter,
                        axon_diameter):
-    """This function calculates the stimulus current at the current source for
-    a single biphasic pulse stimulus at each point of time
+    """This function calculates the diameters for each compartment, for a segmentation
+    of the soma into multiple compartments.
 
     Parameters
     ----------
@@ -19,13 +23,13 @@ def get_soma_diameters(nof_segments,
     dendrite_diameter : measure of lengths
         Diameter of the dendrite.
     soma_diameter : measure of lengths
-        Diameter of the soma.
+        Maximum diameter of the soma.
     axon_diameter : measure of lengths
         Diameter of the axon.
                 
     Returns
     -------
-    current vector
+    diameter vector
         Gives back a vector of start and end diameters for each segment of soma
         i.e. a vector of length nof_segments+1
     """
@@ -44,7 +48,7 @@ def get_soma_diameters(nof_segments,
         
         ##### diameters left part
         soma_comp_diameters[0,0:center_of_soma] = [2*np.sqrt(((soma_diameter/2)**2)-(soma_comp_len*i)**2) for i in range(center_of_soma,0,-1)]
-        ##### no diameters smaller than dendrite diameter
+        # no diameters smaller than dendrite diameter
         soma_comp_diameters[0,0:center_of_soma][np.where(soma_comp_diameters[0,0:center_of_soma] < dendrite_diameter)] = dendrite_diameter
         
         ##### diameter center
@@ -60,7 +64,7 @@ def get_soma_diameters(nof_segments,
     
         ##### diameters left part
         soma_comp_diameters[0,0:center_of_soma[0]] = [2*np.sqrt(((soma_diameter/2)**2)-(soma_comp_len*(i+0.5))**2) for i in range(center_of_soma[0],0,-1)]
-        ##### no diameters smaller than dendrite diameter
+        # no diameters smaller than dendrite diameter
         soma_comp_diameters[0,0:center_of_soma[0]][np.where(soma_comp_diameters[0,0:center_of_soma[0]] < dendrite_diameter)] = dendrite_diameter
         
         ##### diameter center
@@ -77,41 +81,43 @@ def get_soma_diameters(nof_segments,
 #  Split pandas datframe column with lists to multiple rows
 # =============================================================================
 def explode(df, lst_cols, fill_value=''):
-    """This function calculates the stimulus current at the current source for
-    a single biphasic pulse stimulus at each point of time
+    """This function reshapes a pandas dataframe that contains a column with lists,
+    that the resulting dataframe has one row for each list element.
 
     Parameters
     ----------
-    name : integer
-        Number of segments into which soma will be devided.
-    values : measure of lengths
-        Diameter of the dendrite.
+    df : pandas dataframe
+        Dataframe to be reshaped.
+    lst_cols : list of strings 
+        All strings in the list have to be column names of df. If they include lists,
+        the dataframe will be reshaped in the mentioned way.
+    fill_value : string
+        This argument defines, how Na values are shown/repaced in the resulting dataframe
                 
     Returns
     -------
-    display name
-        Gives back a vector of start and end diameters for each segment of soma
-        i.e. a vector of length nof_segments+1
+    pandas dataframe
+        Gives back the reshaped pandas dataframe
     """
 
-    # make sure `lst_cols` is a list
+    ##### make sure `lst_cols` is a list
     if lst_cols and not isinstance(lst_cols, list):
         lst_cols = [lst_cols]
-    # all columns except `lst_cols`
+    ##### all columns except `lst_cols`
     idx_cols = df.columns.difference(lst_cols)
 
-    # calculate lengths of lists
+    ##### calculate lengths of lists
     lens = df[lst_cols[0]].str.len()
 
     if (lens > 0).all():
-        # ALL lists in cells aren't empty
+        ##### all lists in cells aren't empty
         return pd.DataFrame({
             col:np.repeat(df[col].values, lens)
             for col in idx_cols
         }).assign(**{col:np.concatenate(df[col].values) for col in lst_cols}) \
           .loc[:, df.columns]
     else:
-        # at least one list in cells is empty
+        ##### at least one list in cells is empty
         return pd.DataFrame({
             col:np.repeat(df[col].values, lens)
             for col in idx_cols
@@ -119,8 +125,3 @@ def explode(df, lst_cols, fill_value=''):
           .append(df.loc[lens==0, idx_cols]).fillna(fill_value) \
           .loc[:, df.columns]
     
-    
-    
-    
-    
-        

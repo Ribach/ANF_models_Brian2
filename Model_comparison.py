@@ -1,3 +1,9 @@
+# =============================================================================
+# This script collects the test battery results of all (!) models and generates
+# and saves plots that compare the results among each other and with experimental
+# data. Furthermore dataframes are generated and saved in a latex-compatibel
+# format, which contain both model and experimental data.
+# =============================================================================
 ##### don't show warnings
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -41,10 +47,8 @@ models_without_soma = list(itl.compress(models, [not hasattr(model, "index_soma"
 ##### save plots
 save_plots = True
 save_tables = True
-interim_report_image_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Zwischenbericht Masterarbeit/images"
-interim_report_table_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Zwischenbericht Masterarbeit/tables"
-
-interim_report_image_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Zwischenvortrag/Bilder"
+theses_image_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Abschlussbericht/images/03_comparison_of_results"
+theses_table_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Abschlussbericht/tables/03_comparison_of_results"
 
 # =============================================================================
 # Conduction velocity tables
@@ -85,13 +89,13 @@ for ii,model in enumerate(models_without_soma):
 
 ##### define captions and save tables as tex
 if save_tables:
-    caption = "Comparison of conduction velocities, outer diameters and scaling factors for models with a soma."    
-    with open("{}/conduction_velocity_table_with_soma.tex".format(interim_report_table_path), "w") as tf:
-        tf.write(ptol.dataframe_to_latex(conduction_velocity_table_with_soma, label = "tbl:con_vel_table_with_soma", caption = caption))
+    caption_top = "Comparison of conduction velocities, outer diameters and scaling factors for models with a soma."    
+    with open("{}/conduction_velocity_table_with_soma.tex".format(theses_table_path), "w") as tf:
+        tf.write(ptol.dataframe_to_latex(conduction_velocity_table_with_soma, label = "tbl:con_vel_table_with_soma", caption_top = caption_top))
     
-    caption = "Comparison of conduction velocities, outer diameters and scaling factors for models without a soma."    
-    with open("{}/conduction_velocity_table_without_soma.tex".format(interim_report_table_path), "w") as tf:
-        tf.write(ptol.dataframe_to_latex(conduction_velocity_table_without_soma, label = "tbl:con_vel_table_without_soma", caption = caption))
+    caption_top = "Comparison of conduction velocities, outer diameters and scaling factors for models without a soma."    
+    with open("{}/conduction_velocity_table_without_soma.tex".format(theses_table_path), "w") as tf:
+        tf.write(ptol.dataframe_to_latex(conduction_velocity_table_without_soma, label = "tbl:con_vel_table_without_soma", caption_top = caption_top))
 
 # =============================================================================
 # Conduction velocity plot
@@ -131,7 +135,7 @@ conduction_velocity_plot = plot.conduction_velocity_comparison(plot_name = "Comp
 
 ##### save plots
 if save_plots:
-    conduction_velocity_plot.savefig("{}/conduction_velocity_plot.png".format(interim_report_image_path), bbox_inches='tight')
+    conduction_velocity_plot.savefig("{}/conduction_velocity_plot.pdf".format(theses_image_path), bbox_inches='tight')
 
 # =============================================================================
 # Single node response plot
@@ -168,7 +172,7 @@ single_node_response = plot.single_node_response_comparison(plot_name = "Voltage
 
 ##### save plot
 if save_plots:
-    single_node_response.savefig("{}/single_node_response comparison.png".format(interim_report_image_path), bbox_inches='tight')
+    single_node_response.savefig("{}/single_node_response comparison.pdf".format(theses_image_path), bbox_inches='tight')
 
 # =============================================================================
 # AP shape table
@@ -207,9 +211,9 @@ for ii in ["AP height (mV)","rise time (us)","fall time (us)","AP duration (us)"
 
 ##### define caption and save table as tex
 if save_tables:
-    caption = "Comparison of AP shape properties of all models"
-    with open("{}/AP_shape_models.tex".format(interim_report_table_path), "w") as tf:
-         tf.write(ptol.dataframe_to_latex(AP_shape, label = "tbl:AP_shape_comparison", caption = caption))
+    caption_top = "Comparison of AP shape properties of all models"
+    with open("{}/AP_shape_models.tex".format(theses_table_path), "w") as tf:
+         tf.write(ptol.dataframe_to_latex(AP_shape, label = "tbl:AP_shape_comparison", caption_top = caption_top))
 
 # =============================================================================
 # Plot experimental results for rise and fall time
@@ -252,8 +256,8 @@ fall_time_comparison_paintal = plot.paintal_fall_time_curve(plot_name = "Compari
 
 ##### save plots
 if save_plots:
-    rise_time_comparison_paintal.savefig("{}/rise_time_comparison_paintal.png".format(interim_report_image_path), bbox_inches='tight')
-    fall_time_comparison_paintal.savefig("{}/fall_time_comparison_paintal.png".format(interim_report_image_path), bbox_inches='tight')
+    rise_time_comparison_paintal.savefig("{}/rise_time_comparison_paintal.pdf".format(theses_image_path), bbox_inches='tight')
+    fall_time_comparison_paintal.savefig("{}/fall_time_comparison_paintal.pdf".format(theses_image_path), bbox_inches='tight')
 
 # =============================================================================
 # Latency table
@@ -300,13 +304,15 @@ for ii,letter in enumerate(letters[:len(latency_table.columns)]):
 
 ##### define caption and save table as tex
 if save_tables:
-    caption = "Comparison of latencies (us) of models for four different stimuli with experimental data (italicised).\\\\\n"
+    caption_top = "Comparison of latencies"
+    caption_bottom = "All latencies are given in $\mu$s. Four different stimuli were applied and compared with experimental data (italicised)\\\\\n"
     for ii,letter in enumerate(letters[:len(stimulations)]):
-        caption = caption + "{}: {}, phase duration: {} $\mu$s, stimulus amplitude: {}\\\\\n".format(letter,stimulations["pulse form"][ii],
-                             stimulations["phase duration (us)"][ii],stimulations["amplitude level"][ii])
+        caption_bottom = caption_bottom + "{}: {}, phase duration: {} $\mu$s, stimulus amplitude: {}\\\\\n".format(letter,stimulations["pulse form"][ii],
+                                           stimulations["phase duration (us)"][ii],stimulations["amplitude level"][ii])
     italic_range = range(len(models),len(latency_table))
-    with open("{}/latency_table.tex".format(interim_report_table_path), "w") as tf:
-        tf.write(ptol.dataframe_to_latex(latency_table, label = "tbl:latency_comparison", caption = caption, italic = italic_range))
+    with open("{}/latency_table.tex".format(theses_table_path), "w") as tf:
+        tf.write(ptol.dataframe_to_latex(latency_table, label = "tbl:latency_comparison",
+                                         caption_top = caption_top, caption_bottom = caption_bottom, italic = italic_range))
 
 # =============================================================================
 # Jitter table
@@ -342,13 +348,15 @@ for ii,letter in enumerate(letters[:len(jitter_table.columns)]):
 
 ##### define caption and save table as tex
 if save_tables:
-    caption = "Comparison of jitters (us) of models for four different stimuli with experimental data (italicised).\\\\\n"
+    caption_top = "Comparison of jitters"
+    caption_bottom = "All jitters are given in $\mu$s. Four different stimuli were applied and compared with experimental data (italicised)\\\\\n"
     for ii,letter in enumerate(letters[:len(stimulations)]):
-        caption = caption + "{}: {}, phase duration: {} $\mu$s, stimulus amplitude: {}\\\\\n".format(letter,stimulations["pulse form"][ii],
+        caption_bottom = caption_bottom + "{}: {}, phase duration: {} $\mu$s, stimulus amplitude: {}\\\\\n".format(letter,stimulations["pulse form"][ii],
                              stimulations["phase duration (us)"][ii],stimulations["amplitude level"][ii])
     italic_range = range(len(models),len(jitter_table))
-    with open("{}/jitter_table.tex".format(interim_report_table_path), "w") as tf:
-        tf.write(ptol.dataframe_to_latex(jitter_table, label = "tbl:jitter_comparison", caption = caption, italic = italic_range))
+    with open("{}/jitter_table.tex".format(theses_table_path), "w") as tf:
+        tf.write(ptol.dataframe_to_latex(jitter_table, label = "tbl:jitter_comparison",
+                                         caption_top = caption_top, caption_bottom = caption_bottom, italic = italic_range))
     
 # =============================================================================
 # Strength duration table
@@ -380,10 +388,10 @@ strength_duration_table = strength_duration_table.transpose()
 
 ##### define caption and save table as tex
 if save_tables:
-    caption = "Comparison of the rheobase and chronaxie for all models with experimental data (italicised)."
+    caption_top = "Comparison of the rheobase and chronaxie for all models with experimental data (italicised)."
     italic_range = range(len(models),len(strength_duration_table))
-    with open("{}/strength_duration_table.tex".format(interim_report_table_path), "w") as tf:
-        tf.write(ptol.dataframe_to_latex(strength_duration_table, label = "tbl:strength_duration_comparison", caption = caption, italic = italic_range))
+    with open("{}/strength_duration_table.tex".format(theses_table_path), "w") as tf:
+        tf.write(ptol.dataframe_to_latex(strength_duration_table, label = "tbl:strength_duration_comparison", caption_top = caption_top, italic = italic_range))
 
 # =============================================================================
 # Strength duration curve
@@ -405,12 +413,12 @@ stength_duration_curves = pd.concat(stength_duration_curves,ignore_index = True)
 
 ##### plot strength duration curve
 strength_duration_curve = plot.strength_duration_curve_comparison(plot_name = "Strength duration curve model comparison",
-                                                                  threshold_matrix = stength_duration_curves,
+                                                                  threshold_data = stength_duration_curves,
                                                                   strength_duration_table = strength_duration_table)
 
 ##### save plot
 if save_plots:
-    strength_duration_curve.savefig("{}/strength_duration_curve comparison.png".format(interim_report_image_path), bbox_inches='tight')
+    strength_duration_curve.savefig("{}/strength_duration_curve comparison.pdf".format(theses_image_path), bbox_inches='tight')
 
 # =============================================================================
 # Refractory curves
@@ -436,7 +444,7 @@ refractory_curves_plot = plot.refractory_curves_comparison(plot_name = "Refracto
 
 ##### save plot
 if save_plots:
-    refractory_curves_plot.savefig("{}/refractory_curves_plot comparison.png".format(interim_report_image_path), bbox_inches='tight')
+    refractory_curves_plot.savefig("{}/refractory_curves_plot comparison.pdf".format(theses_image_path), bbox_inches='tight')
 
 # =============================================================================
 # Absolute refractory table model comparison
@@ -486,12 +494,14 @@ for ii,letter in enumerate(letters[:len(ARP_comparison_table.columns)]):
 
 ##### define caption and save table as tex
 if save_tables:
-    caption = "Comparison of ARPs (us) of models for four different stimuli with experimental data (italicised)\\\\\n"
+    caption_top = "Comparison of ARPs"
+    caption_bottom = "All ARP values are given in $\mu$s. Four different stimuli were applied and compared with experimental data (italicised)\\\\\n"
     for ii,letter in enumerate(letters[:len(stimulations)]):
-        caption = caption + "{}: {}, phase duration: {} $\mu$s\\\\\n".format(letter,stimulations["pulse form"][ii],stimulations["phase duration (us)"][ii])
+        caption_bottom = caption_bottom + "{}: {}, phase duration: {} $\mu$s\\\\\n".format(letter,stimulations["pulse form"][ii],stimulations["phase duration (us)"][ii])
     italic_range = range(len(models),len(ARP_comparison_table))
-    with open("{}/ARP_comparison_table.tex".format(interim_report_table_path), "w") as tf:
-        tf.write(ptol.dataframe_to_latex(ARP_comparison_table, label = "tbl:ARP_comparison", caption = caption, italic = italic_range))
+    with open("{}/ARP_comparison_table.tex".format(theses_table_path), "w") as tf:
+        tf.write(ptol.dataframe_to_latex(ARP_comparison_table, label = "tbl:ARP_comparison",
+                                         caption_top = caption_top, caption_bottom = caption_bottom, italic = italic_range))
 
 # =============================================================================
 # Relative refractory table model comparison
@@ -542,12 +552,14 @@ for ii,letter in enumerate(letters[:len(RRP_comparison_table.columns)]):
 ##### define caption and save table as tex
 caption = "no caption"
 if save_tables:
-    caption = "Comparison of RRPs (ms) of models for three different stimuli with experimental data (italicised)\\\\\n"
+    caption_top = "Comparison of RRPs"
+    caption_bottom = "All RRP values are given in ms. Three different stimuli were applied and compared with experimental data (italicised)\\\\\n"
     for ii,letter in enumerate(letters[:len(stimulations)]):
-        caption = caption + "{}: {}, phase duration: {} $\mu$s\\\\\n".format(letter,stimulations["pulse form"][ii],stimulations["phase duration (us)"][ii])
+        caption_bottom = caption_bottom + "{}: {}, phase duration: {} $\mu$s\\\\\n".format(letter,stimulations["pulse form"][ii],stimulations["phase duration (us)"][ii])
     italic_range = range(len(models),len(RRP_comparison_table))
-    with open("{}/RRP_comparison_table.tex".format(interim_report_table_path), "w") as tf:
-        tf.write(ptol.dataframe_to_latex(RRP_comparison_table, label = "tbl:RRP_comparison", caption = caption, italic = italic_range))
+    with open("{}/RRP_comparison_table.tex".format(theses_table_path), "w") as tf:
+        tf.write(ptol.dataframe_to_latex(RRP_comparison_table, label = "tbl:RRP_comparison",
+                                         caption_top = caption_top, caption_bottom = caption_bottom, italic = italic_range))
 
 # =============================================================================
 # relative spread plots
@@ -570,11 +582,11 @@ relative_spread_plot_table = pd.concat([relative_spread_plot_table_1k,relative_s
 
 ##### relative spreads plot
 relative_spread_plot = plot.relative_spread_comparison(plot_name = "Relative spreads {}".format(model.display_name),
-                                                       threshold_matrix = relative_spread_plot_table)
+                                                       threshold_data = relative_spread_plot_table)
 
 ##### save plot
 if save_plots:
-    relative_spread_plot.savefig("{}/relative_spread_plot comparison.png".format(interim_report_image_path), bbox_inches='tight')
+    relative_spread_plot.savefig("{}/relative_spread_plot comparison.pdf".format(theses_image_path), bbox_inches='tight')
 
 # =============================================================================
 # relative spread table (Rattay used as example)
@@ -603,11 +615,13 @@ for ii,letter in enumerate(letters[:len(relative_spreads.columns)]):
 ##### define caption and save table as tex
 if save_tables:
     stimulations = relative_spreads_1k[["phase duration (us)","pulse form"]]
-    caption = "Comparison of relative spread values for different noise levels in the model of rattay. Four different stimuli were applied and compared with experimental data (italicised)\\\\\n"
+    caption_top = "Comparison of relative spread values for different noise levels."
+    caption_bottom = "Relative spread values were calculated with the model of rattay. Four different stimuli were applied and compared with experimental data (italicised)\\\\\n"
     for ii,letter in enumerate(letters[:len(stimulations)]):
-        caption = caption + "{}: {}, phase duration: {} $\mu$s\\\\\n".format(letter,stimulations["pulse form"][ii],stimulations["phase duration (us)"][ii])
-    with open("{}/relative_spread_rattay.tex".format(interim_report_table_path), "w") as tf:
-        tf.write(ptol.dataframe_to_latex(relative_spreads, label = "tbl:relative_spread_comparison_rattay", caption = caption))
+        caption_bottom = caption_bottom + "{}: {}, phase duration: {} $\mu$s\\\\\n".format(letter,stimulations["pulse form"][ii],stimulations["phase duration (us)"][ii])
+    with open("{}/relative_spread_rattay.tex".format(theses_table_path), "w") as tf:
+        tf.write(ptol.dataframe_to_latex(relative_spreads, label = "tbl:relative_spread_comparison_rattay",
+                                         caption_top = caption_top, caption_bottom = caption_bottom))
 
 # =============================================================================
 # Relative spread table all models
@@ -646,12 +660,14 @@ for ii,letter in enumerate(letters[:len(relative_spread_table.columns)]):
 
 ##### define caption and save table as tex
 if save_tables:
-    caption = "Comparison of relative spreads of models for four different stimuli with experimental data (italicised). For the model of Rattay et al. 2001, three different noise levels are compared.\\\\\n"
+    caption_top = "Comparison of relative spreads"
+    caption_bottom = "Four different stimuli were applied and compared with experimental data (italicised). For the model of Rattay et al. 2001, three different noise levels are compared.\\\\\n"
     for ii,letter in enumerate(letters[:len(stimulations)]):
-        caption = caption + "{}: {}, phase duration: {} $\mu$s\\\\\n".format(letter,stimulations["pulse form"][ii], stimulations["phase duration (us)"][ii])
+        caption_bottom = caption_bottom + "{}: {}, phase duration: {} $\mu$s\\\\\n".format(letter,stimulations["pulse form"][ii], stimulations["phase duration (us)"][ii])
     italic_range = range(len(models),len(relative_spread_table))
-    with open("{}/relative_spread_comparison.tex".format(interim_report_table_path), "w") as tf:
-        tf.write(ptol.dataframe_to_latex(relative_spread_table, label = "tbl:relative_spread_comparison", caption = caption, italic = italic_range))
+    with open("{}/relative_spread_comparison.tex".format(theses_table_path), "w") as tf:
+        tf.write(ptol.dataframe_to_latex(relative_spread_table, label = "tbl:relative_spread_comparison",
+                                         caption_top = caption_top, caption_bottom = caption_bottom, italic = italic_range))
     
 # =============================================================================
 # Computational efficiency comparison
@@ -664,9 +680,11 @@ computation_times_table = computation_times_table.mean().round(2).to_frame().sor
 
 ##### define caption and save table as tex
 if save_tables:
-    caption = "Comparison of computational efficiency. Table shows average calculation times of 10 runs of 50 ms"    
-    with open("{}/computation_times_table.tex".format(interim_report_table_path), "w") as tf:
-        tf.write(ptol.dataframe_to_latex(computation_times_table, label = "tbl:comp_efficiency_table", caption = caption))
+    caption_top = "Comparison of computational efficiency."
+    caption_bottom = "Table shows average calculation times of 10 runs of 50 ms"    
+    with open("{}/computation_times_table.tex".format(theses_table_path), "w") as tf:
+        tf.write(ptol.dataframe_to_latex(computation_times_table, label = "tbl:comp_efficiency_table",
+                                         caption_top = caption_top, caption_bottom = caption_bottom))
 
 
 

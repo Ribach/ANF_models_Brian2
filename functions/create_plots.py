@@ -1,3 +1,7 @@
+# =============================================================================
+# This script includes all plot functions for the tests that are part of the test
+# battery. Each plot shows just test results for a single model
+# =============================================================================
 from brian2 import *
 import numpy as np
 import matplotlib.pyplot as plt
@@ -20,21 +24,27 @@ def voltage_course_lines(plot_name,
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    length_neuron : time
-        Time until pulse starts.
-    V_res : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    time_vector : list of time values
+        Vector contains the time points, that correspond to the voltage values
+        of the voltage matrix.
+    voltage_matrix : matrix of mambrane potentials
+        Matrix has one row for each compartment and one columns for each time
+        step. Number of columns has to be the same as the length of the time vector
+    comps_to_plot : vector of integers
+        This vector includes the numbers of the compartments, which should be part of the plot.
+    distance_comps_middle : list of lengths
+        This list contains the distances of the compartments, which allows that
+        the lines in the plot are spaced according to the real compartment distances
+    length_neuron : length
+        Defines the total length of the neuron.
+    V_res : voltage
+        Defines the resting potential of the model.
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with voltage course plot
     """
 
     ##### factor to define voltage-amplitude heights
@@ -66,26 +76,26 @@ def voltage_course_colors(plot_name,
                           time_vector,
                           voltage_matrix,
                           distance_comps_middle):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function plots the membrane potential of all compartments for each
+    time step. The coltages are depicted as colors.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    time_vector : list of time values
+        Vector contains the time points, that correspond to the voltage values
+        of the voltage matrix.
+    voltage_matrix : matrix of mambrane potentials
+        Matrix has one row for each compartment and one columns for each time
+        step. Number of columns has to be the same as the length of the time vector
+    distance_comps_middle : list of lengths
+        This list contains the distances of the compartments, which allows that
+        the color boxes in the plot are spaced according to the real compartment distances
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with voltage course plot (colored version)
     """
     
     plt.close(plot_name)
@@ -101,73 +111,29 @@ def voltage_course_colors(plot_name,
     return voltage_course
 
 # =============================================================================
-#  Single node response bar plot
-# =============================================================================
-def single_node_response_bar_plot(data):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
-
-    Parameters
-    ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-                
-    Returns
-    -------
-    current vector
-        Gives back a vector of currents for each timestep
-    """
-    
-    colnames = data.columns.values[2:]
-    
-    data = data.melt(id_vars = data.columns.values[0:2], var_name = "observation")
-        
-    if "run" in data.columns.values:
-        hue = None
-    else:
-        hue=data.columns.values[1]
-        
-    single_node_response_bar_plot = sns.catplot(x=data.columns.values[0],
-                                                y=data.columns.values[3],
-                                                hue=hue,
-                                                kind="bar",
-                                                data=data,
-                                                col = data.columns.values[2],
-                                                sharex=False,
-                                                sharey=False,
-                                                height = 2.8,
-                                                col_wrap=2)
-    
-    for ax, title in zip(single_node_response_bar_plot.axes.flat, colnames):
-        ax.set_title(title, fontsize=15)
-    
-    return single_node_response_bar_plot
-
-# =============================================================================
 #  Single node response voltage course plot
 # =============================================================================
 def single_node_response_voltage_course(plot_name,
                                         voltage_data):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function plots the membrane voltage course of one compartment split
+    in multiple plots for different phase durations, pulse forms and stimulus amplitudes.
+    For stochastic stimulation, multiple lines are shown in each plot
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    voltage_data : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "phase duration (us)" 
+        - "pulse form"
+        - "membrane potential (mV)"
+        - "time (ms)"
+        - "amplitude level"
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with single node response plot
     """
     
     ##### get amplitude levels and phase durations
@@ -252,33 +218,31 @@ def single_node_response_voltage_course(plot_name,
 #  Strength duration curve
 # =============================================================================
 def strength_duration_curve(plot_name,
-                            threshold_matrix,
-                            rheobase = 0,
-                            chronaxie = 0):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+                            threshold_data,
+                            rheobase = None,
+                            chronaxie = None):
+    """This function plots the theshold depending on the phase length of the stimulus.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    threshold_data : pandas dataframe
+        The dataframe has to contain the following columns:
+        - "phase duration (us)" 
+        - "threshold (uA)"
+    rheobase : current
+        Optional attribute that containes the rheobase, which is marked in the figure
+    chronaxie : time
+        Optional attribute that containes the chronaxie, which is marked in the figure
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with single node response plot
     """
     
     ##### exclude values, where no threshold was found
-    threshold_matrix = threshold_matrix.loc[threshold_matrix["threshold (uA)"] != 0]
+    threshold_data = threshold_data.loc[threshold_data["threshold (uA)"] != 0]
     
     ##### close possibly open plots
     plt.close(plot_name)
@@ -291,11 +255,11 @@ def strength_duration_curve(plot_name,
     axes.grid(False)
     
     ##### plot strength duration curve    
-    axes.plot(threshold_matrix["phase duration (us)"], threshold_matrix["threshold (uA)"], color = "black", label = "_nolegend_")
+    axes.plot(threshold_data["phase duration (us)"], threshold_data["threshold (uA)"], color = "black", label = "_nolegend_")
     
     ##### mark chronaxie and rheobase    
-    if not rheobase == 0 and not chronaxie == 0:
-        axes.hlines(y=rheobase/uA, xmin=-0, xmax=max(threshold_matrix["phase duration (us)"]), linestyles="dashed", label = "rheobase: {} uA".format(round(rheobase/uA, 2)))
+    if rheobase is not None and chronaxie is not None:
+        axes.hlines(y=rheobase/uA, xmin=-0, xmax=max(threshold_data["phase duration (us)"]), linestyles="dashed", label = "rheobase: {} uA".format(round(rheobase/uA, 2)))
         axes.scatter(x=chronaxie/us, y=2*rheobase/uA, color = "blue", label = "chronaxie: {} us".format(round(chronaxie/us)))
         plt.legend()
     
@@ -309,31 +273,27 @@ def strength_duration_curve(plot_name,
 #  relative spread
 # =============================================================================
 def relative_spread(plot_name,
-                    threshold_matrix):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+                    threshold_data):
+    """This function provides boxplots, showing the relative spread of thresholds
+    for a model for different phase durations and pulse forms.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    threshold_data : pandas dataframe
+        The dataframe has to contain the following columns:
+        - "phase duration (us)" 
+        - "threshold (uA)"
+        - "pulse form"
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with single relative spreads boxplot
     """
 
     ##### round thresholds
-    threshold_matrix["threshold"] = round(threshold_matrix["threshold"]/amp*1e6,3)
+    threshold_data["threshold"] = round(threshold_data["threshold"]/amp*1e6,3)
 
     ##### close possibly open plots
     plt.close(plot_name)
@@ -343,9 +303,9 @@ def relative_spread(plot_name,
     
     ##### create boxplots
     sns.set_style("whitegrid")
-    sns.boxplot(data=threshold_matrix, x="phase duration (us)", y="threshold", hue="pulse form", showfliers=False, dodge=False)
+    sns.boxplot(data=threshold_data, x="phase duration (us)", y="threshold", hue="pulse form", showfliers=False, dodge=False)
     sns.stripplot(x='phase duration (us)', y='threshold',
-                   data=threshold_matrix, 
+                   data=threshold_data, 
                    jitter=True, 
                    marker='o', 
                    alpha=0.6,
@@ -360,26 +320,23 @@ def relative_spread(plot_name,
 # =============================================================================
 def refractory_curve(plot_name,
                      refractory_table):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function plots the refractory curve of a model, which shows the
+    minimum required current amplitudes (thresholds) for a second stimulus to
+    elicit a second action potential.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    refractory_table : pandas dataframe
+        The dataframe has to contain the following columns:
+        - "interpulse interval" 
+        - "threshold ratio"
+        - "minimum required amplitude"
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with single relative spreads boxplot
     """
     
     ##### remove rows where no second spikes were obtained
@@ -425,27 +382,28 @@ def refractory_curve(plot_name,
 #  post-stimulus time histogram
 # =============================================================================
 def post_stimulus_time_histogram(plot_name,
-                                 psth_dataset):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+                                 psth_dataset,
+                                 plot_style = "firing_efficiency"):
+    """This function plots the poststimulus-time histograms one for each amplitude
+    and pulse rate.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    refractory_table : pandas dataframe
+        The dataframe has to contain the following columns:
+        - "spike times (us)" 
+        - "amplitude"
+        - "run"
+        - "pulse rate"
+    plot_style : string
+        Describes, what the y-achses show. Either "firing_efficiency" or "spikes_per_timebin"
+        are possible.
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with poststimulus-time histograms
     """
     
     ##### convert spike times to ms
@@ -470,8 +428,11 @@ def post_stimulus_time_histogram(plot_name,
     ##### get bin edges
     bin_edges = [ii*bin_width+0.5*bin_width for ii in range(nof_bins+1)]
     
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
     ##### create figure
-    fig, axes = plt.subplots(nof_amplitudes, nof_pulse_rates, sharex=True, sharey=True, num = plot_name, figsize=(2*nof_pulse_rates, 2*nof_amplitudes))
+    fig, axes = plt.subplots(nof_amplitudes, nof_pulse_rates, sharex=True, sharey=True, num = plot_name, figsize=(3*nof_pulse_rates, 3*nof_amplitudes))
     
     ##### initialize maximum bin height
     max_bin_height = 0
@@ -485,8 +446,9 @@ def post_stimulus_time_histogram(plot_name,
 
             ##### calculating the bin heights
             bin_heights = [sum((bin_width*kk < current_data["spike times (ms)"]) & (current_data["spike times (ms)"] < bin_width*kk+bin_width))/nof_runs for kk in range(0,nof_bins+1)]
-            bin_heights = [height / (current_data["pulse rate"][0]/second * bin_width*ms) for height in bin_heights]
-                        
+            if plot_style == "firing_efficiency":
+                bin_heights = [height / (current_data["pulse rate"][0]/second * bin_width*ms) for height in bin_heights]
+            
             ##### create barplot
             axes[ii][jj].bar(x = bin_edges, height = bin_heights, width = bin_width, color = "black", linewidth=0.3)
             
@@ -500,7 +462,7 @@ def post_stimulus_time_histogram(plot_name,
             
             ##### define x-achses range and tick numbers
             axes[ii][jj].set_xlim([-10,max(bin_edges)*1.1])
-            axes[ii][jj].set_xticks([0,max(bin_edges)])
+            axes[ii][jj].set_xticks([0,max(bin_edges)-0.5*bin_width])
                         
             ##### remove ticks
             axes[ii][jj].tick_params(axis = 'both', left = 'off', bottom = 'off')
@@ -509,7 +471,7 @@ def post_stimulus_time_histogram(plot_name,
             if jj == nof_pulse_rates-1:
                 axes[ii][jj].yaxis.set_label_position("right")
                 axes[ii][jj].set_ylabel("i={}".format(current_data["amplitude"].iloc[0]), rotation=-90)
-                axes[ii][jj].yaxis.set_label_coords(1.25,0.5)
+                axes[ii][jj].yaxis.set_label_coords(1.1,0.5)
                 
             ##### no grid
             axes[ii][jj].grid(False) 
@@ -521,24 +483,25 @@ def post_stimulus_time_histogram(plot_name,
             #### building a subset of the relevant rows
             current_data = psth_dataset[psth_dataset["amplitude"] == amplitudes[ii]][psth_dataset["pulse rate"] == pulse_rates[jj]]
             
-            ##### define y-achses range and tick numbers
-            axes[ii][jj].set_ylim([0,1.25])
-            axes[ii][jj].set_yticks([0,0.5,1])
+            if plot_style == "firing_efficiency":
+                ##### define y-achses range and tick numbers
+                axes[ii][jj].set_ylim([0,1.25])
+                axes[ii][jj].set_yticks([0,0.5,1])
             
-            ##### Write spiking efficiences as percentage
-            vals = (axes[ii][jj].get_yticks() * 100).astype(int)
-            axes[ii][jj].set_yticklabels(['{}%'.format(x) for x in vals])
+                ##### Write spiking efficiences as percentage
+                vals = (axes[ii][jj].get_yticks() * 100).astype(int)
+                axes[ii][jj].set_yticklabels(['{}%'.format(x) for x in vals])
             
             ##### write stimulus amplitdues in plots
             axes[ii][jj].text(np.ceil(max(bin_edges)/3.2), max_bin_height+0.1, "i={}mA".format(current_data["stimulus amplitude (uA)"][0]))
 
     
     ##### bring subplots close to each other.
-    fig.subplots_adjust(hspace=0.05, wspace=0.1)
+    fig.subplots_adjust(hspace=0.1, wspace=0.1)
     
     ##### use the pulse rates as column titles
     for ax, columtitle in zip(axes[0], ["{} pps".format(pulse_rates[ii]) for ii in range(nof_pulse_rates)]):
-        ax.set_title(columtitle)
+        ax.set_title(columtitle, y = 1.1)
     
     ##### use ticks in the leftmost column
     for ax in axes[:,0]:
@@ -549,9 +512,11 @@ def post_stimulus_time_histogram(plot_name,
         ax.tick_params(axis = 'both', left = 'off', bottom = True)
     
     ##### get labels for the axes
-    fig.text(0.5, 0.02, 'Time after pulse train onset (ms)', ha='center', fontsize=14)
-    #fig.text(0.06, 0.5, 'Spikes per timebin ({} ms)'.format(bin_width), va='center', rotation='vertical')
-    fig.text(0.035, 0.5, 'firing efficiency', va='center', rotation='vertical', fontsize=14)
+    fig.text(0.5, 0.05, 'Time after pulse train onset (ms)', ha='center', fontsize=14)
+    if plot_style == "firing_efficiency":
+        fig.text(0.06, 0.5, 'firing efficiency', va='center', rotation='vertical', fontsize=14)
+    else:
+        fig.text(0.08, 0.5, 'Spikes per timebin ({} ms)'.format(bin_width), va='center', rotation='vertical')
     
     return fig
 

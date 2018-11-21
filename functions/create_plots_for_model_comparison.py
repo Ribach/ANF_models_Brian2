@@ -1,3 +1,9 @@
+# =============================================================================
+# This script includes all plot functions for the tests that are part of the 
+# "Model analyses" script and for the comparisons in the "Model_comparison"
+# sript. The plots usually compare the results of multiple models. In some cases
+# the plots show also experimental data.
+# =============================================================================
 from brian2 import *
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,10 +15,18 @@ sns.set(style="ticks", color_codes=True)
 import models.Rattay_2001 as rattay_01
 import models.Frijns_1994 as frijns_94
 import models.Briaire_2005 as briaire_05
+import models.Rattay_2001 as rattay_01
+import models.Rattay_adap_2001 as rattay_adap_01
+import models.Frijns_1994 as frijns_94
+import models.Briaire_2005 as briaire_05
+import models.Briaire_adap_2005 as briaire_adap_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
+import models.Imennov_adap_2009 as imennov_adap_09
 import models.Negm_2014 as negm_14
+import models.Negm_ANF_2014 as negm_ANF_14
+import models.Rudnicki_2018 as rudnicki_18
 
 # =============================================================================
 #  Voltage course comparison
@@ -21,26 +35,28 @@ def voltage_course_comparison_plot(plot_name,
                                    model_names,
                                    time_vector,
                                    voltage_courses):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function plots the membrane potential of all compartments over time
+    as voltage course lines spaced according the real compartment distances. There
+    will be one plot for each model.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    model_names : list of strings
+        List with strings with the model names in the format of the imported
+        modules on top of the script
+    time_vector : list of time values
+        Vector contains the time points, that correspond to the voltage values
+        of the voltage matrices.
+    voltage_courses : list of matrices of mambrane potentials
+        There is one matrix per model. Each matrix has one row for each compartment
+        and one columns for each time step. Number of columns has to be the same
+        as the length of the time vector
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with voltage course plots for each model
     """
     
     ##### get models
@@ -120,26 +136,24 @@ def voltage_course_comparison_plot(plot_name,
 # =============================================================================
 def conduction_velocity_comparison(plot_name,
                                    model_data):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function plots conduction velocities over ANF diameters. The lines
+    for measurements of two differents experiments are shown as well as points
+    for the model values.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    model_data : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "velocity (m/s)" 
+        - "outer diameter (um)"
+        - "section"
+        - "model_name"
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with conduction velocity comparison
     """
     
     ##### change strings to float
@@ -199,26 +213,24 @@ def conduction_velocity_comparison(plot_name,
 # =============================================================================
 def single_node_response_comparison(plot_name,
                                     voltage_data):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function plots voltage courses for a certain stimulation with one
+    plot for each model in the voltage_data dataframe. For more than one run
+    per model several lines will be shown in each plot.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    voltage_data : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "membrane potential (mV)" 
+        - "time (ms)"
+        - "model"
+        - "run
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with single node response comparison plot
     """
     
     ##### get model names
@@ -302,9 +314,6 @@ def single_node_response_comparison(plot_name,
     ##### get labels for the axes
     fig.text(0.5, 0.06, 'Time (ms)', ha='center', fontsize=14)
     fig.text(0.05, 0.5, 'Membrane potential (mV)', va='center', rotation='vertical', fontsize=14)
-    
-    fig.text(0.5, 0.001, 'Time (ms)', ha='center', fontsize=14)
-    fig.text(0.03, 0.5, 'Membrane potential (mV)', va='center', rotation='vertical', fontsize=14)
         
     return fig
 
@@ -313,26 +322,23 @@ def single_node_response_comparison(plot_name,
 # =============================================================================
 def paintal_rise_time_curve(plot_name,
                             model_data):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function plots rise times over the conduction velocity. The lines
+    for measurements of two differents experiments are shown as well as points
+    for the model values.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    model_data : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "conduction velocity (m/s)" 
+        - "rise time (us)"
+        - "model_name"
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with rise time comparison
     """
     
     ##### define x-vector for curves
@@ -399,26 +405,23 @@ def paintal_rise_time_curve(plot_name,
 # =============================================================================
 def paintal_fall_time_curve(plot_name,
                             model_data):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function plots fall times over the conduction velocity. The lines
+    for measurements of two differents experiments are shown as well as points
+    for the model values.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    model_data : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "conduction velocity (m/s)" 
+        - "fall time (us)"
+        - "model_name"
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with fall time comparison
     """
     
     ##### define x-vector for curves
@@ -474,39 +477,41 @@ def paintal_fall_time_curve(plot_name,
 #  Strength duration curve model comparison
 # =============================================================================
 def strength_duration_curve_comparison(plot_name,
-                                       threshold_matrix,
-                                       strength_duration_table):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+                                       threshold_data,
+                                       strength_duration_table = None):
+    """This function plots the model thresholds over the phase length of the stimulus.
+    There is one line for each model.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    threshold_data : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "threshold (uA)" 
+        - "phase duration (us)"
+        - "model"
+    strength_duration_table : pandas dataframe
+        This dataframe is optional and marks the chronaxie and rheobase values of
+        the models in the plots. If defined, it has to contain the following columns:
+        - "chronaxie (us)" 
+        - "rheobase (uA)"
+        - "model"
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with conduction velocity comparison
     """
     
     ##### get model names
-    models = threshold_matrix["model"].unique().tolist()
+    models = threshold_data["model"].unique().tolist()
     
     ##### exclude values, where no threshold was found
-    threshold_matrix = threshold_matrix.loc[threshold_matrix["threshold (uA)"] != 0]
+    threshold_data = threshold_data.loc[threshold_data["threshold (uA)"] != 0]
     
     ##### get y range
     y_min = -0.5
-    y_max = max(threshold_matrix["threshold (uA)"]) + 1
+    y_max = max(threshold_data["threshold (uA)"]) + 1
     
     ##### define colors and markers
     colors = ["black","black","black","red","red","red","blue","blue","blue","yellow","yellow","yellow","blue","blue","blue"]
@@ -527,7 +532,7 @@ def strength_duration_curve_comparison(plot_name,
     for ii, model in enumerate(models):
         
         ##### building a subset
-        current_data = threshold_matrix[threshold_matrix["model"] == model]
+        current_data = threshold_data[threshold_data["model"] == model]
 
         ##### plot strength duration curve    
         axes.semilogx(current_data["phase duration (us)"], current_data["threshold (uA)"],
@@ -537,6 +542,7 @@ def strength_duration_curve_comparison(plot_name,
                                   color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = model)
         
 #        ##### mark chronaxie
+#        if strength_duration_table is not None:
 #        axes.vlines(x=strength_duration_table["chronaxie (us)"][model],
 #                    ymin = y_min,
 #                    ymax=2*strength_duration_table["rheobase (uA)"][model],
@@ -559,26 +565,24 @@ def strength_duration_curve_comparison(plot_name,
 # =============================================================================
 def refractory_curves_comparison(plot_name,
                                  refractory_curves):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function plots the refractory curves which show the minimum required
+    current amplitudes (thresholds) for a second stimulus to elicit a second
+    action potential. There is one plot for each model.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    refractory_curves : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "interpulse interval" 
+        - "minimum required amplitude"
+        - "threshold"
+        - "model"
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with refractory curve comparison
     """
     
     ##### remove rows where no second spikes were obtained
@@ -681,27 +685,23 @@ def refractory_curves_comparison(plot_name,
 #  relative spread comparison
 # =============================================================================
 def relative_spread_comparison(plot_name,
-                               threshold_matrix):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+                               threshold_data):
+    """This function provides boxplots, showing the relative spread of thresholds
+    for a model for different noise levels (different amounts of noise).
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    threshold_data : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "phase duration (us)" 
+        - "threshold"
+        - "noise level"
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with relative spread comparison
     """
 
     ##### close possibly open plots
@@ -712,7 +712,7 @@ def relative_spread_comparison(plot_name,
     
     ##### create boxplots
     sns.set_style("whitegrid")
-    sns.boxplot(data=threshold_matrix, x="phase duration (us)", y="threshold", hue="noise level", showfliers=False, dodge=True)
+    sns.boxplot(data=threshold_data, x="phase duration (us)", y="threshold", hue="noise level", showfliers=False, dodge=True)
     plt.xlabel('Phase duration / us', fontsize=16)
     plt.ylabel('Threshold / uA', fontsize=16)
         
@@ -723,26 +723,24 @@ def relative_spread_comparison(plot_name,
 # =============================================================================
 def stochastic_properties_comparison(plot_name,
                                      stochasticity_table):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function plots the relative spread of thresholds over the jitter.
+    There is one line for each model connecting the measured points for different
+    noise levels (different amounts of noise). An aria in the plot is colored,
+    showing the experimental range of measured values.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    stochasticity_table : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "relative spread (%)" 
+        - "jitter (us)"
+        - "model"
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure a comparison of the stochastic properties
     """
     
     ##### get model names
@@ -795,32 +793,36 @@ def stochastic_properties_comparison(plot_name,
         
     return fig
 
-## =============================================================================
-## Plot latencies over stimulus duration
-## =============================================================================
+# =============================================================================
+# Plot latencies over stimulus duration (old version in one plot)
+# =============================================================================
 def latencies_over_stimulus_duration_old(plot_name,
                                          latency_models,
                                          latency_measurements = None):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function plots the latencies over stimulus durations and compares
+    data from the models with experimental measurements. All is shown in one plot.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    latency_models : pandas dataframe
+        This dataframe includes the data of the models and has to contain
+        the following columns:
+        - "latency (ms)" 
+        - "amplitude level"
+        - "model"
+    latency_measurements : pandas dataframe
+        This dataframe includes the data of measurements (e.g. ABR) and has to
+        contain the following columns:
+        - "latency (ms)" 
+        - "amplitude level"
+        - "subject"
+        - "ear"
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with latency over stimulus amplitude comparison
     """
     
     ##### get model names
@@ -889,26 +891,32 @@ def latencies_over_stimulus_duration_old(plot_name,
 def latencies_over_stimulus_duration(plot_name,
                                      latency_models,
                                      latency_measurements = None):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function plots the latencies over stimulus durations for different
+    electrode distances and compares data from the models with experimental
+    measurements. There is one plot for the measured data and one for each model.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    latency_models : pandas dataframe
+        This dataframe includes the data of the models and has to contain
+        the following columns:
+        - "latency (ms)" 
+        - "amplitude level"
+        - "electrode distance (um)"
+        - "model"
+    latency_measurements : pandas dataframe
+        This dataframe includes the data of measurements (e.g. ABR) and has to
+        contain the following columns:
+        - "latency (ms)" 
+        - "amplitude level"
+        - "subject"
+        - "ear"
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with latency over stimulus amplitude comparison
     """
     
     ##### get model names
@@ -1066,26 +1074,23 @@ def latencies_over_stimulus_duration(plot_name,
 # =============================================================================
 def thresholds_for_pulse_trains(plot_name,
                                 threshold_data):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function plots thresholds for pulse trains over different durations
+    and pulse rates. There is one plot for each model.
 
     Parameters
     ----------
-    time_vector : integer
-        Number of timesteps of whole simulation.
-    voltage_matrix : time
-        Lenght of one time step.
-    distance_comps_middle : current
-        Amplitude of current stimulus.
-    time_before_pulse : time
-        Time until pulse starts.
-    stimulus_duration : time
-        Duration of stimulus.
+    plot_name : string
+        This defines how the plot window will be named.
+    threshold_data : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "threshold (uA)" 
+        - "number of pulses"
+        - "pulses per second"
+        - "model"
                 
     Returns
     -------
-    current vector
-        Gives back a vector of currents for each timestep
+    figure with thresholds per pulse train comparison
     """
     
     ##### get model names
@@ -1154,9 +1159,10 @@ def thresholds_for_pulse_trains(plot_name,
                 axes[row][col].scatter(current_data["number of pulses"], current_data["threshold (uA)"],
                     color = colors[jj], marker = markers[jj], edgecolor = edgecolors[jj], label = pps)
                 
-            ##### logarithmic x achsis
+            ##### logarithmic achses
             axes[row][col].set_xscale('log')
-                
+            axes[row][col].set_yscale('log')
+            
             ##### remove top and right lines
             axes[row][col].spines['top'].set_visible(False)
             axes[row][col].spines['right'].set_visible(False)
@@ -1179,14 +1185,3 @@ def thresholds_for_pulse_trains(plot_name,
     fig.text(0.07, 0.5, 'threshold / uA', va='center', rotation='vertical', fontsize=14)
         
     return fig
-
-
-
-
-
-
-
-
-
-
-

@@ -1,3 +1,8 @@
+# =============================================================================
+# This script provides tests that go further than the ones done in the
+# "Run_test_battery" script. Here the results for more than one model can be
+# calculated at the same time.
+# =============================================================================
 ##### don't show warnings
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -40,8 +45,7 @@ prefs.codegen.target = "numpy"
 # =============================================================================
 ##### list of all models
 models = ["rattay_01", "frijns_94", "briaire_05", "smit_09", "smit_10", "imennov_09", "negm_14"]
-models = ["rattay_01", "briaire_05", "imennov_09"]
-models = ["rudnicki_18"]
+models = ["rattay_01", "briaire_05", "imennov_09", "smit_10"]
 
 ##### initialize clock
 dt = 5*us
@@ -181,7 +185,7 @@ if all_tests or thresholds_for_pulse_trains:
     ##### save dataframe as csv    
     pulse_train_thresholds.to_csv("test_battery_results/Analyses/pulse_train_thresholds.csv", index=False, header=True)
     
-    #pulse_train_thresholds = pd.read_csv("test_battery_results/Analyses/pulse_train_thresholds.csv")
+    #pulse_train_thresholds = pd.read_csv("test_battery_results/Analyses/pulse_train_thresholds_15us.csv")
     
     ##### plot thresholds over number of pulses
     thresholds_for_pulse_trains_plot = plot.thresholds_for_pulse_trains(plot_name = "Thresholds for pulse trains",

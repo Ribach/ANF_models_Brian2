@@ -1,3 +1,7 @@
+# =============================================================================
+# This script includes all functions for the tests that are part of the test
+# battery, which is implemented in the "Run_test_battery" script.
+# =============================================================================
 ##### import packages
 from brian2 import *
 from brian2.units.constants import zero_celsius, gas_constant as R, faraday_constant as F
@@ -50,6 +54,52 @@ def get_threshold(model_name,
                   add_noise = False,
                   print_progress = True,
                   run_number = 0):
+    """This function calculates the spiking threshold of a model for mono- and
+    biphasic pulses, intern and extern stimulation, single pulses and pulse trains.
+    
+    Parameters
+    ----------
+    model_name : string
+        String with the model name in the format of the imported modules on top of the script
+    dt : time
+        Sampling timestep.
+    phase_duration : time or numeric value (numeric values are interpreted as time in second)
+        Duration of one phase of the stimulus current
+    delta : current
+        Maximum error for the measured spiking threshold
+    amps_start_interval : list of currents of length two
+        First value gives lower border of expected threshold; second value gives upper border
+    inter_phase_gap : time or numeric value (numeric values are interpreted as time in second)
+        Length of the gap between the two phases of a biphasic stimulation
+    parameter : string
+        String with the name of a model parameter, which will be adjusted
+    parameter_ratio : numeric
+        Numeric value used in cobination with a given parameter. Original value is multiplied with the parameter ratio
+    pulse_form : string
+        Describes, which pulses are used; either "mono" or "bi" is possible
+    stimulation_type : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    time_before : time
+        Time until (first) pulse starts.
+    time_after : time
+        Time which is still simulated after the end of the last pulse
+    nof_pulses : integer
+        Number of pulses.
+    inter_pulse_gap : time or numeric value (numeric values are interpreted as time in second)
+        Time interval between pulses for nof_pulses > 1.
+    add_noise : boolean
+        Defines, if Gaussian noise is added to the stimulus current.
+    print_progress : boolean
+        Defines, if information about the progress are printed on the console
+    run_number : integer
+        Usefull for multiple threshold measurements using multiprocessing with
+        the thorns package.
+    
+    Returns
+    -------
+    threshold current
+        Gives back the spiking threshold.
+    """
     
     ##### add quantity to phase_duration and inter_phase_gap
     phase_duration = float(phase_duration)*second
@@ -159,48 +209,61 @@ def get_threshold(model_name,
 # =============================================================================
 #  Calculate conduction velocity
 # =============================================================================
-def get_conduction_velocity(model,
+def get_conduction_velocity(model_name,
                             dt,
                             measurement_start_comp = 2,
                             measurement_end_comp = 6,
-                            stimulation_type = "extern",
                             pulse_form = "bi",
-                            time_after_stimulation = 1.5*ms,
+                            stimulation_type = "extern",
+                            time_before = 2*ms,
+                            time_after = 1.5*ms,
                             stimulated_compartment = 2,
                             stim_amp = 2*uA,
                             phase_duration = 200*us,
-                            nof_runs = 1):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+                            add_noise = False,
+                            run_number = 0):
+    """This function calculates the conduction velocity of a model between two
+    compartments.
     
     Parameters
     ----------
-    model : time
-        Lenght of one time step.
-    dt : string
-        Describes, how the ANF is stimulated; either "internal" or "external" is possible
-    phase_durations : string
+    model_name : string
+        String with the model name in the format of the imported modules on top of the script
+    dt : time
+        Sampling timestep.
+    measurement_start_comp : integer
+        Compartment number where the first time-point of the AP is measured
+    measurement_end_comp : integer
+        Compartment number where the last time-point of the AP is measured
+    pulse_form : string
         Describes, which pulses are used; either "mono" or "bi" is possible
-    start_interval : time
+    stimulation_type : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    time_before : time
         Time until (first) pulse starts.
-    delta : time
+    time_after : time
         Time which is still simulated after the end of the last pulse
-    stimulation_type : amp/[k_noise]
-        Is multiplied with k_noise.
-    pulse_form : amp/[k_noise]
-        Is multiplied with k_noise.
+    stimulated_compartment : integer
+        Compartment number where the the model is stimulated
+    stim_amp : current
+        Current amplitude of stimulus pulse; Using biphasic pulses, the second phase
+        has the inverted stimulus amplitude
+    phase_duration : time
+        Duration of one phase of the stimulus current
+    add_noise : boolean
+        Defines, if Gaussian noise is added to the stimulus current.
+    run_number : integer
+        Usefull for multiple threshold measurements using multiprocessing with
+        the thorns package.
     
     Returns
     -------
-    current matrix
-        Gives back a vector of currents for each timestep
-    runtime
-        Gives back the duration of the simulation
+    conduction velocity
+        Gives back the conduction velocity.
     """
     
-    ##### stochastic runs in case nof_runs > 1
-    add_noise = False
-    if nof_runs > 1: add_noise = True
+    ##### get model
+    model = eval(model_name)
     
     ##### calculate length of neuron part for measurement
     conduction_length = sum(model.compartment_lengths[measurement_start_comp:measurement_end_comp+1])
@@ -211,51 +274,43 @@ def get_conduction_velocity(model,
     M = StateMonitor(neuron, 'v', record=True)
     store('initialized')
     
-    ##### initialize vector to save conduction velocities
-    conduction_velocity = [0]*nof_runs
+    ##### define how the ANF is stimulated
+    I_stim, runtime = stim.get_stimulus_current(model = model,
+                                                dt = dt,
+                                                stimulation_type = stimulation_type,
+                                                pulse_form = pulse_form,
+                                                time_before = time_before,
+                                                time_after = time_after,
+                                                add_noise = add_noise,
+                                                stimulated_compartment = stimulated_compartment,
+                                                ##### monophasic stimulation
+                                                amp_mono = -stim_amp,
+                                                duration_mono = phase_duration,
+                                                ##### biphasic stimulation
+                                                amps_bi = [-stim_amp/amp,stim_amp/amp]*amp,
+                                                durations_bi = [phase_duration/second,0,phase_duration/second]*second)
+
+    ##### get TimedArray of stimulus currents and run simulation
+    stimulus = TimedArray(np.transpose(I_stim), dt=dt)
     
-    ##### stochastic runs
-    for ii in range(0, nof_runs):
-        
-        ##### define how the ANF is stimulated
-        I_stim, runtime = stim.get_stimulus_current(model = model,
-                                                    dt = dt,
-                                                    stimulation_type = stimulation_type,
-                                                    pulse_form = pulse_form,
-                                                    time_before = 2*ms,
-                                                    time_after = time_after_stimulation,
-                                                    add_noise = add_noise,
-                                                    stimulated_compartment = stimulated_compartment,
-                                                    ##### monophasic stimulation
-                                                    amp_mono = -stim_amp,
-                                                    duration_mono = phase_duration,
-                                                    ##### biphasic stimulation
-                                                    amps_bi = [-stim_amp/amp,stim_amp/amp]*amp,
-                                                    durations_bi = [phase_duration/second,0,phase_duration/second]*second)
+    ##### reset state monitor
+    restore('initialized')
     
-        ##### get TimedArray of stimulus currents and run simulation
-        stimulus = TimedArray(np.transpose(I_stim), dt=dt)
-        
-        ##### reset state monitor
-        restore('initialized')
-        
-        ##### run simulation
-        run(runtime)
-        
-        ##### calculate point in time at AP start
-        AP_amp_start_comp = max(M.v[measurement_start_comp,:]-model.V_res)
-        AP_time_start_comp = M.t[M.v[measurement_start_comp,:]-model.V_res == AP_amp_start_comp]
-        
-        ##### calculate point in time at AP end
-        AP_amp_end_comp = max(M.v[measurement_end_comp,:]-model.V_res)
-        AP_time_end_comp = M.t[M.v[measurement_end_comp,:]-model.V_res == AP_amp_end_comp]
-        
-        ##### calculate conduction velocity
-        conduction_time = AP_time_end_comp - AP_time_start_comp
-        conduction_velocity[ii] = conduction_length/conduction_time
-        
-    conduction_velocity = round(np.mean(conduction_velocity),3)*meter/second
-        
+    ##### run simulation
+    run(runtime)
+    
+    ##### calculate point in time at AP start
+    AP_amp_start_comp = max(M.v[measurement_start_comp,:]-model.V_res)
+    AP_time_start_comp = M.t[M.v[measurement_start_comp,:]-model.V_res == AP_amp_start_comp][0]
+    
+    ##### calculate point in time at AP end
+    AP_amp_end_comp = max(M.v[measurement_end_comp,:]-model.V_res)
+    AP_time_end_comp = M.t[M.v[measurement_end_comp,:]-model.V_res == AP_amp_end_comp][0]
+    
+    ##### calculate conduction velocity
+    conduction_time = AP_time_end_comp - AP_time_start_comp
+    conduction_velocity = conduction_length/conduction_time
+    
     return conduction_velocity
 
 # =============================================================================
@@ -267,40 +322,65 @@ def get_single_node_response(model_name,
                              phase_duration,
                              parameter = None,
                              parameter_ratio = None,
-                             stimulation_type = "extern",
                              pulse_form = "bi",
+                             stimulation_type = "extern",
                              time_before = 3*ms,
                              time_after = 2*ms,
                              stimulated_compartment = 4,
                              add_noise = True,
                              print_progress = True,
                              run_number = 0):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function calculates the spiking threshold of a model for mono- and
+    biphasic pulses, intern and extern stimulation, single pulses and pulse trains.
     
     Parameters
     ----------
-    model : time
-        Lenght of one time step.
-    dt : string
-        Describes, how the ANF is stimulated; either "internal" or "external" is possible
-    phase_durations : string
+    model_name : string
+        String with the model name in the format of the imported modules on top of the script
+    dt : time
+        Sampling timestep.
+    phase_duration : time or numeric value (numeric values are interpreted as time in second)
+        Duration of one phase of the stimulus current
+    stim_amp : current or numeric value (numeric values are interpreted as a current in ampere)
+        Current amplitude of stimulus pulse; Using biphasic pulses, the second phase
+        has the inverted stimulus amplitude
+    parameter : string
+        String with the name of a model parameter, which will be adjusted
+    parameter_ratio : numeric
+        Numeric value used in cobination with a given parameter. Original value is multiplied with the parameter ratio
+    pulse_form : string
         Describes, which pulses are used; either "mono" or "bi" is possible
-    start_interval : time
+    stimulation_type : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    time_before : time
         Time until (first) pulse starts.
-    delta : time
+    time_after : time
         Time which is still simulated after the end of the last pulse
-    stimulation_type : amp/[k_noise]
-        Is multiplied with k_noise.
-    pulse_form : amp/[k_noise]
-        Is multiplied with k_noise.
+    stimulated_compartment : integer
+        Compartment number where the the model is stimulated
+    add_noise : boolean
+        Defines, if Gaussian noise is added to the stimulus current.
+    print_progress : boolean
+        Defines, if information about the progress are printed on the console
+    run_number : integer
+        Usefull for multiple threshold measurements using multiprocessing with
+        the thorns package.
     
     Returns
     -------
-    current matrix
-        Gives back a vector of currents for each timestep
-    runtime
-        Gives back the duration of the simulation
+    AP height (numeric)
+        Gives back the AP amplitude as a numeric value which can be interpreted as voltage in volt.
+    AP rise time (numeric)
+        Gives back the AP rise time as a numeric value which can be interpreted as a time in second.
+    AP fall time (numeric)
+        Gives back the AP fall time as a numeric value which can be interpreted as a time in second.
+    latency (numeric)
+        Gives back the AP latency as a numeric value which can be interpreted as a time in second.
+    membrane potential (list of numerics)
+        Gives back a list with the membrane potentials of the measurement node;
+        Can be used to plot the voltage course
+    time vector (list of numerics)
+        Gives back a list of time points, that correspond to the voltage values
     """
     
     ##### add quantity to phase_duration
@@ -409,41 +489,50 @@ def get_single_node_response(model_name,
 # =============================================================================
 #  Calculate cronaxie for a given rheobase
 # =============================================================================
-def get_chronaxie(model,
+def get_chronaxie(model_name,
                   dt,
                   rheobase,
                   phase_duration_start_interval,
                   delta,
-                  stimulation_type = "extern",
                   pulse_form = "mono",
+                  stimulation_type = "extern",
                   time_before = 1*ms,
                   time_after = 1.5*ms,
                   print_progress = True):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
-
+    """This function calculates the chronaxie, which is defined as the time a
+    model has stimulated with twice the Rheobase to elicit an AP.
+    
     Parameters
     ----------
-    model : time
-        Lenght of one time step.
-    dt : string
-        Describes, how the ANF is stimulated; either "internal" or "external" is possible
-    phase_durations : string
-        Describes, which pulses are used; either "mono" or "bi" is possible
-    amps_start_interval : time
-        Time until (first) pulse starts.
+    model_name : string
+        String with the model name in the format of the imported modules on top of the script
+    dt : time
+        Sampling timestep.
+    rheobase : current
+        Current value, which gives the spiking threshold for a very long stimulus
+    phase_duration_start_interval : list of times of length two
+        First value gives lower border of expected chronaxie; second value gives upper border
     delta : time
+        Maximum error for the measured chronaxie
+    pulse_form : string
+        Describes, which pulses are used; either "mono" or "bi" is possible
+    stimulation_type : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    time_before : time
+        Time until (first) pulse starts.
+    time_after : time
         Time which is still simulated after the end of the last pulse
-    stimulation_type : amp/[k_noise]
-        Is multiplied with k_noise.
-    pulse_form : amp/[k_noise]
-        Is multiplied with k_noise.
-                
+    print_progress : boolean
+        Defines, if information about the progress are printed on the console
+    
     Returns
     -------
-    thresholds matrix
-        Gives back a vector of currents for each timestep
+    chronaxie time
+        Gives back the chronaxie
     """
+    
+    ##### get model
+    model = eval(model_name)
         
     ##### initialize model with given defaultclock dt
     neuron, param_string, model = model.set_up_model(dt = dt, model = model)
@@ -513,51 +602,59 @@ def get_chronaxie(model,
 def get_refractory_periods(model_name,
                            dt,
                            delta = 1*us,
-                           threshold = 0,
-                           amp_masker = 0,
-                           stimulation_type = "extern",
+                           threshold = None,
+                           amp_masker = None,
                            pulse_form = "mono",
+                           stimulation_type = "extern",
                            phase_duration = 100*us,
                            time_before = 2*ms,
                            print_progress = True):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function measures both the absolute and relative refractory period.
 
     Parameters
     ----------
-    model : time
-        Lenght of one time step.
-    dt : string
-        Describes, how the ANF is stimulated; either "internal" or "external" is possible
-    phase_durations : string
-        Describes, which pulses are used; either "mono" or "bi" is possible
-    amps_start_interval : time
-        Time until (first) pulse starts.
+    model_name : string
+        String with the model name in the format of the imported modules on top of the script
+    dt : time
+        Sampling timestep.
     delta : time
-        Time which is still simulated after the end of the last pulse
-    stimulation_type : amp/[k_noise]
-        Is multiplied with k_noise.
-    pulse_form : amp/[k_noise]
-        Is multiplied with k_noise.
+        Maximum error for the measured refractory periods
+    threshold : current or numeric value (numeric values are interpreted as current in ampere)
+        Spiking threshold of the model for given stimulus; If not defined it will
+        be calculated
+    amp_masker : current or numeric value (numeric values are interpreted as current in ampere)
+        Current amplitude of the masker stimulus; If not defined it will be set to 1.5 the threshold
+    pulse_form : string
+        Describes, which pulses are used; either "mono" or "bi" is possible
+    stimulation_type : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    phase_duration : time or numeric value (numeric values are interpreted as time in second)
+        Duration of one phase of the stimulus current
+    time_before : time
+        Time until (first) pulse starts.
+    print_progress : boolean
+        Defines, if information about the progress are printed on the console
                 
     Returns
     -------
-    thresholds matrix
-        Gives back a vector of currents for each timestep
+    absolute refractory period (numeric)
+        Value can be interpreted as time in second
+    relative refractory period (numeric)
+        Value can be interpreted as time in second
     """
     
     ##### add quantity to phase_duration, threshold and amp_masker
     phase_duration = float(phase_duration)*second
-    if threshold != 0:
+    if threshold is not None:
         threshold = float(threshold)*amp
-    if amp_masker != 0:
+    if amp_masker is not None:
         amp_masker = float(amp_masker)*amp
         
     ##### get model
     model = eval(model_name)
     
     ##### calculate theshold of model
-    if threshold == 0:
+    if threshold is None:
         threshold = get_threshold(model_name = model_name,
                            dt = dt,
                            phase_duration = phase_duration,
@@ -569,7 +666,7 @@ def get_refractory_periods(model_name,
                            print_progress = False)
     
     ##### amplitude of masker stimulus
-    if amp_masker == 0:
+    if amp_masker is None:
         amp_masker = 1.5 * threshold
     
     ##### minimum and maximum stimulus current amplitudes that are tested
@@ -732,47 +829,63 @@ def get_refractory_curve(model_name,
                          dt,
                          inter_pulse_interval,
                          delta,
-                         threshold = 0,
-                         amp_masker = 0,
-                         stimulation_type = "extern",
+                         threshold = None,
+                         amp_masker = None,
                          pulse_form = "mono",
+                         stimulation_type = "extern",
                          phase_duration = 100*us,
                          time_before = 3*ms,
                          print_progress = True):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function measures the minimum required amplitude (threshold) to elicit a second
+    spike with a stimulus that is masked by a first spike for a given inter pulse interval
 
     Parameters
     ----------
-    model : time
-        Lenght of one time step.
-    dt : string
-        Describes, how the ANF is stimulated; either "internal" or "external" is possible
-    phase_durations : string
+    model_name : string
+        String with the model name in the format of the imported modules on top of the script
+    dt : time
+        Sampling timestep.
+    inter_pulse_interval : time or numeric value (numeric values are interpreted as time in second)
+        time period between first stimulus (masker) and second stimulus
+    delta : amplitude
+        Maximum error for the measured threshold of the second stimulus
+    threshold : current or numeric value (numeric values are interpreted as current in ampere)
+        Spiking threshold of the model for given stimulus; If not defined it will
+        be calculated
+    amp_masker : current or numeric value (numeric values are interpreted as current in ampere)
+        Current amplitude of the masker stimulus; If not defined it will be set to 1.5 the threshold
+    pulse_form : string
         Describes, which pulses are used; either "mono" or "bi" is possible
-    start_interval : time
+    stimulation_type : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    phase_duration : time or numeric value (numeric values are interpreted as time in second)
+        Duration of one phase of the stimulus current
+    time_before : time
         Time until (first) pulse starts.
-    delta : time
-        Time which is still simulated after the end of the last pulse
-    stimulation_type : amp/[k_noise]
-        Is multiplied with k_noise.
-    pulse_form : amp/[k_noise]
-        Is multiplied with k_noise.
+    print_progress : boolean
+        Defines, if information about the progress are printed on the console
                 
     Returns
     -------
-    min_required_amps matrix
-        Gives back a vector of currents for each timestep
+    threshold current for second stimulus (float)
+        Value can be interpreted as current in ampere
+    threshold for first stimulus (float)
+        Value can be interpreted as current in ampere
     """
     
-    ##### add quantity to phase_duration, threshold and amp_masker
+    ##### add quantity to phase_duration, inter_pulse_interval, threshold and amp_masker
+    phase_duration = float(phase_duration)*second
     inter_pulse_interval = float(inter_pulse_interval)*second
+    if threshold is not None:
+        threshold = float(threshold)*amp
+    if amp_masker is not None:
+        amp_masker = float(amp_masker)*amp
         
     ##### get model
     model = eval(model_name)
     
     ##### calculate theshold of model
-    if threshold == 0:
+    if threshold is None:
         threshold = get_threshold(model_name = model_name,
                            dt = dt,
                            phase_duration = phase_duration,
@@ -785,7 +898,7 @@ def get_refractory_curve(model_name,
                            print_progress = False)
     
     ##### amplitude of masker stimulus (150% of threshold)
-    if amp_masker == 0:
+    if amp_masker is None:
         amp_masker = 1.5 * threshold
     
     ##### compartment for measurements
@@ -808,7 +921,7 @@ def get_refractory_curve(model_name,
     while amp_diff > delta:
         
         ##### print progress
-        if print_progress : print("Inter pulse interval: {} us; Amplitude of second stimulus: {} uA".format(round(inter_pulse_interval/us),np.round(stim_amp/uA,2)))
+        if print_progress: print("Inter pulse interval: {} us; Amplitude of second stimulus: {} uA".format(round(inter_pulse_interval/us),np.round(stim_amp/uA,2)))
         
         ##### define how the ANF is stimulated
         I_stim_masker, runtime_masker = stim.get_stimulus_current(model = model,
@@ -873,34 +986,49 @@ def post_stimulus_time_histogram(model_name,
                                  pulses_per_second,
                                  stim_duration,
                                  stim_amp,
-                                 stimulation_type,
-                                 pulse_form,
-                                 phase_duration,
-                                 run_number):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
-
+                                 pulse_form = "bi",
+                                 stimulation_type = "extern",
+                                 phase_duration = 50*us,
+                                 print_progress,
+                                 run_number = 0):
+    """This function calculates the spiking threshold of a model for mono- and
+    biphasic pulses, intern and extern stimulation, single pulses and pulse trains.
+    
     Parameters
     ----------
-    model : time
-        Lenght of one time step.
-    dt : string
-        Describes, how the ANF is stimulated; either "internal" or "external" is possible
-    phase_durations : string
+    model_name : string
+        String with the model name in the format of the imported modules on top of the script
+    dt : time
+        Sampling timestep.
+    pulses_per_second : integer
+        Defines pulse rate
+    stim_duration : time
+        Defines length of the pulse train
+    stim_amp : current or numeric value (numeric values are interpreted as a current in ampere)
+        Current amplitude of stimulus pulse; Using biphasic pulses, the second phase
+        has the inverted stimulus amplitude
+    pulse_form : string
         Describes, which pulses are used; either "mono" or "bi" is possible
-    start_interval : time
-        Time until (first) pulse starts.
-    delta : time
-        Time which is still simulated after the end of the last pulse
-    stimulation_type : amp/[k_noise]
-        Is multiplied with k_noise.
-    pulse_form : amp/[k_noise]
-        Is multiplied with k_noise.
-                
+    stimulation_type : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    phase_duration : time or numeric value (numeric values are interpreted as time in second)
+        Duration of one phase of the stimulus current
+    print_progress : boolean
+        Defines, if information about the progress are printed on the console
+    run_number : integer
+        Usefull for multiple threshold measurements using multiprocessing with
+        the thorns package.
+    
     Returns
     -------
-    min_required_amps matrix
-        Gives back a vector of currents for each timestep
+    list of spike times (numeric values)
+        Spike times can be interpreted as time values in second
+    a random second argument
+        this one is needed, as the map function of the thorn package which
+        allows multiprocessing works different for multiple outputs. For only
+        one output all spike times would be in additional columns in the resulting
+        data frame. By using a second argument, this behaviour is avoided and the
+        spike times are saved in a column of lists, which is desired.
     """
     
     ##### add quantity to stim_amp and phase_duration
@@ -936,9 +1064,9 @@ def post_stimulus_time_histogram(model_name,
         
     ##### initialize pulse train dataframe
     spike_times = np.zeros(nof_pulses*3)
-    
+     
     ##### print progress
-    print("Pulse rate: {} pps; Stimulus Amplitude: {} uA; Run: {}".format(pulses_per_second,np.round(stim_amp/uA,2),run_number))
+    if print_progress: print("Pulse rate: {} pps; Stimulus Amplitude: {} uA; Run: {}".format(pulses_per_second,np.round(stim_amp/uA,2),run_number))
     
     ##### define how the ANF is stimulated
     I_stim, runtime = stim.get_stimulus_current(model = model,

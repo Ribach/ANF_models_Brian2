@@ -1,3 +1,8 @@
+# =============================================================================
+# This script plots the voltage courses, ionic currents and gating variables
+# for any stimulation of a certain model. This allows to investigate the impact
+# of certain stimulation parameters.
+# =============================================================================
 ##### don't show warnings
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)

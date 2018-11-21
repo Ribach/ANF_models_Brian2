@@ -5,34 +5,27 @@ import io
 # =============================================================================
 def dataframe_to_latex(dataframe,
                        label = None,
-                       caption = None,
+                       caption_top = None,
+                       caption_bottom = None,
                        italic = None):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function converts a pandas dataframe in latex table code.
     
     Parameters
     ----------
-    model : time
-        Lenght of one time step.
-    dt : string
-        Describes, how the ANF is stimulated; either "internal" or "external" is possible
-    phase_durations : string
-        Describes, which pulses are used; either "mono" or "bi" is possible
-    start_interval : time
-        Time until (first) pulse starts.
-    delta : time
-        Time which is still simulated after the end of the last pulse
-    stimulation_type : amp/[k_noise]
-        Is multiplied with k_noise.
-    pulse_form : amp/[k_noise]
-        Is multiplied with k_noise.
+    dataframe : pandas dataframe
+        Dataframe to be converted.
+    label : string
+        If specified, it defines the label of the latex tabe
+    caption : string
+        If specified, it defines the caption of the latex tabe
+    italic : list of integers
+        The list specifies the row numbers of the rows, which should be written
+        in italics..
     
     Returns
     -------
-    current matrix
-        Gives back a vector of currents for each timestep
-    runtime
-        Gives back the duration of the simulation
+    string
+        Gives back a string with latex code.
     """
     
     ##### get number of columns and rows
@@ -56,6 +49,7 @@ def dataframe_to_latex(dataframe,
     ##### Write table header
     output.write("\\begin{table}[htb]\n")
     output.write("\\centering\n")
+    if caption_top is not None: output.write("\\caption{%s}\n" % caption_top)
     output.write("\\begin{tabular}{%s}\n" % colFormat)
     columnLabels = ["%s" % label for label in dataframe.columns]
     output.write("& %s\\\\\\hline\n" % " & ".join(columnLabels))
@@ -71,9 +65,18 @@ def dataframe_to_latex(dataframe,
                      % (dataframe.index[ii], " & ".join(["\\textit{%s}" % str(val) for val in dataframe.iloc[ii]])))
     
     ##### Write footer
-    output.write("\\end{tabular}\n")
-    if caption is not None:
-        output.write("\\caption{%s}\n" % caption)
+    if caption_bottom is None:
+        output.write("\\end{tabular}\n")
+        
+    if caption_top is None and caption_bottom is not None:
+        output.write("\\end{tabular}\n")
+        output.write("\\caption{%s}\n" % caption_bottom)
+        
+    if caption_top is not None and caption_bottom is  not None:
+        output.write("\\hline\n")
+        output.write("\\end{tabular}\n")
+        output.write("\\caption*{%s}\n" % caption_bottom)
+
     if label is not None:
         output.write("\\label{%s}\n" % label)
     output.write("\\end{table}")

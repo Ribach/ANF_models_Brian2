@@ -1,3 +1,8 @@
+# =============================================================================
+# This script collects the test battery results of one (!) model and generates
+# and saves plots which show these data. Furthermore tables are generated, that
+# compare the results of this single model to experimental data.
+# =============================================================================
 ##### don't show warnings
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -13,12 +18,17 @@ import os
 
 ##### import models
 import models.Rattay_2001 as rattay_01
+import models.Rattay_adap_2001 as rattay_adap_01
 import models.Frijns_1994 as frijns_94
 import models.Briaire_2005 as briaire_05
+import models.Briaire_adap_2005 as briaire_adap_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
+import models.Imennov_adap_2009 as imennov_adap_09
 import models.Negm_2014 as negm_14
+import models.Negm_ANF_2014 as negm_ANF_14
+import models.Rudnicki_2018 as rudnicki_18
 
 ##### import functions
 import functions.create_plots as plot
@@ -30,7 +40,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "negm_14"
+model_name = "rattay_01"
 model = eval(model_name)
 
 ##### save plots
@@ -62,13 +72,13 @@ psth_table = pd.read_csv("test_battery_results/{}/PSTH_table {}.csv".format(mode
 # =============================================================================
 ##### strength duration curve
 strength_duration_curve = plot.strength_duration_curve(plot_name = "Strength duration curve {}".format(model.display_name),
-                                                       threshold_matrix = strength_duration_plot_table,
+                                                       threshold_data = strength_duration_plot_table,
                                                        rheobase = strength_duration_data["rheobase (uA)"].iloc[0]*uA,
                                                        chronaxie = strength_duration_data["chronaxie (us)"].iloc[0]*us)
 
 ##### relative spreads plot
 relative_spread_plot = plot.relative_spread(plot_name = "Relative spreads {}".format(model.display_name),
-                                            threshold_matrix = relative_spread_plot_table)
+                                            threshold_data = relative_spread_plot_table)
 
 ##### single node response plot
 single_node_response = plot.single_node_response_voltage_course(plot_name = "Voltage courses {}".format(model.display_name),
@@ -80,7 +90,8 @@ refractory_curve = plot.refractory_curve(plot_name = "Refractory curve {}".forma
 
 ##### poststimulus time histogram plot
 post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
-                                                                 psth_dataset = psth_table)
+                                                                 psth_dataset = psth_table,
+                                                                 plot_style = "pulses_per_timebin")
 
 post_stimulus_time_histogram.savefig("C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Zwischenvortrag/Bilder/post_stimulus_time_histogram {}.png".format(model.display_name), bbox_inches='tight')
 

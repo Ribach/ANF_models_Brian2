@@ -1,3 +1,8 @@
+# =============================================================================
+# This script contains functions that are needed for model analyses and
+# comparisons, that go further than the test in the "Run_test_battery" scipt.
+# The functions here are used in the "Model_analyses" script.
+# =============================================================================
 ##### import packages
 from brian2 import *
 from brian2.units.constants import zero_celsius, gas_constant as R, faraday_constant as F
@@ -45,6 +50,44 @@ def get_node_number_for_latency(model_name,
                                 time_before = 2*ms,
                                 time_after = 3*ms,
                                 print_progress = True):
+    """This function calculates the node number (starting at peripheral end),
+    where the latency has to be measured to obtain a certain latency value
+    
+    Parameters
+    ----------
+    model_name : string
+        String with the model name in the format of the imported modules on top of the script
+    dt : time
+        Sampling timestep.
+    latency_desired : time or numeric value (numeric values are interpreted as time in second)
+        Defines latency that should be measured.
+    stim_amp : current or numeric (numeric values are interpreted as current in ampere)
+        Current amplitude of stimulus pulse; Using biphasic pulses, the second phase
+        has the inverted stimulus amplitude
+    phase_duration : time or numeric value (numeric values are interpreted as time in second)
+        Duration of one phase of the stimulus current
+    delta : integer
+        Maximum error for the number of the measurement node
+    numbers_start_interval : list of integers of length two
+        First value gives lower border of expected node number, second value gives upper border
+    inter_phase_gap : time or numeric value (numeric values are interpreted as time in second)
+        Length of the gap between the two phases of a biphasic stimulation
+    pulse_form : string
+        Describes, which pulses are used; either "mono" or "bi" is possible
+    stimulation_type : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    time_before : time
+        Time until stimulation starts.
+    time_after : time
+        Time which is still simulated after the end of the stimulation
+    print_progress : boolean
+        Defines, if information about the progress are printed on the console
+    
+    Returns
+    -------
+    node number
+        Gives back the number of the node where the desired latency can be measured
+    """
     
     ##### add quantity to phase_duration, inter_phase_gap, latency and stim_amp
     phase_duration = float(phase_duration)*second
@@ -140,39 +183,52 @@ def get_latency(model_name,
                 measurement_node,
                 phase_duration,
                 inter_phase_gap = 0*us,
-                stimulation_type = "extern",
                 pulse_form = "bi",
+                stimulation_type = "extern",
                 electrode_distance = 300*um,
                 time_before = 2*ms,
                 time_after = 2*ms,
                 add_noise = False,
                 print_progress = True):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function calculates the the latency at a certain node for a certain
+    electrode distance.
     
     Parameters
     ----------
-    model : time
-        Lenght of one time step.
-    dt : string
-        Describes, how the ANF is stimulated; either "internal" or "external" is possible
-    phase_durations : string
+    model_name : string
+        String with the model name in the format of the imported modules on top of the script
+    dt : time
+        Sampling timestep.
+    stim_amp : current or numeric value (numeric values are interpreted as a current in ampere)
+        Current amplitude of stimulus pulse; Using biphasic pulses, the second phase
+        has the inverted stimulus amplitude
+    stimulus_node : integer
+        Compartment number where the the model is stimulated
+    measurement_node : integer
+        Compartment number where the the latency is measured
+    phase_duration : time or numeric value (numeric values are interpreted as time in second)
+        Duration of one phase of the stimulus current
+    inter_phase_gap : time or numeric value (numeric values are interpreted as time in second)
+        Length of the gap between the two phases of a biphasic stimulation
+    pulse_form : string
         Describes, which pulses are used; either "mono" or "bi" is possible
-    start_interval : time
-        Time until (first) pulse starts.
-    delta : time
-        Time which is still simulated after the end of the last pulse
-    stimulation_type : amp/[k_noise]
-        Is multiplied with k_noise.
-    pulse_form : amp/[k_noise]
-        Is multiplied with k_noise.
+    stimulation_type : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    electrode_distance : length or numeric value (numeric values are interpreted as length in meter)
+        Defines the distance of the electrode to the measurement node
+    time_before : time
+        Time until stimulation starts.
+    time_after : time
+        Time which is still simulated after the end of the stimulation
+    add_noise : boolean
+        Defines, if Gaussian noise is added to the stimulus current.
+    print_progress : boolean
+        Defines, if information about the progress are printed on the console
     
     Returns
     -------
-    current matrix
-        Gives back a vector of currents for each timestep
-    runtime
-        Gives back the duration of the simulation
+    latency (numeric)
+        Gives back the latency as a numeric value which can be interpreted as time in second.
     """
     
     ##### add quantity to phase_duration, stim_amp and electrode_distance
@@ -267,6 +323,41 @@ def get_electrode_distance(model_name,
                            time_before = 3*ms,
                            time_after = 3*ms,
                            print_progress = True):
+     """This function calculates the the required electrode distance to obtain a
+     certain threshold current.
+    
+    Parameters
+    ----------
+    model_name : string
+        String with the model name in the format of the imported modules on top of the script
+    dt : time
+        Sampling timestep.
+    threshold : current
+        Defines current that should be the threshold of the model.
+    phase_duration : time or numeric value (numeric values are interpreted as time in second)
+        Duration of one phase of the stimulus current
+    delta : length
+        Maximum error for the required electrode distance
+    distances_start_interval : list of length-values of length two
+        First value gives lower border of expected electrode distances, second value gives upper border
+    inter_phase_gap : time or numeric value (numeric values are interpreted as time in second)
+        Length of the gap between the two phases of a biphasic stimulation
+    pulse_form : string
+        Describes, which pulses are used; either "mono" or "bi" is possible
+    stimulation_type : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    time_before : time
+        Time until stimulation starts.
+    time_after : time
+        Time which is still simulated after the end of the stimulation
+    print_progress : boolean
+        Defines, if information about the progress are printed on the console
+    
+    Returns
+    -------
+    electrode distance
+        Gives back the the required electrode distance
+    """
     
     ##### add quantity to phase_duration and inter_phase_gap
     phase_duration = float(phase_duration)*second
@@ -353,30 +444,25 @@ def computational_efficiency_test(model_names,
                                   dt,
                                   stimulus_duration,
                                   nof_runs):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
+    """This function calculates the required computation time for a certain
+    stimulation of the models.
 
     Parameters
     ----------
-    model : time
-        Lenght of one time step.
-    dt : string
-        Describes, how the ANF is stimulated; either "internal" or "external" is possible
-    phase_durations : string
-        Describes, which pulses are used; either "mono" or "bi" is possible
-    amps_start_interval : time
-        Time until (first) pulse starts.
-    delta : time
-        Time which is still simulated after the end of the last pulse
-    stimulation_type : amp/[k_noise]
-        Is multiplied with k_noise.
-    pulse_form : amp/[k_noise]
-        Is multiplied with k_noise.
-                
+    model_names : list of strings
+        List with strings with the model names in the format of the imported
+        modules on top of the script.
+    dt : time
+        Sampling timestep.
+    stimulus_duration : time
+        Defines how long the models are stimulated.
+    nof_runs : integer
+        Defines how often the simulations are repeated.
+
     Returns
     -------
-    thresholds matrix
-        Gives back a vector of currents for each timestep
+    pandas dataframe
+        Dataframe includes the computation times and the model names
     """
     
     ##### get models
@@ -421,231 +507,3 @@ def computational_efficiency_test(model_names,
             computation_times[model.display_name][ii] = t.tocvalue()
     
     return computation_times
-
-
-# =============================================================================
-#  Calculate refractory periods for pulse trains
-# =============================================================================
-def get_refractory_periods_for_pulse_trains(model_name,
-                                            dt,
-                                            pulse_rate,
-                                            phase_durations = 100*us,
-                                            pulse_train_duration = 5*ms,
-                                            delta = 1*us,
-                                            threshold = 0,
-                                            amp_masker = 0,
-                                            stimulation_type = "extern",
-                                            pulse_form = "mono",
-                                            time_before = 2*ms,
-                                            print_progress = True):
-    """This function calculates the stimulus current at the current source for
-    a single monophasic pulse stimulus at each point of time
-
-    Parameters
-    ----------
-    model : time
-        Lenght of one time step.
-    dt : string
-        Describes, how the ANF is stimulated; either "internal" or "external" is possible
-    phase_durations : string
-        Describes, which pulses are used; either "mono" or "bi" is possible
-    amps_start_interval : time
-        Time until (first) pulse starts.
-    delta : time
-        Time which is still simulated after the end of the last pulse
-    stimulation_type : amp/[k_noise]
-        Is multiplied with k_noise.
-    pulse_form : amp/[k_noise]
-        Is multiplied with k_noise.
-                
-    Returns
-    -------
-    thresholds matrix
-        Gives back a vector of currents for each timestep
-    """
-        
-    ##### get model
-    model = eval(model_name)
-    
-    ##### calculate number of pulses
-    nof_pulses = int(pulse_train_duration * pulse_rate/second)
-    
-    ##### calculate inter pulse gap
-    inter_pulse_gap = pulse_train_duration/nof_pulses - sum(phase_durations)
-    
-    ##### calculate theshold of model
-    if threshold == 0:
-        threshold = test.get_threshold(model_name = model_name,
-                                       dt = dt,
-                                       phase_duration = phase_durations[0],
-                                       amps_start_interval = [0,1000]*uA,
-                                       delta = 0.01*uA,
-                                       stimulation_type = stimulation_type,
-                                       pulse_form = pulse_form,
-                                       time_after = 3*ms,
-                                       print_progress = print_progress)
-    
-    ##### amplitude of masker stimulus
-    if amp_masker == 0:
-        amp_masker = 1.5 * threshold
-    
-    ##### minimum and maximum stimulus current amplitudes that are tested
-    inter_train_gap_min = 0*ms
-    inter_train_gap_max = 15*ms
-    
-    ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][10]
-    
-    ##### thresholds for second spike that define the refractory periods
-    stim_amp_arp = 4*threshold
-    stim_amp_rrp = 1.01*threshold    
-
-    ##### get absolute refractory period
-    # initializations
-    arp = 0*second
-    lower_border = inter_train_gap_min.copy()
-    upper_border = inter_train_gap_max.copy()
-    inter_train_gap = (inter_train_gap_max-inter_train_gap_min)/2
-    inter_train_gap_diff = upper_border - lower_border
-    
-    # initialize model with given defaultclock dt
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-    exec(param_string)
-    M = StateMonitor(neuron, 'v', record=True)
-    store('initialized')
-    
-    # adjust stimulus amplitude until required accuracy is obtained
-    while inter_train_gap_diff > delta:
-        
-        # print progress
-        if print_progress: print("ARP: Model: {} us, Pulse rate: {}, Inter pulse gap: {} us".format(model_name, pulse_rate, np.round(inter_train_gap/us)))
-        
-        # define how the ANF is stimulated
-        I_stim_masker, runtime_masker = stim.get_stimulus_current(model = model,
-                                                                  dt = dt,
-                                                                  stimulation_type = stimulation_type,
-                                                                  pulse_form = pulse_form,
-                                                                  time_before = time_before,
-                                                                  time_after = 0*ms,
-                                                                  nof_pulses = nof_pulses,
-                                                                  # monophasic stimulation
-                                                                  amp_mono = -amp_masker,
-                                                                  duration_mono = phase_durations[0],
-                                                                  # biphasic stimulation
-                                                                  amps_bi = [-amp_masker/amp,amp_masker/amp]*amp,
-                                                                  durations_bi = phase_durations,
-                                                                  inter_pulse_gap = inter_pulse_gap)
- 
-        I_stim_2nd, runtime_2nd = stim.get_stimulus_current(model = model,
-                                                            dt = dt,
-                                                            stimulation_type = stimulation_type,
-                                                            pulse_form = pulse_form,
-                                                            time_before = inter_train_gap,
-                                                            time_after = 3*ms,
-                                                            nof_pulses = nof_pulses,
-                                                            # monophasic stimulation
-                                                            amp_mono = -stim_amp_arp,
-                                                            duration_mono = phase_durations[0],
-                                                            # biphasic stimulation
-                                                            amps_bi = [-stim_amp_arp/amp,stim_amp_arp/amp]*amp,
-                                                            durations_bi = phase_durations,
-                                                            inter_pulse_gap = inter_pulse_gap)
-        
-        # combine stimuli
-        I_stim = np.concatenate((I_stim_masker, I_stim_2nd), axis = 1)*amp
-        runtime = runtime_masker + runtime_2nd
-        
-        # get TimedArray of stimulus currents and run simulation
-        stimulus = TimedArray(np.transpose(I_stim), dt=dt)
-        
-        # reset state monitor
-        restore('initialized')
-        
-        # run simulation
-        run(runtime)
-        
-        # test if there were two spikes (one for masker and one for 2. stimulus)
-        nof_spikes = len(peak.indexes(M.v[comp_index,M.t > runtime_masker+inter_train_gap], thres = model.V_res + 60*mV, thres_abs=True))
-        
-        if nof_spikes > 0:
-            arp = inter_train_gap
-            upper_border = inter_train_gap
-            inter_train_gap = (inter_train_gap + lower_border)/2
-        else:
-            lower_border = inter_train_gap
-            inter_train_gap = (inter_train_gap + upper_border)/2
-            
-        inter_train_gap_diff = upper_border - lower_border
-                
-    ##### get relative refractory period
-    # initializations
-    rrp = 0*second
-    lower_border = arp.copy()
-    upper_border = inter_train_gap_max.copy()
-    inter_train_gap = (inter_train_gap_max-inter_train_gap_min)/2
-    inter_train_gap_diff = upper_border - lower_border
-    
-    # adjust stimulus amplitude until required accuracy is obtained
-    while inter_train_gap_diff > delta:
-                
-        # print progress
-        if print_progress: print("RRP: Phase duration: {} us, Inter pulse gap: {} us".format(np.round(phase_durations[0]/us), np.round(inter_train_gap/us)))
-        
-        # define how the ANF is stimulated
-        I_stim_masker, runtime_masker = stim.get_stimulus_current(model = model,
-                                                                  dt = dt,
-                                                                  stimulation_type = stimulation_type,
-                                                                  pulse_form = pulse_form,
-                                                                  time_before = time_before,
-                                                                  time_after = 0*ms,
-                                                                  nof_pulses = nof_pulses,
-                                                                  # monophasic stimulation
-                                                                  amp_mono = -amp_masker,
-                                                                  duration_mono = phase_durations[0],
-                                                                  # biphasic stimulation
-                                                                  amps_bi = [-amp_masker/amp,amp_masker/amp]*amp,
-                                                                  durations_bi = phase_durations,
-                                                                  inter_pulse_gap = inter_pulse_gap)
- 
-        I_stim_2nd, runtime_2nd = stim.get_stimulus_current(model = model,
-                                                            dt = dt,
-                                                            stimulation_type = stimulation_type,
-                                                            pulse_form = pulse_form,
-                                                            time_before = inter_train_gap,
-                                                            time_after = 3*ms,
-                                                            nof_pulses = nof_pulses,
-                                                            # monophasic stimulation
-                                                            amp_mono = -stim_amp_rrp,
-                                                            duration_mono = phase_durations[0],
-                                                            # biphasic stimulation
-                                                            amps_bi = [-stim_amp_rrp/amp,stim_amp_rrp/amp]*amp,
-                                                            durations_bi = phase_durations,
-                                                            inter_pulse_gap = inter_pulse_gap)
-        
-        # combine stimuli
-        I_stim = np.concatenate((I_stim_masker, I_stim_2nd), axis = 1)*amp
-        runtime = runtime_masker + runtime_2nd
-        
-        # get TimedArray of stimulus currents and run simulation
-        stimulus = TimedArray(np.transpose(I_stim), dt=dt)
-        
-        # reset state monitor
-        restore('initialized')
-        
-        # run simulation
-        run(runtime)
-        
-        # test if there were two spikes (one for masker and one for 2. stimulus)
-        nof_spikes = len(peak.indexes(M.v[comp_index,M.t > runtime_masker+inter_train_gap], thres = model.V_res + 60*mV, thres_abs=True))
-        
-        if nof_spikes > 0:
-            rrp = inter_train_gap
-            upper_border = inter_train_gap
-            inter_train_gap = (inter_train_gap + lower_border)/2
-        else:
-            lower_border = inter_train_gap
-            inter_train_gap = (inter_train_gap + upper_border)/2
-            
-        inter_train_gap_diff = upper_border - lower_border
-                            
-    return float(arp), float(rrp)

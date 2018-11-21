@@ -1,3 +1,8 @@
+# =============================================================================
+# This script provides a battery of tests that can be applied to a certain
+# model. If wanted, the resulting dataframes with test results, plots and
+# dataframes that contain the values to generate the plots are saved as csv.
+# =============================================================================
 ##### don't show warnings
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -10,12 +15,6 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import itertools as itl
-import os
-
-##### set working directory to folder of script
-#abspath = os.path.abspath(__file__)
-#dname = os.path.dirname(abspath)
-#os.chdir(dname)
 
 ##### import functions
 import functions.stimulation as stim
@@ -60,11 +59,11 @@ generate_plots = True
 all_tests = False
 strength_duration_test = False
 relative_spread_test = False
-conduction_velocity_test = False
+conduction_velocity_test = True
 single_node_response_test = False
 refractory_periods = False
 refractory_curve = False
-psth_test = True
+psth_test = False
 
 if any([all_tests, single_node_response_test, refractory_periods, refractory_curve]):
     # =============================================================================
@@ -116,8 +115,8 @@ if all_tests or strength_duration_test:
     # Get chronaxie and rheobase
     # =============================================================================
     ##### get rheobase
-    rheobase = test.get_threshold(model_name = model_name,
-                                  dt = dt,
+    rheobase = test.get_threshold(model_name,
+                                  dt,
                                   phase_duration = 1*ms,
                                   delta = 0.0001*uA,
                                   amps_start_interval = [0,20]*uA,
@@ -125,8 +124,8 @@ if all_tests or strength_duration_test:
                                   pulse_form = "mono")
     
     ##### get chronaxie
-    chronaxie = test.get_chronaxie(model = model,
-                                   dt = dt,
+    chronaxie = test.get_chronaxie(model_name,
+                                   dt,
                                    rheobase = rheobase,
                                    phase_duration_start_interval = [0,1000]*us,
                                    delta = 1*us,
@@ -186,7 +185,7 @@ if all_tests or strength_duration_test:
     if generate_plots:
         ##### plot strength duration curve
         strength_duration_curve = plot.strength_duration_curve(plot_name = "Strength duration curve {}".format(model.display_name),
-                                                               threshold_matrix = strength_duration_plot_table,
+                                                               threshold_data = strength_duration_plot_table,
                                                                rheobase = rheobase,
                                                                chronaxie = chronaxie)
         
@@ -248,7 +247,7 @@ if all_tests or relative_spread_test:
     if generate_plots:
         ##### plot relative spreads
         relative_spread_plot = plot.relative_spread(plot_name = "Relative spreads {}".format(model.display_name),
-                                                    threshold_matrix = relative_spread_plot_table)
+                                                    threshold_data = relative_spread_plot_table)
     
         ##### save relative spreads plot
         relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
@@ -279,8 +278,8 @@ if all_tests or conduction_velocity_test:
         ##### dendrite
         node_indexes_dendrite = node_indexes[node_indexes < min(model.index_soma)[0]]
             
-        conduction_velocity_dendrite = test.get_conduction_velocity(model = model,
-                                                                    dt = dt,
+        conduction_velocity_dendrite = test.get_conduction_velocity(model_name,
+                                                                    dt,
                                                                     stimulated_compartment = node_indexes_dendrite[0],
                                                                     measurement_start_comp = node_indexes_dendrite[1],
                                                                     measurement_end_comp = node_indexes_dendrite[-2])
@@ -290,8 +289,8 @@ if all_tests or conduction_velocity_test:
         ##### axon
         node_indexes_axon = node_indexes[node_indexes > max(model.index_soma)[0]]
     
-        conduction_velocity_axon = test.get_conduction_velocity(model = model,
-                                                                dt = dt,
+        conduction_velocity_axon = test.get_conduction_velocity(model_name,
+                                                                dt,
                                                                 stimulated_compartment = node_indexes_dendrite[0],
                                                                 measurement_start_comp = node_indexes_axon[0],
                                                                 measurement_end_comp = node_indexes_axon[-3])
@@ -306,8 +305,8 @@ if all_tests or conduction_velocity_test:
     
     ##### models without a soma 
     else:
-       conduction_velocity = test.get_conduction_velocity(model = model,
-                                                          dt = dt,
+       conduction_velocity = test.get_conduction_velocity(model_name,
+                                                          dt,
                                                           stimulated_compartment = node_indexes[1],
                                                           measurement_start_comp = node_indexes[2],
                                                           measurement_end_comp = node_indexes[-3])
@@ -666,10 +665,14 @@ if all_tests or psth_test:
     ##### convert stimulus amplitude form amp to uA
     psth_table["stimulus amplitude (uA)"] = round(psth_table["stimulus amplitude (uA)"]*1e6,2)
     
+    ##### remove nans in spike times
+    psth_table = psth_table[np.isfinite(psth_table["spike times (us)"])]
+    
     if generate_plots:
         ##### plot post_stimulus_time_histogram
         post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
-                                                                         psth_dataset = psth_table.copy())
+                                                                         psth_dataset = psth_table.copy(),
+                                                                         plot_style = "firing_efficiency")
         
         ###### save post_stimulus_time_histogram
         post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
