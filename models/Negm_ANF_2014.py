@@ -269,6 +269,7 @@ A_surface = [(compartment_diameters[i+1] + compartment_diameters[i])*np.pi*m[i]*
         
 #####  Compartment middle point distances (needed for plots)
 distance_comps_middle = np.zeros_like(compartment_lengths)
+distance_comps_middle[0] = 0.5*compartment_lengths[0]
 for ii in range(0,nof_comps-1):
     distance_comps_middle[ii+1] = 0.5* compartment_lengths[ii] + 0.5* compartment_lengths[ii+1]
 
@@ -383,6 +384,7 @@ def set_up_model(dt, model, update = False, model_name = "model"):
                    for i in range(0,model.nof_comps)]
                 
         #####  Compartment middle point distances (needed for plots)
+        model.distance_comps_middle[0] = 0.5*model.compartment_lengths[0]
         model.distance_comps_middle = np.zeros_like(model.compartment_lengths)
         for ii in range(0,model.nof_comps-1):
             model.distance_comps_middle[ii+1] = 0.5* model.compartment_lengths[ii] + 0.5* model.compartment_lengths[ii+1]

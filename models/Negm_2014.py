@@ -220,6 +220,7 @@ E_L = -(gamma_Na*rho_Na*m_init**3*h_init*E_Na +  gamma_K*rho_K*n_init**4*(E_K+V_
         
 #####  Compartment middle point distances (needed for plots)
 distance_comps_middle = np.zeros_like(compartment_lengths)
+distance_comps_middle[0] = 0.5*compartment_lengths[0]
 for ii in range(0,nof_comps-1):
     distance_comps_middle[ii+1] = 0.5* compartment_lengths[ii] + 0.5* compartment_lengths[ii+1]
 
@@ -329,6 +330,7 @@ def set_up_model(dt, model, update = False, model_name = "model"):
                 
         #####  Compartment middle point distances (needed for plots)
         model.distance_comps_middle = np.zeros_like(model.compartment_lengths)
+        model.distance_comps_middle[0] = 0.5*model.compartment_lengths[0]
         for ii in range(0,model.nof_comps-1):
             model.distance_comps_middle[ii+1] = 0.5* model.compartment_lengths[ii] + 0.5* model.compartment_lengths[ii+1]
         

@@ -53,7 +53,7 @@ theses_table_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Se
 # =============================================================================
 # Conduction velocity tables
 # =============================================================================
-##### table for models with soma
+##### table for models with soma6
 for ii,model in enumerate(models_with_soma):
     
     ##### get strength duration data

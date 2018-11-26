@@ -5,7 +5,7 @@ import numpy as np
 #  Calculate stimulus currents for each compartment and timestep
 # =============================================================================
 def get_stimulus_current(model,
-                         dt = 5*ms,
+                         dt = 5*us,
                          pulse_form = "mono",
                          stimulation_type = "extern",
                          stimulated_compartment = None,
@@ -13,7 +13,7 @@ def get_stimulus_current(model,
                          time_after = 1*ms,
                          nof_pulses = 1,
                          add_noise = False,
-                         amp_mono = 1.5*uA,
+                         amp_mono = 200*uA,
                          duration_mono = 200*us,
                          amps_bi = [-2,2]*uA,
                          durations_bi = [100,0,100]*us,
@@ -123,33 +123,22 @@ def get_stimulus_current(model,
                 np.sum(model.compartment_lengths[stimulated_compartment+1:ii:1]) + 0.5* model.compartment_lengths[ii]
                 
         distance = np.sqrt((distance_x*meter)**2 + model.electrode_distance**2)
-        
-        # calculate axoplasmatic resistances (always for the two halfs of neightbouring compartments)
-        R_a = np.zeros(nof_comps)*ohm
-        
-        if stimulated_compartment > 0:
-            for i in range(0,stimulated_compartment):
-                R_a[i] = 0.5* model.R_a[i] + 0.5* model.R_a[i+1]
                 
-        R_a[stimulated_compartment] = model.R_a[stimulated_compartment]
+        # Calculate activation function (=stimulus current)
+        V_ext = np.zeros((nof_comps,nof_timesteps))*volt
+        I_stim = np.zeros((nof_comps,nof_timesteps))*amp
         
-        if stimulated_compartment < nof_comps:
-            for i in range(stimulated_compartment+1,nof_comps):
-                R_a[i] = 0.5* model.R_a[i-1] + 0.5* model.R_a[i]
-                
-        # Calculate activation functions
-        V_ext = np.zeros((nof_comps,nof_timesteps))*mV
-        E_ext = np.zeros((nof_comps,nof_timesteps))*mV
-        A_ext = np.zeros((nof_comps,nof_timesteps))*mV
-        
-        for ii in range(0,nof_timesteps):
-            V_ext[:,ii] = (model.rho_out*I_elec[ii]) / (4*np.pi*distance)
-            E_ext[0:-1,ii] = -np.diff(V_ext[:,ii])
-            A_ext[1:-1,ii] = -np.diff(E_ext[0:-1,ii])
-        
-        # Calculate currents
-        I_stim = A_ext/np.transpose(np.tile(R_a, (nof_timesteps,1)))
-        
+        for ii in range(nof_comps):
+            V_ext[ii,:] = (model.rho_out*I_elec) / (4*np.pi*distance[ii])
+
+        for ii in range(0,nof_comps):
+            if ii == 0:
+                I_stim[0,:] = (V_ext[1,:] - V_ext[0,:])/(0.5*model.R_a[ii+1] + 0.5*model.R_a[ii])
+            elif ii == nof_comps-1:
+                I_stim[-1,:] = (V_ext[-2,:] - V_ext[-1,:])/(0.5*model.R_a[ii-1] + 0.5*model.R_a[ii])
+            else:
+                I_stim[ii,:] = (V_ext[ii-1,:] - V_ext[ii,:])/(0.5*model.R_a[ii-1] + 0.5*model.R_a[ii]) + (V_ext[ii+1,:] - V_ext[ii,:])/(0.5*model.R_a[ii+1] + 0.5*model.R_a[ii])
+
     ##### internal stimulation
     elif stimulation_type == "intern":
         
@@ -163,6 +152,116 @@ def get_stimulus_current(model,
     else:
         print("Just 'extern' and 'intern' are allowed for stimulation_type")
         return
+    
+    ##### add noise
+    if add_noise:
+        np.random.seed()
+        I_stim = I_stim + np.transpose(np.transpose(np.random.normal(0, 1, np.shape(I_stim)))*model.k_noise*model.noise_term)
+        
+    return I_stim, runtime
+
+# =============================================================================
+#  Calculate stimulus currents for given potential distribution
+# =============================================================================
+def get_stim_current_for_given_potentials(model,
+                                          dt,
+                                          V,
+                                          pulse_form = "bi",
+                                          time_before = 1*ms,
+                                          time_after = 2*ms,
+                                          nof_pulses = 20,
+                                          add_noise = True,
+                                          duration_mono = 50*us,
+                                          durations_bi = [40,20,40]*us,
+                                          inter_pulse_gap = 1*ms):
+    """This function calculates the stimulus current at the current source for
+    a single monophasic pulse stimulus at each point of time
+
+    Parameters
+    ----------
+    model : module
+        Module that contains all parameters for a certain model
+    dt : time
+        Sampling timestep.
+    V : voltage vector
+        One voltage per compartment has to be provided. It defines the resulting
+        potentials at the compartments after a stimulation.
+    pulse_form : string
+        Describes, which pulses are used; either "mono" or "bi" is possible
+    time_before : time
+        Time until (first) pulse starts.
+    time_after : time
+        Time which is still simulated after the end of the last pulse
+    nof_pulses : integer
+        Number of pulses.
+    add_noise : boolean
+        Defines, if noise is added
+    duration_mono : time
+        Duration of stimulus in case it is monophasic.
+    durations_bi : time vector
+        Vector of length three, which includes the durations of the first phase, the interphase gap and the second phase, resepectively.
+    inter_pulse_gap : time
+        Time interval between pulses for nof_pulses > 1.
+                
+    Returns
+    -------
+    current matrix
+        Gives back a matrix of stumulus currents with one row for each compartment
+        and one column for each timestep.
+    runtime
+        Gives back the duration of the simulation        
+    """
+    
+    ##### calculate runtime
+    if pulse_form == "mono":
+        runtime = time_before + nof_pulses*duration_mono + (nof_pulses-1)*inter_pulse_gap + time_after
+    elif pulse_form == "bi":
+        runtime = time_before + nof_pulses*sum(durations_bi) + (nof_pulses-1)*inter_pulse_gap + time_after
+    else:
+        print("Just 'mono' and 'bi' are allowed for pulse_form")
+        #return
+    
+    ##### number of compartments
+    nof_comps = len(model.compartment_lengths)
+    
+    ##### calculate number of timesteps
+    nof_timesteps = int(np.ceil(runtime/dt))
+    
+    ##### initialize potential matrix (one row per compartment and one column per timestep)
+    V_ext = np.zeros((nof_comps, nof_timesteps))*volt
+    
+    ##### create potential matrix for one pulse
+    if pulse_form == "mono":
+        timesteps_pulse = int(duration_mono/dt)
+        V_pulse = np.zeros((nof_comps, timesteps_pulse))*volt
+        V_pulse[:] = np.tile(-V, (timesteps_pulse,1)).transpose()
+    else:
+        timesteps_pulse = int(sum(durations_bi)/dt)
+        V_pulse = np.zeros((nof_comps, timesteps_pulse))*volt
+        end_index_first_phase = round(durations_bi[0]/dt)
+        start_index_second_phase = round(end_index_first_phase + durations_bi[1]/dt)
+        V_pulse[:,:end_index_first_phase] = np.tile(-V, (end_index_first_phase,1)).transpose()
+        V_pulse[:,start_index_second_phase:] = np.tile(V, (timesteps_pulse-start_index_second_phase,1)).transpose()
+    
+    ##### Fill stimulus current vector
+    if nof_pulses == 1:
+        V_ext[:,round(time_before/dt):round(time_before/dt)+timesteps_pulse] = V_pulse
+    elif nof_pulses > 1:
+        V_inter_pulse_gap = np.zeros((nof_comps,round(inter_pulse_gap/dt)))*volt
+        V_pulse_train = np.concatenate((np.tile(np.concatenate((V_pulse, V_inter_pulse_gap), axis = 1), nof_pulses-1),V_pulse), axis = 1)*volt
+        V_ext[:,round(time_before/dt):round(time_before/dt) + np.shape(V_pulse_train)[1]] = V_pulse_train
+            
+    ##### Calculate activation function (=stimulus current)
+    I_stim = np.zeros((nof_comps,nof_timesteps))*amp
+    
+    for ii in range(0,nof_comps):
+        if ii == 0:
+            I_stim[0,:] = (V_ext[1,:] - V_ext[0,:])/(0.5*model.R_a[ii+1] + 0.5*model.R_a[ii])
+        elif ii == nof_comps-1:
+            I_stim[-1,:] = (V_ext[-2,:] - V_ext[-1,:])/(0.5*model.R_a[ii-1] + 0.5*model.R_a[ii])
+        else:
+            I_stim[ii,:] = (V_ext[ii-1,:] - V_ext[ii,:])/(0.5*model.R_a[ii-1] + 0.5*model.R_a[ii]) + (V_ext[ii+1,:] - V_ext[ii,:])/(0.5*model.R_a[ii+1] + 0.5*model.R_a[ii])
+
     
     ##### add noise
     if add_noise:

@@ -989,7 +989,7 @@ def post_stimulus_time_histogram(model_name,
                                  pulse_form = "bi",
                                  stimulation_type = "extern",
                                  phase_duration = 50*us,
-                                 print_progress,
+                                 print_progress = True,
                                  run_number = 0):
     """This function calculates the spiking threshold of a model for mono- and
     biphasic pulses, intern and extern stimulation, single pulses and pulse trains.

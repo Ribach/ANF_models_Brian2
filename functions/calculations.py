@@ -124,4 +124,67 @@ def explode(df, lst_cols, fill_value=''):
         }).assign(**{col:np.concatenate(df[col].values) for col in lst_cols}) \
           .append(df.loc[lens==0, idx_cols]).fillna(fill_value) \
           .loc[:, df.columns]
+
+# =============================================================================
+#  Break down 3D coordinates to 1D
+# =============================================================================
+def coordinates_to_1D(x, y, z):
+    """This function calculates the distances of given points of the
+    threedimensional space to the first point.
+
+    Parameters
+    ----------
+    x : float vector
+        Coordinates in x direction.
+    y : float vector
+        Coordinates in y direction.
+    z : float vector
+        Coordinates in z direction.
+                
+    Returns
+    -------
+    float vector
+        Gives back the distances between the points.
+    """
     
+    ##### initialize distances vector
+    d = np.zeros_like(x)
+    
+    ##### calculate distances
+    for ii in range(1,len(x)):
+        d[ii] = d[ii-1] + np.sqrt((x[ii] - x[ii-1])**2 + (y[ii] - y[ii-1])**2 + (z[ii] - z[ii-1])**2)
+    
+    return d
+
+# =============================================================================
+#  Interpolate potentials
+# =============================================================================
+def interpolate_potentials(potentials,
+                           pot_distances,
+                           comp_distances,
+                           method = "linear"):
+    """This function interpolates values of a given potential distribution.
+
+    Parameters
+    ----------
+    potentials : float vector
+        Potential values at pot_distances.
+    pot_distances : float vector
+        Distances of given potentials to the location of the first potential.
+    comp_distances : float vector
+        Distances of model compartment middle points to the peripheral terminal.
+    method : string
+        Method that is used for interpolation. Currently just "linear" is possible.
+                
+    Returns
+    -------
+    float vector
+        Gives back a vector of potentials at the compartment middle points
+    """
+    
+    if method == "linear":
+        return np.interp(x = comp_distances,
+                         xp = pot_distances,
+                         fp = potentials)
+
+

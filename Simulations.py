@@ -42,14 +42,14 @@ prefs.codegen.target = "numpy"
 # =============================================================================
 plot_voltage_course_lines = True
 plot_voltage_course_colored = True
-plot_gating_variables = True
-plot_ion_currents = True
+plot_gating_variables = False
+plot_ion_currents = False
 
 # =============================================================================
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = rattay_adap_01
+model = rattay_01
 
 ##### initialize clock
 dt = 5*us
@@ -106,15 +106,15 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 stimulation_type = "extern",
                                                 pulse_form = "mono",
                                                 stimulated_compartment = stim_comp_index,
-                                                nof_pulses = 200,
+                                                nof_pulses = 1,
                                                 time_before = 1*ms,
                                                 time_after = 2*ms,
                                                 add_noise = True,
                                                 ##### monophasic stimulation
-                                                amp_mono = -2*uA,
+                                                amp_mono = -130*uA,
                                                 duration_mono = 50*us,
                                                 ##### biphasic stimulation
-                                                amps_bi = [-10,10]*uA,
+                                                amps_bi = [-700,700]*uA,
                                                 durations_bi = [15,2,15]*us,
                                                 ##### multiple pulses / pulse trains
                                                 inter_pulse_gap = 0.5*ms)
