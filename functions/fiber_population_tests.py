@@ -5,6 +5,7 @@ import numpy as np
 import thorns as th
 from scipy.signal import savgol_filter
 import peakutils as peak
+import matplotlib.pyplot as plt
 import h5py
 import pandas as pd
 pd.options.mode.chained_assignment = None
@@ -28,7 +29,7 @@ import models.Rudnicki_2018 as rudnicki_18
 # =============================================================================
 def get_threshold_for_pot_dist(model_name,
                                dt,
-                               potential_data,
+                               h5py_path,
                                elec_nr,
                                phase_duration,
                                delta,
@@ -99,13 +100,16 @@ def get_threshold_for_pot_dist(model_name,
     ##### get model
     model = eval(model_name)
     
-    ##### break down 3D coordinates to 1D
-    distances = calc.coordinates_to_1D(x = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,0],
-                                       y = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,0],
-                                       z = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,0])
-    
-    ##### get potential distribution
-    potentials = potential_data['neuron{}'.format(neuron_number)]["potentials"][:,elec_nr]*1e-3
+    ##### open h5py file
+    with h5py.File(h5py_path, 'r') as potential_data:
+
+        ##### break down 3D coordinates to 1D
+        distances = calc.coordinates_to_1D(x = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,0],
+                                           y = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,1],
+                                           z = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,2])
+        
+        ##### get potential distribution
+        potentials = potential_data['neuron{}'.format(neuron_number)]["potentials"][:,elec_nr]*1e-3
     
     ##### get potentials at compartment middle points by intepolation
     start_potentials = calc.interpolate_potentials(potentials = potentials,
@@ -120,7 +124,7 @@ def get_threshold_for_pot_dist(model_name,
     store('initialized')
     
     ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][10]
+    comp_index = np.where(model.structure == 2)[0][-3]
     
     ##### calculate runtime
     if pulse_form == "mono":
@@ -200,7 +204,7 @@ def get_threshold_for_pot_dist(model_name,
 # =============================================================================
 def get_threshold_for_fire_eff(model_name,
                                dt,
-                               potential_data,
+                               h5py_path,
                                elec_nr,
                                fire_eff_desired,
                                phase_duration,
@@ -272,13 +276,16 @@ def get_threshold_for_fire_eff(model_name,
     ##### get model
     model = eval(model_name)
     
-    ##### break down 3D coordinates to 1D
-    distances = calc.coordinates_to_1D(x = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,0],
-                                       y = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,0],
-                                       z = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,0])
-    
-    ##### get potential distribution
-    potentials = potential_data['neuron{}'.format(neuron_number)]["potentials"][:,elec_nr]*1e-3
+    ##### open h5py file
+    with h5py.File(h5py_path, 'r') as potential_data:
+
+        ##### break down 3D coordinates to 1D
+        distances = calc.coordinates_to_1D(x = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,0],
+                                           y = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,1],
+                                           z = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,2])
+        
+        ##### get potential distribution
+        potentials = potential_data['neuron{}'.format(neuron_number)]["potentials"][:,elec_nr]*1e-3
     
     ##### get potentials at compartment middle points by intepolation
     start_potentials = calc.interpolate_potentials(potentials = potentials,
@@ -293,7 +300,7 @@ def get_threshold_for_fire_eff(model_name,
     store('initialized')
     
     ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][10]
+    comp_index = np.where(model.structure == 2)[0][-3]
     
     ##### calculate runtime
     if pulse_form == "mono":
@@ -356,7 +363,7 @@ def get_threshold_for_fire_eff(model_name,
         run(runtime)
         
         ##### calculate firing efficiency
-        spikes = peak.indexes(savgol_filter(M.v[comp_index,:], 51,3), thres = (model.V_res + 60*mV)/volt, thres_abs=True)
+        spikes = peak.indexes(savgol_filter(M.v[comp_index,:], 51,3), thres = (model.V_res + 60*mV)/volt, thres_abs=True, min_dist=0.25*1e3)
         fire_eff = len(spikes)/nof_pulses
         
         ##### test if there was a spike
@@ -377,7 +384,7 @@ def get_threshold_for_fire_eff(model_name,
 # =============================================================================
 def get_spike_trains(model_name,
                      dt,
-                     potential_data,
+                     h5py_path,
                      potential_multiplier,
                      elec_nr,
                      nof_pulses,
@@ -439,13 +446,16 @@ def get_spike_trains(model_name,
     ##### get model
     model = eval(model_name)
     
-    ##### break down 3D coordinates to 1D
-    distances = calc.coordinates_to_1D(x = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,0],
-                                       y = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,0],
-                                       z = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,0])
-    
-    ##### get potential distribution
-    potentials = potential_data['neuron{}'.format(neuron_number)]["potentials"][:,elec_nr]*1e-3 * potential_multiplier
+    ##### open h5py file
+    with h5py.File(h5py_path, 'r') as potential_data:
+
+        ##### break down 3D coordinates to 1D
+        distances = calc.coordinates_to_1D(x = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,0],
+                                           y = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,1],
+                                           z = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,2])
+        
+        ##### get potential distribution
+        potentials = potential_data['neuron{}'.format(neuron_number)]["potentials"][:,elec_nr]*1e-3
     
     ##### get potentials at compartment middle points by intepolation
     potentials_at_comps = calc.interpolate_potentials(potentials = potentials,
@@ -466,7 +476,7 @@ def get_spike_trains(model_name,
     store('initialized')
     
     ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][10]
+    comp_index = np.where(model.structure == 2)[0][-3]
         
     ##### print progress
     if print_progress: print("Model: {}; Fiber: {};".format(model_name,neuron_number))
@@ -476,7 +486,7 @@ def get_spike_trains(model_name,
                                                                  dt = dt,
                                                                  V  = potentials_at_comps*volt,
                                                                  pulse_form = pulse_form,
-                                                                 add_noise = False,
+                                                                 add_noise = add_noise,
                                                                  time_before = time_before,
                                                                  time_after = time_after,
                                                                  nof_pulses = nof_pulses,
@@ -497,8 +507,15 @@ def get_spike_trains(model_name,
     run(runtime)
     
     ##### get spike times
-    spike_times = M.t[peak.indexes(savgol_filter(M.v[comp_index,:], 51,3), thres = (model.V_res + 60*mV)/volt, thres_abs=True)]/second
+    spike_times = M.t[peak.indexes(savgol_filter(M.v[comp_index,:], 51,3), thres = (model.V_res + 60*mV)/volt, thres_abs=True, min_dist=0.25*1e3)]/second
     spike_times = spike_times.tolist()
+    
+#    ##### plot
+#    fig = plt.figure("Model: {}, Fiber: {}, Spikes: {}".format(model_name, neuron_number, len(spike_times)))
+#    axes = fig.add_subplot(1, 1, 1)
+#    axes.plot(M.t/ms, M.v[comp_index,:]/mV)
+#    axes.plot(M.t/ms, savgol_filter(M.v[comp_index,:]/mV, 51,3))
+#    axes.scatter([spike_times[ii]*1e3 for ii in range(len(spike_times))], [model.V_res/mV + 100 for ii in range(len(spike_times))], color = "red")
     
     return {"spikes" : spike_times,
             "duration" : runtime/second}

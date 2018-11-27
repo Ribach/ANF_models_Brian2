@@ -1,3 +1,9 @@
+# =============================================================================
+# This script shows the responses of a population of fibers to a stimulation
+# with the realistic potential distribution of a 3D model of a implanted human
+# cochlear.
+# The potentials are given to a distance of at least 5.5 mm from the fiber terminals.
+# =============================================================================
 ##### don't show warnings
 import warnings
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -13,6 +19,8 @@ import h5py
 
 ##### import functions
 import functions.fiber_population_tests as fptest
+import functions.create_plots_for_fiber_populations as plot
+import functions.calculations as calc
 
 ##### import models
 import models.Rattay_2001 as rattay_01
@@ -27,12 +35,12 @@ import models.Rudnicki_2018 as rudnicki_18
 ##### makes code faster and prevents warning
 prefs.codegen.target = "numpy"
 
-##### import potential values
-potential_data = h5py.File('Measurements/Potential_distributions/original_mdl.h5', 'r')
-
 # =============================================================================
 # Initializations
 # =============================================================================
+##### define path of potential distribution data
+h5py_path = "Measurements/Potential_distributions/original_mdl.h5"
+
 ##### initialize clock
 dt = 1*us
 
@@ -40,7 +48,7 @@ dt = 1*us
 backend = "serial"
 
 ##### define if plots should be generated
-generate_plots = True
+generate_plots = False
 
 ##### define which models to observe
 models_deterministic = ["briaire_05", "smit_10"]
@@ -55,13 +63,24 @@ nof_pulses = np.floor(pulse_train_duration*pulse_rate).astype(int)
 inter_pulse_gap = 1/pulse_rate - 2*phase_duration
 
 ##### define stimulus level (multiplied with threshold)
-stim_level = 1.3
+stim_level = 1.05
 
 ##### define number stimulated electrode
-elec_nr = 2
+elec_nr = 1
 
 ##### define range of simulated neurons
-neuron_range = range(0,200)
+neuron_range = range(0,400)
+
+# =============================================================================
+# Measure nearest fiber to selected electrode (the one with the highest potenital value)
+# =============================================================================
+##### open h5py file
+with h5py.File(h5py_path, 'r') as potential_data:
+    
+    max_potentials = [max(potential_data['neuron{}'.format(ii)]["potentials"][:,elec_nr]) for ii in range(0,400)]
+    
+    max_value = max(max_potentials)
+    nearest_fiber = max_potentials.index(max_value)
 
 # =============================================================================
 # Measure threshold current (deterministic models) or current for 50% firing
@@ -74,10 +93,10 @@ thresholds1 = th.util.map(func = fptest.get_threshold_for_pot_dist,
                          space = params,
                          backend = backend,
                          cache = "no",
-                         kwargs = {"dt" : dt,
-                                   "potential_data" : potential_data,
+                         kwargs = {"dt" : 5*us,
+                                   "h5py_path" : h5py_path,
                                    "elec_nr" : elec_nr,
-                                   "neuron_number" : 100,
+                                   "neuron_number" : nearest_fiber,
                                    "phase_duration" : phase_duration,
                                    "nof_pulses" : 10, # further pulses don't change much
                                    "inter_pulse_gap" : inter_pulse_gap,
@@ -96,10 +115,10 @@ thresholds2 = th.util.map(func = fptest.get_threshold_for_fire_eff,
                          space = params,
                          backend = backend,
                          cache = "no",
-                         kwargs = {"dt" : dt,
-                                   "potential_data" : potential_data,
+                         kwargs = {"dt" : 5*us,
+                                   "h5py_path" : h5py_path,
                                    "elec_nr" : elec_nr,
-                                   "neuron_number" :  100,
+                                   "neuron_number" :  nearest_fiber,
                                    "fire_eff_desired" : 0.5,
                                    "phase_duration" : phase_duration,
                                    "nof_pulses" : 20, # further pulses don't change much
@@ -108,7 +127,7 @@ thresholds2 = th.util.map(func = fptest.get_threshold_for_fire_eff,
                                    "start_amp" : 1*mA,
                                    "amps_start_interval" : [0,2]*mA,
                                    "pulse_form" : pulse_form,
-                                   "add_noise" : False})
+                                   "add_noise" : True})
 
 thresholds2.reset_index(inplace=True)
 
@@ -129,7 +148,7 @@ spike_trains = th.util.map(func = fptest.get_spike_trains,
                            backend = backend,
                            cache = "no",
                            kwargs = {"dt" : dt,
-                                     "potential_data" : potential_data,
+                                     "h5py_path" : h5py_path,
                                      "elec_nr" : elec_nr,
                                      "phase_duration" : phase_duration,
                                      "nof_pulses" : nof_pulses,
@@ -141,11 +160,25 @@ spike_trains = th.util.map(func = fptest.get_spike_trains,
 spike_trains.reset_index(inplace=True)
 spike_trains = spike_trains[["model_name","neuron_number","duration","spikes"]]
 
-# =============================================================================
-# Generate raster plot
-# =============================================================================
-#th.plot_raster(spike_trains)
+##### split lists in spike times column to multiple rows
+spike_trains = calc.explode(spike_trains, ["spikes"])
 
+##### save dataframe as csv    
+spike_trains.to_csv("test_battery_results/Fiber_population/spike_trains.csv", index=False, header=True)
+
+if generate_plots:
+    # =============================================================================
+    # Generate raster plots
+    # =============================================================================
+    ##### load table with spike times
+    spike_trains = pd.read_csv("test_battery_results/Fiber_population/181127_spike_trains_elec2.csv")
+    
+    ##### generate raster plot for all models
+    for model in models_deterministic + models_stochastic:
+        
+        spike_trains_model = spike_trains[spike_trains["model_name"] == model].copy()
+        raster_plot = plot.raster_plot(plot_name = "Raster plot {}".format(eval("{}.display_name".format(model))),
+                                       spike_trains = spike_trains_model)
 
 
 

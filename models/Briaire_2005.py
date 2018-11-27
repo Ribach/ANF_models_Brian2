@@ -72,7 +72,7 @@ g_myelin : siemens/meter**2
 ##### structure
 nof_segments_presomatic_region = 10
 nof_segments_soma = 10
-nof_axonal_internodes = 10 # have to be at least 5
+nof_axonal_internodes = 14 # have to be at least 5
 ##### lengths
 length_peripheral_terminal = 10*um
 length_internodes_dendrite = [175,175,175,175,175,50]*um

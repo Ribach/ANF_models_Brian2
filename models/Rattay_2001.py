@@ -74,7 +74,7 @@ g_myelin : siemens/meter**2
 ##### structure
 nof_segments_presomatic_region = 3
 nof_segments_soma = 20
-nof_axonal_internodes = 10
+nof_axonal_internodes = 9
 ##### lengths
 length_peripheral_terminal = 10*um
 length_internodes_dendrite = 350*um
@@ -103,7 +103,7 @@ g_m_layer = 1*msiemens/cm**2
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.001*uA/np.sqrt(mS)
+k_noise = 0.003*uA/np.sqrt(mS)
 
 # =============================================================================
 # Electrode
