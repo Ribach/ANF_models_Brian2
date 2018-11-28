@@ -49,7 +49,7 @@ plot_ion_currents = False
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = imennov_09
+model = rattay_01
 
 ##### initialize clock
 dt = 5*us
@@ -108,10 +108,10 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 stimulated_compartment = stim_comp_index,
                                                 nof_pulses = 5,
                                                 time_before = 1*ms,
-                                                time_after = 10*ms,
+                                                time_after = 100*ms,
                                                 add_noise = True,
                                                 ##### monophasic stimulation
-                                                amp_mono = -20*uA,
+                                                amp_mono = -200*uA,
                                                 duration_mono = 50*us,
                                                 ##### biphasic stimulation
                                                 amps_bi = [-700,700]*uA,

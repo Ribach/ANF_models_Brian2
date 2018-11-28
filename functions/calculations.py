@@ -5,6 +5,7 @@
 from brian2 import *
 import numpy as np
 import pandas as pd
+from scipy import interpolate
 
 # =============================================================================
 #  Get soma diameters to approximate spherical
@@ -162,6 +163,7 @@ def coordinates_to_1D(x, y, z):
 def interpolate_potentials(potentials,
                            pot_distances,
                            comp_distances,
+                           comp_lenghts,
                            method = "linear"):
     """This function interpolates values of a given potential distribution.
 
@@ -174,17 +176,55 @@ def interpolate_potentials(potentials,
     comp_distances : float vector
         Distances of model compartment middle points to the peripheral terminal.
     method : string
-        Method that is used for interpolation. Currently just "linear" is possible.
+        Method that is used for interpolation. Spline and linear are possible.
                 
     Returns
     -------
     float vector
         Gives back a vector of potentials at the compartment middle points
     """
-    
     if method == "linear":
-        return np.interp(x = comp_distances,
-                         xp = pot_distances,
-                         fp = potentials)
+            
+        # initialize vector for interpolated potentials at compartments
+        comp_potentials = np.zeros_like(comp_distances)
+        
+        # initialize variable that saves the last index of the actual compartment
+        last_index = 0
+        
+        # loop over compartments
+        for ii in range(len(comp_distances)):
+            
+            # get indexes of potentials in range of compartment
+            pot_indexes = np.where(np.logical_and(pot_distances >= comp_distances[ii]-0.5*comp_lenghts[ii],
+                                                        pot_distances <= comp_distances[ii]+0.5*comp_lenghts[ii]))[0]
+            
+            # get number of potentials in range of compartment
+            nof_pots = len(pot_indexes)
+            
+            # update last_index
+            if nof_pots > 0:
+                last_index = max(pot_indexes)
+            
+            # distinguish between zero, one ore more potentials within the compartment range
+            if nof_pots == 0:
+                comp_potentials[ii] = np.interp(x = comp_distances[ii],
+                               xp = [pot_distances[last_index], pot_distances[last_index+1]],
+                               fp = [potentials[last_index], potentials[last_index+1]])
+                
+            elif nof_pots == 1:
+                comp_potentials[ii] = potentials[last_index]
+            
+            else:
+                comp_potentials[ii] = np.mean(potentials[pot_indexes])
+
+
+    if method == "spline":
+        knot_points = interpolate.splrep(pot_distances, potentials, s=0)
+        comp_potentials = interpolate.splev(comp_distances, knot_points, der=0)
+
+
+    return comp_potentials
+
+
 
 

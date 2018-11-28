@@ -447,7 +447,7 @@ def post_stimulus_time_histogram(plot_name,
             ##### calculating the bin heights
             bin_heights = [sum((bin_width*kk < current_data["spike times (ms)"]) & (current_data["spike times (ms)"] < bin_width*kk+bin_width))/nof_runs for kk in range(0,nof_bins+1)]
             if plot_style == "firing_efficiency":
-                bin_heights = [height / (current_data["pulse rate"][0]/second * bin_width*ms) for height in bin_heights]
+                bin_heights = [height / (current_data["pulse rate"].iloc[0]/second * bin_width*ms) for height in bin_heights]
             
             ##### create barplot
             axes[ii][jj].bar(x = bin_edges, height = bin_heights, width = bin_width, color = "black", linewidth=0.3)

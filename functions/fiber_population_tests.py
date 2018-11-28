@@ -115,6 +115,7 @@ def get_threshold_for_pot_dist(model_name,
     start_potentials = calc.interpolate_potentials(potentials = potentials,
                                                    pot_distances = distances,
                                                    comp_distances = np.cumsum(model.distance_comps_middle)/meter,
+                                                   comp_lenghts = model.compartment_lengths/meter,
                                                    method = "linear")
     
     ##### initialize model (no parameter was changed)
@@ -165,7 +166,7 @@ def get_threshold_for_pot_dist(model_name,
                                                                      dt = dt,
                                                                      V  = potentials_at_comps*volt,
                                                                      pulse_form = pulse_form,
-                                                                     add_noise = False,
+                                                                     add_noise = add_noise,
                                                                      time_before = time_before,
                                                                      time_after = time_after,
                                                                      nof_pulses = nof_pulses,
@@ -291,6 +292,7 @@ def get_threshold_for_fire_eff(model_name,
     start_potentials = calc.interpolate_potentials(potentials = potentials,
                                                    pot_distances = distances,
                                                    comp_distances = np.cumsum(model.distance_comps_middle)/meter,
+                                                   comp_lenghts = model.compartment_lengths/meter,                                                   
                                                    method = "linear")
     
     ##### initialize model (no parameter was changed)
@@ -342,7 +344,7 @@ def get_threshold_for_fire_eff(model_name,
                                                                      dt = dt,
                                                                      V  = potentials_at_comps*volt,
                                                                      pulse_form = pulse_form,
-                                                                     add_noise = False,
+                                                                     add_noise = add_noise,
                                                                      time_before = time_before,
                                                                      time_after = time_after,
                                                                      nof_pulses = nof_pulses,
@@ -363,7 +365,7 @@ def get_threshold_for_fire_eff(model_name,
         run(runtime)
         
         ##### calculate firing efficiency
-        spikes = peak.indexes(savgol_filter(M.v[comp_index,:], 51,3), thres = (model.V_res + 60*mV)/volt, thres_abs=True, min_dist=0.25*1e3)
+        spikes = peak.indexes(savgol_filter(M.v[comp_index,:], 51,3), thres = (model.V_res + 60*mV)/volt, thres_abs=True, min_dist=0.2*1e3)
         fire_eff = len(spikes)/nof_pulses
         
         ##### test if there was a spike
@@ -455,12 +457,13 @@ def get_spike_trains(model_name,
                                            z = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,2])
         
         ##### get potential distribution
-        potentials = potential_data['neuron{}'.format(neuron_number)]["potentials"][:,elec_nr]*1e-3
+        potentials = potential_data['neuron{}'.format(neuron_number)]["potentials"][:,elec_nr]*1e-3 * potential_multiplier
     
     ##### get potentials at compartment middle points by intepolation
     potentials_at_comps = calc.interpolate_potentials(potentials = potentials,
                                                       pot_distances = distances,
                                                       comp_distances = np.cumsum(model.distance_comps_middle)/meter,
+                                                      comp_lenghts = model.compartment_lengths/meter,
                                                       method = "linear")
     
     ##### set up the neuron
@@ -507,7 +510,7 @@ def get_spike_trains(model_name,
     run(runtime)
     
     ##### get spike times
-    spike_times = M.t[peak.indexes(savgol_filter(M.v[comp_index,:], 51,3), thres = (model.V_res + 60*mV)/volt, thres_abs=True, min_dist=0.25*1e3)]/second
+    spike_times = M.t[peak.indexes(savgol_filter(M.v[comp_index,:], 51,3), thres = (model.V_res + 60*mV)/volt, thres_abs=True, min_dist=0.2*1e3)]/second
     spike_times = spike_times.tolist()
     
 #    ##### plot

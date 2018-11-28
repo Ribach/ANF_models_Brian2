@@ -42,7 +42,7 @@ prefs.codegen.target = "numpy"
 h5py_path = "Measurements/Potential_distributions/original_mdl.h5"
 
 ##### initialize clock
-dt = 1*us
+dt = 5*us
 
 ##### define way of processing
 backend = "serial"
@@ -63,7 +63,7 @@ nof_pulses = np.floor(pulse_train_duration*pulse_rate).astype(int)
 inter_pulse_gap = 1/pulse_rate - 2*phase_duration
 
 ##### define stimulus level (multiplied with threshold)
-stim_level = 1.05
+stim_level = 1.25
 
 ##### define number stimulated electrode
 elec_nr = 1
@@ -92,8 +92,8 @@ params = {"model_name" : models_deterministic}
 thresholds1 = th.util.map(func = fptest.get_threshold_for_pot_dist,
                          space = params,
                          backend = backend,
-                         cache = "no",
-                         kwargs = {"dt" : 5*us,
+                         cache = "yes",
+                         kwargs = {"dt" : dt,
                                    "h5py_path" : h5py_path,
                                    "elec_nr" : elec_nr,
                                    "neuron_number" : nearest_fiber,
@@ -114,14 +114,14 @@ params = {"model_name" : models_stochastic}
 thresholds2 = th.util.map(func = fptest.get_threshold_for_fire_eff,
                          space = params,
                          backend = backend,
-                         cache = "no",
-                         kwargs = {"dt" : 5*us,
+                         cache = "yes",
+                         kwargs = {"dt" : dt,
                                    "h5py_path" : h5py_path,
                                    "elec_nr" : elec_nr,
                                    "neuron_number" :  nearest_fiber,
                                    "fire_eff_desired" : 0.5,
                                    "phase_duration" : phase_duration,
-                                   "nof_pulses" : 20, # further pulses don't change much
+                                   "nof_pulses" : nof_pulses,
                                    "inter_pulse_gap" : inter_pulse_gap,
                                    "delta" : 0.1*uA,
                                    "start_amp" : 1*mA,
@@ -163,6 +163,9 @@ spike_trains = spike_trains[["model_name","neuron_number","duration","spikes"]]
 ##### split lists in spike times column to multiple rows
 spike_trains = calc.explode(spike_trains, ["spikes"])
 
+##### add column with pulse rate
+spike_trains["nof_pulses"] = nof_pulses
+
 ##### save dataframe as csv    
 spike_trains.to_csv("test_battery_results/Fiber_population/spike_trains.csv", index=False, header=True)
 
@@ -171,7 +174,7 @@ if generate_plots:
     # Generate raster plots
     # =============================================================================
     ##### load table with spike times
-    spike_trains = pd.read_csv("test_battery_results/Fiber_population/181127_spike_trains_elec2.csv")
+    spike_trains = pd.read_csv("test_battery_results/Fiber_population/spike_trains.csv")
     
     ##### generate raster plot for all models
     for model in models_deterministic + models_stochastic:
