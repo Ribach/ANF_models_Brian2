@@ -104,6 +104,16 @@ gamma_HCN : siemens
 g_L : siemens/meter**2
 g_myelin : siemens/meter**2
 E_Leak : volt
+T_celsius : 1
+V_res : volt
+E_Na : volt
+E_K : volt
+E_HCN : volt
+rho_Na : 1/meter**2
+rho_Ks : 1/meter**2
+rho_Kf : 1/meter**2
+rho_KLT : 1/meter**2
+rho_HCN  : 1/meter**2
 '''
 
 # =============================================================================
@@ -271,7 +281,7 @@ comps_to_plot = np.sort(np.append(indexes_comps, middle_comps_internodes))
 # =============================================================================
 # Set up the model
 # =============================================================================
-def set_up_model(dt, model, update = False, model_name = "model"):
+def set_up_model(dt, model, update = False):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -281,15 +291,13 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         Sets the defaultclock.
     model : module
         Contains all morphologic and physiologic data of a model
-    model_name : string
-        Sting with the variable name, in which the module is saved
                 
     Returns
     -------
     neuron
         Gives back a brian2 neuron
-    param_string
-        Gives back a string of parameter assignments
+    model
+        Gives back the whole module
     """
     
     start_scope()
@@ -419,7 +427,7 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     neuron.z = model.z_init
     neuron.r = model.r_init
     
-    ##### Set parameter values (parameters that were initialised in the equations eqs and which are different for different compartment types)
+    ##### Set parameter values of differential equations
     # conductances active compartments
     neuron.gamma_Na = model.gamma_Na
     neuron.gamma_Ks = model.gamma_Ks
@@ -440,21 +448,16 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     # Nernst potential for leakage current
     neuron.E_Leak = model.E_L
     
-    ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
-    param_string = '''
-    T_celsius = {}.T_celsius
-    V_res = {}.V_res
-    E_Na = {}.E_Na
-    E_K = {}.E_K
-    E_HCN = {}.E_HCN
-    rho_Na = {}.rho_Na
-    rho_Ks = {}.rho_Ks
-    rho_Kf = {}.rho_Kf
-    rho_KLT = {}.rho_KLT
-    rho_HCN = {}.rho_HCN
-    '''.format(model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name)
-    
-    ##### remove spaces to avoid complications
-    param_string = param_string.replace(" ", "")
-    
-    return neuron, param_string, model
+    # other parameters
+    neuron.T_celsius = model.T_celsius
+    neuron.V_res = model.V_res
+    neuron.E_Na = model.E_Na
+    neuron.E_K = model.E_K
+    neuron.E_HCN = model.E_HCN
+    neuron.rho_Na = model.rho_Na
+    neuron.rho_Ks = model.rho_Ks
+    neuron.rho_Kf = model.rho_Kf
+    neuron.rho_KLT = model.rho_KLT
+    neuron.rho_HCN = model.rho_HCN    
+
+    return neuron, model

@@ -118,11 +118,10 @@ def get_node_number_for_latency(model_name,
             model.nof_axonal_internodes = upper_border
         
         ##### initialize model
-        neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
-        exec(param_string)
+        neuron, model = model.set_up_model(dt = dt, model = model, update = True)
         M = StateMonitor(neuron, 'v', record=True)
         store('initialized')
-            
+
         ##### define how the ANF is stimulated
         I_stim, runtime = stim.get_stimulus_current(model = model,
                                                     dt = dt,
@@ -253,8 +252,7 @@ def get_latency(model_name,
     model.electrode_distance = electrode_distance
      
     ##### initialize model
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
-    exec(param_string)
+    neuron, model = model.set_up_model(dt = dt, model = model, update = True)
     M = StateMonitor(neuron, 'v', record=True)
     store('initialized')
     
@@ -323,7 +321,7 @@ def get_electrode_distance(model_name,
                            time_before = 3*ms,
                            time_after = 3*ms,
                            print_progress = True):
-     """This function calculates the the required electrode distance to obtain a
+    """This function calculates the the required electrode distance to obtain a
      certain threshold current.
     
     Parameters
@@ -378,8 +376,7 @@ def get_electrode_distance(model_name,
     
     ##### initialize model
     model.electrode_distance = distance
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
-    exec(param_string)
+    neuron, model = model.set_up_model(dt = dt, model = model, update = True)
     M = StateMonitor(neuron, 'v', record=True)
     store('initialized')
     
@@ -392,8 +389,7 @@ def get_electrode_distance(model_name,
         
         ##### initialize model with new distance
         model.electrode_distance = distance
-        neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
-        exec(param_string)
+        neuron, model = model.set_up_model(dt = dt, model = model, update = True)
         M = StateMonitor(neuron, 'v', record=True)
         store('initialized')
         
@@ -434,7 +430,7 @@ def get_electrode_distance(model_name,
     
     ##### reload module
     model = reload(model)
-
+    
     return electrode_distance
 
 # =============================================================================
@@ -478,10 +474,7 @@ def computational_efficiency_test(model_names,
         for ii in range(nof_runs):
                 
             ##### set up the neuron
-            neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-            
-            ##### load the parameters of the differential equations in the workspace
-            exec(param_string)
+            neuron, model = model.set_up_model(dt = dt, model = model)
             
             ##### define how the ANF is stimulated
             I_stim, runtime = stim.get_stimulus_current(model = model,

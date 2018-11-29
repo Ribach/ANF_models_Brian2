@@ -116,16 +116,14 @@ def get_threshold(model_name,
         exec("model.{} = parameter_ratio*model.{}".format(parameter,parameter))
             
         ##### initialize model with changed parameter
-        neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
-        exec(param_string)
+        neuron, model = model.set_up_model(dt = dt, model = model, update = True)
         M = StateMonitor(neuron, 'v', record=True)
         store('initialized')
         
     else:
         
         ##### initialize model (no parameter was changed)
-        neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-        exec(param_string)
+        neuron, model = model.set_up_model(dt = dt, model = model)
         M = StateMonitor(neuron, 'v', record=True)
         store('initialized')
     
@@ -269,8 +267,7 @@ def get_conduction_velocity(model_name,
     conduction_length = sum(model.compartment_lengths[measurement_start_comp:measurement_end_comp+1])
     
     ##### initialize neuron and state monitor
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-    exec(param_string)
+    neuron, model = model.set_up_model(dt = dt, model = model)
     M = StateMonitor(neuron, 'v', record=True)
     store('initialized')
     
@@ -400,16 +397,14 @@ def get_single_node_response(model_name,
         exec("model.{} = parameter_ratio*original_param_value".format(parameter))
             
         ##### initialize model with changed parameter
-        neuron, param_string, model = model.set_up_model(dt = dt, model = model, update = True)
-        exec(param_string)
+        neuron, model = model.set_up_model(dt = dt, model = model, update = True)
         M = StateMonitor(neuron, 'v', record=True)
         store('initialized')
         
     else:
         
         ##### initialize model (no parameter was changed)
-        neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-        exec(param_string)
+        neuron, model = model.set_up_model(dt = dt, model = model)
         M = StateMonitor(neuron, 'v', record=True)
         store('initialized')
     
@@ -484,7 +479,12 @@ def get_single_node_response(model_name,
         ##### reload module
         model = reload(model)
     
-    return AP_amp/volt, AP_rise_time/second, AP_fall_time/second, latency/second, voltage_course, time_vector
+    return {"AP height (mV)" : AP_amp/volt,
+            "rise time (us)" : AP_rise_time/second,
+            "fall time (us)" : AP_fall_time/second,
+            "latency (us)" : latency/second,
+            "membrane potential (mV)" : voltage_course,
+            "time (ms)" : time_vector}
 
 # =============================================================================
 #  Calculate cronaxie for a given rheobase
@@ -535,8 +535,7 @@ def get_chronaxie(model_name,
     model = eval(model_name)
         
     ##### initialize model with given defaultclock dt
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-    exec(param_string)
+    neuron, model = model.set_up_model(dt = dt, model = model)
     M = StateMonitor(neuron, 'v', record=True)
     store('initialized')
     
@@ -689,8 +688,7 @@ def get_refractory_periods(model_name,
     inter_pulse_gap_diff = upper_border - lower_border
     
     # initialize model with given defaultclock dt
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-    exec(param_string)
+    neuron, model = model.set_up_model(dt = dt, model = model)
     M = StateMonitor(neuron, 'v', record=True)
     store('initialized')
     
@@ -905,8 +903,7 @@ def get_refractory_curve(model_name,
     comp_index = np.where(model.structure == 2)[0][10]
     
     ##### initialize model and monitors
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-    exec(param_string)
+    neuron, model = model.set_up_model(dt = dt, model = model)
     M = StateMonitor(neuron, 'v', record=True)
     store('initialized')
                 
@@ -1039,10 +1036,7 @@ def post_stimulus_time_histogram(model_name,
     model = eval(model_name)
     
     ##### set up the neuron
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-    
-    ##### load the parameters of the differential equations in the workspace
-    exec(param_string)
+    neuron, model = model.set_up_model(dt = dt, model = model)
     
     ##### initialize monitors
     M = StateMonitor(neuron, 'v', record=True)

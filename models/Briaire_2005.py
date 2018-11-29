@@ -64,6 +64,14 @@ P_Na : meter/second
 P_K : meter/second
 g_L : siemens/meter**2
 g_myelin : siemens/meter**2
+V_res : volt
+T_celsius : 1
+T_kelvin : kelvin
+Na_i : mole/meter**3
+Na_e : mole/meter**3
+K_i : mole/meter**3
+K_e : mole/meter**3
+E_L : volt
 '''
 
 # =============================================================================
@@ -264,7 +272,7 @@ comps_to_plot = np.sort(np.append(indexes_comps, [middle_comp_presomatic_region,
 # =============================================================================
 # Set up the model
 # =============================================================================
-def set_up_model(dt, model, update = False, model_name = "model"):
+def set_up_model(dt, model, update = False):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -274,15 +282,13 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         Sets the defaultclock.
     model : module
         Contains all morphologic and physiologic data of a model
-    model_name : string
-        Sting with the variable name, in which the module is saved
                 
     Returns
     -------
     neuron
         Gives back a brian2 neuron
-    param_string
-        Gives back a string of parameter assignments
+    model
+        Gives back the whole module
     """
     
     start_scope()
@@ -443,7 +449,7 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     neuron.n = model.n_init
     neuron.h = model.h_init
     
-    ##### Set parameter values (parameters that were initialised in the equations eqs and which are different for different compartment types)
+    ##### Set parameter values of differential equations
     # permeabilities presomatic region and active compartments
     neuron.P_Na[np.asarray(np.where(np.logical_or(model.structure == 0, model.structure == 2)))] = model.P_Na
     neuron.P_K[np.asarray(np.where(np.logical_or(model.structure == 0, model.structure == 2)))] = model.P_K
@@ -462,19 +468,14 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     # conductances
     neuron.g_myelin = model.g_m
     
-    ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
-    param_string = '''
-    V_res = {}.V_res
-    T_celsius = {}.T_celsius
-    T_kelvin = {}.T_kelvin
-    Na_i = {}.Na_i
-    Na_e = {}.Na_e
-    K_i = {}.K_i
-    K_e = {}.K_e
-    E_L = {}.E_L
-    '''.format(model_name,model_name,model_name,model_name,model_name,model_name,model_name,model_name)
+    # other parameters
+    neuron.V_res = model.V_res
+    neuron.T_celsius = model.T_celsius
+    neuron.T_kelvin = model.T_kelvin
+    neuron.Na_i = model.Na_i
+    neuron.Na_e = model.Na_e
+    neuron. K_i = model.K_i
+    neuron.K_e = model.K_e
+    neuron.E_L = model.E_L
     
-    ##### remove spaces to avoid complications
-    param_string = param_string.replace(" ", "")
-    
-    return neuron, param_string, model
+    return neuron, model

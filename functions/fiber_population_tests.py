@@ -33,7 +33,7 @@ def get_threshold_for_pot_dist(model_name,
                                elec_nr,
                                phase_duration,
                                delta,
-                               start_amp,
+                               reference_amp,
                                amps_start_interval,
                                inter_phase_gap = 0*us,
                                pulse_form = "mono",
@@ -119,8 +119,7 @@ def get_threshold_for_pot_dist(model_name,
                                                    method = "linear")
     
     ##### initialize model (no parameter was changed)
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-    exec(param_string)
+    neuron, model = model.set_up_model(dt = dt, model = model)
     M = StateMonitor(neuron, 'v', record=True)
     store('initialized')
     
@@ -159,7 +158,7 @@ def get_threshold_for_pot_dist(model_name,
                                  np.round(phase_duration/us),run_number+1,np.round(stim_amp/uA,4)))
         
         ##### adjust potentials according to the stimulation current amplitude
-        potentials_at_comps = start_potentials * stim_amp/start_amp
+        potentials_at_comps = start_potentials * stim_amp/reference_amp
         
         ##### define how the ANF is stimulated
         I_stim, runtime = stim.get_stim_current_for_given_potentials(model = model,
@@ -210,7 +209,7 @@ def get_threshold_for_fire_eff(model_name,
                                fire_eff_desired,
                                phase_duration,
                                delta,
-                               start_amp,
+                               reference_amp,
                                amps_start_interval,
                                inter_phase_gap = 0*us,
                                pulse_form = "mono",
@@ -294,10 +293,9 @@ def get_threshold_for_fire_eff(model_name,
                                                    comp_distances = np.cumsum(model.distance_comps_middle)/meter,
                                                    comp_lenghts = model.compartment_lengths/meter,                                                   
                                                    method = "linear")
-    
+        
     ##### initialize model (no parameter was changed)
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-    exec(param_string)
+    neuron, model = model.set_up_model(dt = dt, model = model)
     M = StateMonitor(neuron, 'v', record=True)
     store('initialized')
     
@@ -337,7 +335,7 @@ def get_threshold_for_fire_eff(model_name,
                                  np.round(phase_duration/us), run_number+1, fire_eff, np.round(stim_amp/uA,4)))
         
         ##### adjust potentials according to the stimulation current amplitude
-        potentials_at_comps = start_potentials * stim_amp/start_amp
+        potentials_at_comps = start_potentials * stim_amp/reference_amp
         
         ##### define how the ANF is stimulated
         I_stim, runtime = stim.get_stim_current_for_given_potentials(model = model,
@@ -467,10 +465,7 @@ def get_spike_trains(model_name,
                                                       method = "linear")
     
     ##### set up the neuron
-    neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-    
-    ##### load the parameters of the differential equations in the workspace
-    exec(param_string)
+    neuron, model = model.set_up_model(dt = dt, model = model)
     
     ##### initialize monitors
     M = StateMonitor(neuron, 'v', record=True)
@@ -522,3 +517,158 @@ def get_spike_trains(model_name,
     
     return {"spikes" : spike_times,
             "duration" : runtime/second}
+
+# =============================================================================
+# Measure if there was a spike
+# =============================================================================
+def measure_spike(model_name,
+                  dt,
+                  h5py_path,
+                  elec_nr,
+                  stim_amp,
+                  phase_duration,
+                  inter_phase_gap = 0*us,
+                  pulse_form = "mono",
+                  time_before = 1*ms,
+                  time_after = 3*ms,
+                  nof_pulses = 1,
+                  inter_pulse_gap = 1*ms,
+                  reference_amp = 1*mA,
+                  add_noise = False,
+                  print_progress = True,
+                  neuron_number = 0,
+                  run_number = 0):
+    """This function calculates the spiking threshold of a model for mono- and
+    biphasic pulses, intern and extern stimulation, single pulses and pulse trains.
+    
+    Parameters
+    ----------
+    model_name : string
+        String with the model name in the format of the imported modules on top of the script
+    dt : time
+        Sampling timestep.
+    phase_duration : time or numeric value (numeric values are interpreted as time in second)
+        Duration of one phase of the stimulus current
+    delta : current
+        Maximum error for the measured spiking threshold
+    amps_start_interval : list of currents of length two
+        First value gives lower border of expected threshold; second value gives upper border
+    inter_phase_gap : time or numeric value (numeric values are interpreted as time in second)
+        Length of the gap between the two phases of a biphasic stimulation
+    parameter : string
+        String with the name of a model parameter, which will be adjusted
+    parameter_ratio : numeric
+        Numeric value used in cobination with a given parameter. Original value is multiplied with the parameter ratio
+    pulse_form : string
+        Describes, which pulses are used; either "mono" or "bi" is possible
+    stimulation_type : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    time_before : time
+        Time until (first) pulse starts.
+    time_after : time
+        Time which is still simulated after the end of the last pulse
+    nof_pulses : integer
+        Number of pulses.
+    inter_pulse_gap : time or numeric value (numeric values are interpreted as time in second)
+        Time interval between pulses for nof_pulses > 1.
+    add_noise : boolean
+        Defines, if Gaussian noise is added to the stimulus current.
+    print_progress : boolean
+        Defines, if information about the progress are printed on the console
+    run_number : integer
+        Usefull for multiple threshold measurements using multiprocessing with
+        the thorns package.
+    
+    Returns
+    -------
+    threshold current
+        Gives back the spiking threshold.
+    """
+        
+    ##### add quantity to phase_duration, inter_phase_gap, inter_pulse_gap and stim_amp
+    phase_duration = float(phase_duration)*second
+    inter_phase_gap = float(inter_phase_gap)*second
+    inter_pulse_gap = float(inter_pulse_gap)*second
+    stim_amp = float(stim_amp)*amp
+    
+    ##### get model
+    model = eval(model_name)
+    
+    ##### open h5py file
+    with h5py.File(h5py_path, 'r') as potential_data:
+
+        ##### break down 3D coordinates to 1D
+        distances = calc.coordinates_to_1D(x = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,0],
+                                           y = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,1],
+                                           z = potential_data['neuron{}'.format(neuron_number)]["coordinates"][:,2])
+        
+        ##### get potential distribution
+        potentials = potential_data['neuron{}'.format(neuron_number)]["potentials"][:,elec_nr]*1e-3 * stim_amp/reference_amp
+    
+    ##### get potentials at compartment middle points by intepolation
+    potentials_at_comps = calc.interpolate_potentials(potentials = potentials,
+                                                      pot_distances = distances,
+                                                      comp_distances = np.cumsum(model.distance_comps_middle)/meter,
+                                                      comp_lenghts = model.compartment_lengths/meter,                                                   
+                                                      method = "linear")
+        
+    ##### initialize model (no parameter was changed)
+    neuron, model = model.set_up_model(dt = dt, model = model)
+    M = StateMonitor(neuron, 'v', record=True)
+    store('initialized')
+    
+    ##### compartment for measurements
+    comp_index = np.where(model.structure == 2)[0][-3]
+    
+    ##### calculate runtime
+    if pulse_form == "mono":
+        runtime = time_before + nof_pulses*phase_duration + (nof_pulses-1)*inter_pulse_gap + time_after
+    else:
+        runtime = time_before + nof_pulses*(phase_duration*2 + inter_phase_gap) + (nof_pulses-1)*inter_pulse_gap + time_after
+    
+    ##### calculate number of timesteps
+    nof_timesteps = int(np.ceil(runtime/dt))
+    
+    ##### include noise
+    if add_noise:
+        np.random.seed()
+        I_noise = np.transpose(np.transpose(np.random.normal(0, 1, (model.nof_comps,nof_timesteps)))*model.k_noise*model.noise_term)
+    else:
+        I_noise = np.zeros((model.nof_comps,nof_timesteps))
+        
+    ##### print progress
+    if print_progress: print("Model: {}; Fiber: {}; Amplitude: {} mA".format(model_name,neuron_number,stim_amp/mA))
+    
+    ##### define how the ANF is stimulated
+    I_stim, runtime = stim.get_stim_current_for_given_potentials(model = model,
+                                                                 dt = dt,
+                                                                 V  = potentials_at_comps*volt,
+                                                                 pulse_form = pulse_form,
+                                                                 add_noise = add_noise,
+                                                                 time_before = time_before,
+                                                                 time_after = time_after,
+                                                                 nof_pulses = nof_pulses,
+                                                                 ##### monophasic stimulation
+                                                                 duration_mono = phase_duration,
+                                                                 ##### biphasic stimulation
+                                                                 durations_bi = [phase_duration/second,inter_phase_gap/second,phase_duration/second]*second,
+                                                                 ##### multiple pulses / pulse trains
+                                                                 inter_pulse_gap = inter_pulse_gap)
+    
+    ##### get TimedArray of stimulus currents and run simulation
+    stimulus = TimedArray(np.transpose(I_stim + I_noise), dt=dt)
+    
+    ##### reset state monitor
+    restore('initialized')
+    
+    ##### run simulation
+    run(runtime)
+    
+    ##### calculate firing efficiency
+    spikes = peak.indexes(savgol_filter(M.v[comp_index,:], 51,3), thres = (model.V_res + 60*mV)/volt, thres_abs=True)
+    
+    ##### test if there was a spike
+    if len(spikes) > 0:
+        return {"spike" : 1}
+    else:
+        return {"spike" : 0}

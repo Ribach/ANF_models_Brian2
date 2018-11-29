@@ -66,6 +66,12 @@ beta_n = 0.05/mV*(10*mV-(v-V_res))/(1-exp(((v-V_res)-10*mV)/(10*mV))) * 2.9**(0.
 beta_h = 3.7/(1+exp((56*mV-(v-V_res))/(12.5*mV))) * 2.9**(0.1*(T_celsius-20))/ms : Hz
 g_Na : siemens/meter**2
 g_K : siemens/meter**2
+V_res : volt
+T_celsius : 1
+E_Na : volt
+E_K : volt
+E_L : volt
+g_L : siemens/meter**2
 '''
 
 # =============================================================================
@@ -183,7 +189,7 @@ comps_to_plot = range(1,nof_comps)
 # =============================================================================
 # Set up the model
 # =============================================================================
-def set_up_model(dt, model, update = False, model_name = "model"):
+def set_up_model(dt, model, update = False):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -193,15 +199,13 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         Sets the defaultclock.
     model : module
         Contains all morphologic and physiologic data of a model
-    model_name : string
-        Sting with the variable name, in which the module is saved
                 
     Returns
     -------
     neuron
         Gives back a brian2 neuron
-    param_string
-        Gives back a string of parameter assignments
+    model
+        Gives back the whole module
     """
     
     start_scope()
@@ -306,7 +310,7 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     neuron.n = model.n_init
     neuron.h = model.h_init
     
-    ##### Set parameter values (parameters that were initialised in the equations eqs and which are different for different compartment types)
+    ##### Set parameter values of differential equations
     # conductances active compartments
     neuron.g_Na = model.g_Na
     neuron.g_K = model.g_K
@@ -315,17 +319,12 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     neuron.g_Na[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
     neuron.g_K[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
     
-    ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
-    param_string = '''
-    V_res = {}.V_res
-    T_celsius = {}.T_celsius
-    E_Na = {}.E_Na
-    E_K = {}.E_K
-    E_L = {}.E_L
-    g_L = {}.g_L
-    '''.format(model_name,model_name,model_name,model_name,model_name,model_name)
+    # other parameters
+    neuron.V_res = model.V_res
+    neuron.T_celsius = model.T_celsius
+    neuron.E_Na = model.E_Na
+    neuron.E_K = model.E_K
+    neuron.E_L = model.E_L
+    neuron.g_L = model.g_L    
     
-    ##### remove spaces to avoid complications
-    param_string = param_string.replace(" ", "")
-    
-    return neuron, param_string, model
+    return neuron, model

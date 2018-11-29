@@ -55,10 +55,7 @@ model = rattay_01
 dt = 5*us
 
 ##### set up the neuron
-neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-
-##### load the parameters of the differential equations in the workspace
-exec(param_string)
+neuron, model = model.set_up_model(dt = dt, model = model)
 
 ##### record the membrane voltage
 M = StateMonitor(neuron, 'v', record=True)
@@ -108,7 +105,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 stimulated_compartment = stim_comp_index,
                                                 nof_pulses = 5,
                                                 time_before = 1*ms,
-                                                time_after = 100*ms,
+                                                time_after = 2*ms,
                                                 add_noise = True,
                                                 ##### monophasic stimulation
                                                 amp_mono = -200*uA,

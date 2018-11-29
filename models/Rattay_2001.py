@@ -66,6 +66,10 @@ g_Na : siemens/meter**2
 g_K : siemens/meter**2
 g_L : siemens/meter**2
 g_myelin : siemens/meter**2
+V_res : volt
+E_Na : volt
+E_K : volt
+E_L : volt
 '''
 
 # =============================================================================
@@ -74,7 +78,7 @@ g_myelin : siemens/meter**2
 ##### structure
 nof_segments_presomatic_region = 3
 nof_segments_soma = 20
-nof_axonal_internodes = 9
+nof_axonal_internodes = 7
 ##### lengths
 length_peripheral_terminal = 10*um
 length_internodes_dendrite = 350*um
@@ -103,7 +107,7 @@ g_m_layer = 1*msiemens/cm**2
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.003*uA/np.sqrt(mS)
+k_noise = 0.0025*uA/np.sqrt(mS)
 
 # =============================================================================
 # Electrode
@@ -258,7 +262,7 @@ comps_to_plot = np.sort(np.append(indexes_comps, [middle_comp_presomatic_region,
 # =============================================================================
 # Set up the model
 # =============================================================================
-def set_up_model(dt, model, update = False, model_name = "model"):
+def set_up_model(dt, model, update = False):
     """This function calculates the stimulus current at the current source for
     a single monophasic pulse stimulus at each point of time
 
@@ -268,15 +272,13 @@ def set_up_model(dt, model, update = False, model_name = "model"):
         Sets the defaultclock.
     model : module
         Contains all morphologic and physiologic data of a model
-    model_name : string
-        Sting with the variable name, in which the module is saved
                 
     Returns
     -------
     neuron
         Gives back a brian2 neuron
-    param_string
-        Gives back a string of parameter assignments
+    model
+        Gives back the whole module
     """
     
     start_scope()
@@ -432,7 +434,7 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     neuron.n = model.n_init
     neuron.h = model.h_init
     
-    ##### Set parameter values (parameters that were initialised in the equations eqs and which are different for different compartment types)
+    ##### Set parameter values of differential equations
     # conductances active compartments
     neuron.g_Na = model.g_Na
     neuron.g_K = model.g_K
@@ -449,15 +451,10 @@ def set_up_model(dt, model, update = False, model_name = "model"):
     neuron.g_K[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
     neuron.g_L[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
     
-    ##### save parameters that are part of the equations in eqs to load them in the workspace before a simulation  
-    param_string = '''
-    V_res = {}.V_res
-    E_Na = {}.E_Na
-    E_K = {}.E_K
-    E_L = {}.E_L
-    '''.format(model_name,model_name,model_name,model_name)
+    # other parameters
+    neuron.V_res = model.V_res
+    neuron.E_Na = model.E_Na
+    neuron.E_K = model.E_K
+    neuron.E_L = model.E_L    
     
-    ##### remove spaces to avoid complications
-    param_string = param_string.replace(" ", "")
-    
-    return neuron, param_string, model
+    return neuron, model

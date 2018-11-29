@@ -113,11 +113,13 @@ def raster_plot(plot_name,
     ##### bring subplots close to each other.
     fig.subplots_adjust(wspace=0.15)
     
+    return fig
+    
 # =============================================================================
-#  Raster plot, showing spiketimes of fibers
+#  Plot number of spiking fibers over stimulus amplitudes
 # =============================================================================
-def raster_plot_comparison(plot_name,
-                           spike_trains):
+def nof_spikes_over_stim_amp(plot_name,
+                             spike_table):
     """This function plots the refractory curves which show the minimum required
     current amplitudes (thresholds) for a second stimulus to elicit a second
     action potential. There is one plot for each model.
@@ -137,77 +139,30 @@ def raster_plot_comparison(plot_name,
     -------
     figure with refractory curve comparison
     """
-    
-    ##### get model names
-    models = spike_trains["model_name"].unique().tolist()
-    
-    ##### define number of columns
-    nof_cols = 2
-    
-    ##### get number of rows
-    nof_rows = np.ceil(len(models)/nof_cols).astype(int)
-    
-    ##### get number of plots
-    nof_plots = len(models)
-    
-    ##### get axes ranges
-    y_min = min(spike_trains["neuron_number"])-5
-    y_max = max(spike_trains["neuron_number"])+5
-    x_min = 0
-    x_max = int(max(spike_trains["duration"])*1e3)
-    
-    ##### delete rows whith no spike
-    spike_trains = spike_trains[pd.to_numeric(spike_trains['spikes'], errors='coerce').notnull()]
         
     ##### close possibly open plots
     plt.close(plot_name)
     
-    ##### create figure
-    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=False, num = plot_name, figsize=(6*nof_cols, 6*nof_rows))
+    ##### generate figure
+    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(8, 5))
+
+    ##### define figure title
+    model_name = eval("{}.display_name".format(spike_table["model_name"].iloc[0]))
+    fig.suptitle('{}'.format(model_name), fontsize=16)
     
-    ##### create plots  
-    for ii in range(nof_rows*nof_cols):
-        
-        ##### get row and column number
-        row = np.floor(ii/nof_cols).astype(int)
-        col = ii-row*nof_cols
-        
-        ##### define axes ranges
-        axes[row][col].set_ylim([y_min,y_max])
-        axes[row][col].set_xlim([x_min,x_max])
-        
-        ##### turn off x-labels for all but the bottom plots
-        if (nof_plots - ii) > nof_cols:
-             plt.setp(axes[row][col].get_xticklabels(), visible=False)
-             
-        ##### turn off y-ticks and labels for all but the left plots
-        if (col != 0) and (ii < nof_plots):  
-             plt.setp(axes[row][col].get_yticklabels(), visible=False)
-             axes[row][col].tick_params(axis = 'both', left = 'off')
-        
-        ##### remove not needed subplots
-        if ii >= nof_plots:
-            fig.delaxes(axes[row][col])
-        
-        ##### plot voltage courses
-        if ii < nof_plots:
-            
-            model = models[ii]
-                
-            ##### building a subset
-            current_data = spike_trains[spike_trains["model_name"] == model]
-                                      
-            ##### plot spikes
-            axes[row][col].scatter(current_data["spikes"]*1e3, current_data["neuron_number"], color = "black", s = 0.1)
-                
-            ##### no grid
-            axes[row][col].grid(False)
+    ##### no grid
+    axes.grid(True)
     
-    ##### bring subplots close to each other.
-    fig.subplots_adjust(hspace=0.1, wspace=0.05)
+    ###### plot number of spikes over stimulus amplitudes
+    axes.plot(spike_table["stim_amp"]*1e3, spike_table["nof_spikes"], color = "black")
     
-    ##### get labels for the axes
-    fig.text(0.5, 0.06, 'Time / ms', ha='center', fontsize=14)
-    fig.text(0.05, 0.5, 'Nerve fiber number', va='center', rotation='vertical', fontsize=14)
-        
-    return fig
+    ##### write dynamic range in plots
+    stim_amp_min_spikes = max(spike_table["stim_amp"][spike_table["nof_spikes"] == min(spike_table["nof_spikes"])])
+    stim_amp_max_spikes = min(spike_table["stim_amp"][spike_table["nof_spikes"] == max(spike_table["nof_spikes"])])
+    if stim_amp_min_spikes != 0:
+        dynamic_range = np.round(20*np.log10(stim_amp_max_spikes/stim_amp_min_spikes),1)
+        axes.text(0, max(spike_table["nof_spikes"])-25, "Dynamic range: {} dB".format(dynamic_range), fontsize=12)
+    
+    ##### get labels for the axes    
+    axes.set_xlabel("stimulus amplitude / mA", fontsize=14)
+    axes.set_ylabel("Number of spiking fibers", fontsize=14)

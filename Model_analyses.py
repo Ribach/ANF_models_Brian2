@@ -519,13 +519,7 @@ if all_tests or stochastic_properties_test:
     ##### change column names
     single_node_response_table = single_node_response_table.rename(index = str, columns={"model_name" : "model",
                                                                                          "run_number" : "run",
-                                                                                         "parameter_ratio" : "knoise ratio",
-                                                                                         0 : "AP height (mV)",
-                                                                                         1 : "rise time (us)",
-                                                                                         2 : "fall time (us)",
-                                                                                         3 : "latency (us)",
-                                                                                         4 : "membrane potential (mV)",
-                                                                                         5 : "time (ms)"})
+                                                                                         "parameter_ratio" : "knoise ratio"})
     
     ##### exclude data, where no action potential was elicited 
     single_node_response_table = single_node_response_table[single_node_response_table["AP height (mV)"] > 0.06]
@@ -572,10 +566,7 @@ if all_tests or voltage_courses_comparison:
         model = eval(model_name)
         
         ##### set up the neuron
-        neuron, param_string, model = model.set_up_model(dt = dt, model = model)
-        
-        ##### load the parameters of the differential equations in the workspace
-        exec(param_string)
+        neuron, model = model.set_up_model(dt = dt, model = model)
         
         ##### record the membrane voltage
         M = StateMonitor(neuron, 'v', record=True)

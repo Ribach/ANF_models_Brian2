@@ -90,7 +90,7 @@ if any([all_tests, single_node_response_test, refractory_periods, refractory_cur
                                             "dt" : dt,
                                             "delta" : 0.0001*uA,
                                             "stimulation_type" : "extern",
-                                            "amps_start_interval" : [0,30]*uA,
+                                            "amps_start_interval" : [0,300]*uA,
                                             "add_noise" : False})
     
     ##### change index to column
@@ -119,7 +119,7 @@ if all_tests or strength_duration_test:
                                   dt,
                                   phase_duration = 1*ms,
                                   delta = 0.0001*uA,
-                                  amps_start_interval = [0,20]*uA,
+                                  amps_start_interval = [0,300]*uA,
                                   stimulation_type = "extern",
                                   pulse_form = "mono")
     
@@ -163,7 +163,7 @@ if all_tests or strength_duration_test:
                                                     "delta" : 0.01*uA,
                                                     "pulse_form" : "mono",
                                                     "stimulation_type" : "extern",
-                                                    "amps_start_interval" : [0,20]*uA,
+                                                    "amps_start_interval" : [0,300]*uA,
                                                     "add_noise" : False})
     
     ##### change index to column
@@ -219,7 +219,7 @@ if all_tests or relative_spread_test:
                                                        "dt" : dt,
                                                        "delta" : 0.0005*uA,
                                                        "stimulation_type" : "extern",
-                                                       "amps_start_interval" : [0,20]*uA,
+                                                       "amps_start_interval" : [0,300]*uA,
                                                        "time_before" : 2*ms,
                                                        "time_after" : 2*ms,
                                                        "add_noise" : True})
@@ -342,9 +342,9 @@ if all_tests or single_node_response_test:
         
         ##### define number of stochastic runs
         if stochasticity:
-            nof_runs = 3
-        else:
             nof_runs = 40
+        else:
+            nof_runs = 1
         
         ##### define varied parameters 
         params = [{"phase_duration" : phase_durations[ii]*1e-6,
@@ -374,13 +374,7 @@ if all_tests or single_node_response_test:
         single_node_response_table = single_node_response_table.rename(index = str, columns={"phase_duration" : "phase duration (us)",
                                                                                              "stim_amp" : "stimulus amplitude (uA)",
                                                                                              "pulse_form" : "pulse form",
-                                                                                             "run_number" : "run",
-                                                                                             0 : "AP height (mV)",
-                                                                                             1 : "rise time (us)",
-                                                                                             2 : "fall time (us)",
-                                                                                             3 : "latency (us)",
-                                                                                             4 : "membrane potential (mV)",
-                                                                                             5 : "time (ms)"})
+                                                                                             "run_number" : "run"})
         
         ##### add row with stimulus amplitude information
         single_node_response_table["amplitude level"] = ["{}*threshold".format(stim_amp_levels[jj])
