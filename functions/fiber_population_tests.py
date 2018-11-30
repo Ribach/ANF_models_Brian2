@@ -534,6 +534,7 @@ def measure_spike(model_name,
                   nof_pulses = 1,
                   inter_pulse_gap = 1*ms,
                   reference_amp = 1*mA,
+                  measure_first_spike_location = False,
                   add_noise = False,
                   print_progress = True,
                   neuron_number = 0,
@@ -667,8 +668,26 @@ def measure_spike(model_name,
     ##### calculate firing efficiency
     spikes = peak.indexes(savgol_filter(M.v[comp_index,:], 51,3), thres = (model.V_res + 60*mV)/volt, thres_abs=True)
     
-    ##### test if there was a spike
+    ##### measure compartment of first spike
+    if measure_first_spike_location and len(spikes) > 0:
+        
+        min_spike_time = min(spikes)
+        first_spike_comp = comp_index
+        
+        ##### loop over compartments
+        for comp in range(comp_index):
+            
+            ##### measure if there was a spike and if yes the spike time
+            spikes_in_comp = peak.indexes(savgol_filter(M.v[comp,:], 51,3), thres = (model.V_res + 60*mV)/volt, thres_abs=True)
+            if len(spikes_in_comp) > 0:
+                if min(spikes_in_comp) < min_spike_time:
+                    min_spike_time = min(spikes_in_comp)
+                    first_spike_comp = comp
+
+    ##### return spike information
     if len(spikes) > 0:
-        return {"spike" : 1}
+        return {"spike" : 1,
+                "first_spike_comp" : first_spike_comp}
     else:
-        return {"spike" : 0}
+        return {"spike" : 0,
+                "first_spike_comp" : None}

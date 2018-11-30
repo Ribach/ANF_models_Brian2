@@ -43,7 +43,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "rattay_01"
+model_name = "rudnicki_18"
 model = eval(model_name)
 
 ##### initialize clock
@@ -593,7 +593,7 @@ if all_tests or psth_test:
                                                    "dt" : 5*us,
                                                    "phase_duration" : phase_duration,
                                                    "delta" : 0.001*uA,
-                                                   "amps_start_interval" : [0,50]*uA,
+                                                   "amps_start_interval" : [0,300]*uA,
                                                    "pulse_form" : pulse_form,
                                                    "add_noise" : False})
     

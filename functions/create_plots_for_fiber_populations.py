@@ -160,7 +160,7 @@ def nof_spikes_over_stim_amp(plot_name,
     stim_amp_min_spikes = max(spike_table["stim_amp"][spike_table["nof_spikes"] == min(spike_table["nof_spikes"])])
     stim_amp_max_spikes = min(spike_table["stim_amp"][spike_table["nof_spikes"] == max(spike_table["nof_spikes"])])
     if stim_amp_min_spikes != 0:
-        dynamic_range = np.round(20*np.log10(stim_amp_max_spikes/stim_amp_min_spikes),1)
+        dynamic_range = np.round(10*np.log10(stim_amp_max_spikes/stim_amp_min_spikes),1)
         axes.text(0, max(spike_table["nof_spikes"])-25, "Dynamic range: {} dB".format(dynamic_range), fontsize=12)
     
     ##### get labels for the axes    
