@@ -193,6 +193,9 @@ def interpolate_potentials(potentials,
         # initialize vector for interpolated potentials at compartments
         comp_potentials = np.zeros_like(comp_distances)
         
+        # fill comp_potentials with minimum potential
+        comp_potentials[:] = min(potentials)
+        
         # initialize variable that saves the last index of the actual compartment
         last_index = 0
         
