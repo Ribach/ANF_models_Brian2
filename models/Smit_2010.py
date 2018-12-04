@@ -113,8 +113,8 @@ T_celsius : 1
 # =============================================================================
 ##### structure
 nof_segments_presomatic_region = 3
-nof_segments_soma = 20
-nof_axonal_internodes = 15
+nof_segments_soma = 10
+nof_axonal_internodes = 80
 ##### lengths
 length_peripheral_terminal = 10*um
 length_internodes_dendrite = [210,440,350,430,360]*um

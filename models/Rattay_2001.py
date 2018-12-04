@@ -77,8 +77,8 @@ E_L : volt
 # =============================================================================
 ##### structure
 nof_segments_presomatic_region = 3
-nof_segments_soma = 20
-nof_axonal_internodes = 7
+nof_segments_soma = 10
+nof_axonal_internodes = 15
 ##### lengths
 length_peripheral_terminal = 10*um
 length_internodes_dendrite = 350*um

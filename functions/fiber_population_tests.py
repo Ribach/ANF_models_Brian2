@@ -124,7 +124,7 @@ def get_threshold_for_pot_dist(model_name,
     store('initialized')
     
     ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][-3]
+    comp_index = np.where(model.structure == 2)[0][-10]
     
     ##### calculate runtime
     if pulse_form == "mono":
@@ -300,7 +300,7 @@ def get_threshold_for_fire_eff(model_name,
     store('initialized')
     
     ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][-3]
+    comp_index = np.where(model.structure == 2)[0][-10]
     
     ##### calculate runtime
     if pulse_form == "mono":
@@ -474,7 +474,7 @@ def get_spike_trains(model_name,
     store('initialized')
     
     ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][-3]
+    comp_index = np.where(model.structure == 2)[0][-10]
         
     ##### print progress
     if print_progress: print("Model: {}; Fiber: {};".format(model_name,neuron_number))
@@ -585,7 +585,7 @@ def measure_spike(model_name,
     threshold current
         Gives back the spiking threshold.
     """
-        
+    
     ##### add quantity to phase_duration, inter_phase_gap, inter_pulse_gap and stim_amp
     phase_duration = float(phase_duration)*second
     inter_phase_gap = float(inter_phase_gap)*second
@@ -605,7 +605,7 @@ def measure_spike(model_name,
         
         ##### get potential distribution
         potentials = potential_data['neuron{}'.format(neuron_number)]["potentials"][:,elec_nr]*1e-3 * stim_amp/reference_amp
-    
+            
     ##### get potentials at compartment middle points by intepolation
     potentials_at_comps = calc.interpolate_potentials(potentials = potentials,
                                                       pot_distances = distances,
@@ -619,7 +619,7 @@ def measure_spike(model_name,
     store('initialized')
     
     ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][-3]
+    comp_index = np.where(model.structure == 2)[0][-10]
     
     ##### calculate runtime
     if pulse_form == "mono":

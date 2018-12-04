@@ -88,7 +88,7 @@ rho_Kf : 1/meter**2
 # =============================================================================
 ##### structure
 nof_segments_internodes = 9
-nof_internodes = 20
+nof_internodes = 38
 ##### lengths
 length_internodes = 230*um
 length_nodes = 1*um

@@ -96,6 +96,26 @@ with h5py.File(h5py_path, 'r') as potential_data:
     max_value = max(max_potentials)
     nearest_fiber = max_potentials.index(max_value)
 
+# =============================================================================
+# Calculate the distances of the peripheral terminal of the neurons from the origin
+# =============================================================================
+##### open h5py file
+with h5py.File(h5py_path, 'r') as potential_data:
+    
+    ##### initialize dataframe
+    distances = pd.DataFrame(np.zeros((len(neuron_range),2)), columns = ["neuron_number", "dist_from_base"])
+    distances["neuron_number"] = neuron_range
+    
+    ##### calculate distances from origin
+    for neuron_nr in distances["neuron_number"]:
+        
+        coordinates = potential_data['neuron{}'.format(neuron_nr)]["coordinates"][0,:]
+        
+        distances["dist_from_base"][distances["neuron_number"] == neuron_nr] = np.sqrt(coordinates[0]**2 + coordinates[1]**2 + coordinates[2]**2)*1e3
+    
+    ##### set minimum distance to zero
+    distances["dist_from_base"] = distances["dist_from_base"] - min(distances["dist_from_base"])
+
 if measure_spike_trains_with_threshold:
     # =============================================================================
     # Measure threshold current (deterministic models) or current for 50% firing
@@ -269,7 +289,7 @@ if dynamic_range_test:
         # Plot number of spiking fibers over stimulus amplitudes
         # =============================================================================
         ##### load table with spike times
-        spike_table = pd.read_csv("test_battery_results/Fiber_population/dynamic_ranges/181129_spikes_per_stim_amp_elec4.csv")
+        spike_table = pd.read_csv("test_battery_results/Fiber_population/dynamic_ranges/181130_spikes_per_stim_amp_elec0.csv")
         
         ##### generate raster plot for all models
         for model in models_deterministic + models_stochastic:
@@ -283,48 +303,32 @@ if dynamic_range_test:
             raster_plot = plot.nof_spikes_over_stim_amp(plot_name = "Dynamic range plot for {}".format(eval("{}.display_name".format(model))),
                                                         spike_table = spike_table_model)
         
-#        # =============================================================================
-#        # Plots dynamic range over fiber indexes
-#        # =============================================================================
-#        ##### load table with spike times
-#        spike_table = pd.read_csv("test_battery_results/Fiber_population/dynamic_ranges/181129_spikes_per_stim_amp_elec4.csv")
-#        
-#        ##### generate plot for all models
-#        for model_name in models_deterministic + models_stochastic:
-#            
-#            ##### get model module
-#            model = eval(model_name)
-#            
-#            ##### build subset for current model
-#            spike_table_model = spike_table[spike_table["model_name"] == model_name].copy()
-#            spike_table_model = spike_table_model[spike_table_model["spike"] == 1]
-#            ##### define color depending on compartment
-#            spike_table_model["color_index"] = 0
-#            
-#            min(spike_table_model["first_spike_comp"])
-#            
-#            model.start_index_soma
-#            
-#            
-#            
-#            spike_table_model["color_index"][spike_table_model["first_spike_comp"] < model.start_index_soma]
-#            
-#            spike_table_model["first_spike_comp"][spike_table_model["first_spike_comp"] < model.start_index_soma] / max(spike_table_model["first_spike_comp"][spike_table_model["first_spike_comp"] < model.start_index_soma])
-#            
-#            
-#            raster_plot = plot.nof_spikes_over_stim_amp(plot_name = "Dynamic range plot for {}".format(eval("{}.display_name".format(model))),
-#                                                        spike_table = spike_table_model)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        # =============================================================================
+        # Plots dynamic range over fiber indexes
+        # =============================================================================
+        ##### load table with spike times
+        spike_table = pd.read_csv("test_battery_results/Fiber_population/dynamic_ranges/181130_spikes_per_stim_amp_elec0.csv")
+        
+        ##### add distances of fibers from base
+        spike_table = pd.merge(spike_table, distances, on=["neuron_number"])
+        
+        ##### generate plot for all models
+        for model_name in models_deterministic + models_stochastic:
+            
+            ##### get model module
+            model = eval(model_name)
+            
+            ##### build subset for current model
+            spike_table_model = spike_table[spike_table["model_name"] == model_name].copy()
+            spike_table_model = spike_table_model[spike_table_model["spike"] == 1]
+            
+            ##### add distance of compartments to terminal
+            spike_table_model["first_spike_dist"] = [np.cumsum(model.compartment_lengths)[int(spike_table_model["first_spike_comp"].iloc[ii])]/mm for ii in range(spike_table_model.shape[0])]
+            
+            if hasattr(model, "index_soma"):
+                ##### add the middle point distance of the soma
+                spike_table_model["soma_middle_dist"] = np.cumsum(model.compartment_lengths)[model.middle_comp_soma]/mm
+            
+            ##### generate plot
+            dynamic_range_color_plot = plot.dyn_range_color_plot(plot_name = "Dynamic range over fiber index plot for {}".format(eval("{}.display_name".format(model_name))),
+                                                                 spike_table = spike_table_model)

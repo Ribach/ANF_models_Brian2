@@ -7,9 +7,15 @@
 from brian2 import *
 import numpy as np
 import matplotlib.pyplot as plt
+from mpl_toolkits.axes_grid1 import AxesGrid
+from matplotlib.colors import LinearSegmentedColormap
+from matplotlib.colors import Normalize
 import pandas as pd
 import seaborn as sns
 sns.set(style="ticks", color_codes=True)
+
+##### import functions
+import functions.calculations as calc
 
 ##### import models
 import models.Rattay_2001 as rattay_01
@@ -166,3 +172,99 @@ def nof_spikes_over_stim_amp(plot_name,
     ##### get labels for the axes    
     axes.set_xlabel("stimulus amplitude / mA", fontsize=14)
     axes.set_ylabel("Number of spiking fibers", fontsize=14)
+
+# =============================================================================
+#  Plot dynamic range over fiber indexes (colored)
+# =============================================================================
+def dyn_range_color_plot(plot_name,
+                         spike_table):
+    """This function plots the refractory curves which show the minimum required
+    current amplitudes (thresholds) for a second stimulus to elicit a second
+    action potential. There is one plot for each model.
+
+    Parameters
+    ----------
+    plot_name : string
+        This defines how the plot window will be named.
+    refractory_curves : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "interpulse interval" 
+        - "minimum required amplitude"
+        - "threshold"
+        - "model"
+                
+    Returns
+    -------
+    figure with refractory curve comparison
+    """
+    
+    ##### calculate spikes per fiber
+    spikes_per_fiber = spike_table.groupby(["model_name","stim_amp"])["spike"].sum().reset_index()
+    spikes_per_fiber = spikes_per_fiber.rename(index = str, columns={"spike" : "nof_spikes"})
+    
+    ##### calculate dynamic range values
+    stim_amp_min_spikes = max(spikes_per_fiber["stim_amp"][spikes_per_fiber["nof_spikes"] == min(spikes_per_fiber["nof_spikes"])])
+    spike_table["dynamic_range"] = 10*np.log10(spike_table["stim_amp"]/stim_amp_min_spikes)
+        
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### generate figure
+    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(12, 8))
+
+    ##### define figure title
+    model_name = eval("{}.display_name".format(spike_table["model_name"].iloc[0]))
+    fig.suptitle('{}'.format(model_name), fontsize=16)
+    
+    ##### no grid
+    axes.grid(False)
+    
+    if 'soma_middle_dist' in spike_table.columns:
+        ##### create color map
+        basic_cols=['#006837', '#ffffbf', '#a50026']
+        cmap = LinearSegmentedColormap.from_list('mycmap', basic_cols)
+        
+        ##### adjust cmap that middle of diverging colors is at soma
+        endpoint = max(spike_table["first_spike_dist"])
+        midpoint = spike_table["soma_middle_dist"].iloc[0]/endpoint
+        cmap = calc.shiftedColorMap(cmap, midpoint=midpoint, name='shifted')
+        
+    else:
+        cmap = 'YlGnBu'
+    
+    ##### create x and y mesh
+    dynamic_ranges = pd.unique(spike_table["dynamic_range"].sort_values())
+    neuron_numbers = pd.unique(spike_table["neuron_number"].sort_values())
+    xmesh, ymesh = np.meshgrid(neuron_numbers, dynamic_ranges)
+    
+    ##### get the corresponding first spike distance for each x and y value
+    distances = spike_table.pivot_table(index="dynamic_range", columns="neuron_number", values="first_spike_dist", fill_value=0).as_matrix()
+    distances[distances == 0] = 'nan'
+    
+    ###### show spiking fibers depending on stimulus amplitude
+    color_mesh = axes.pcolormesh(xmesh, ymesh, distances, cmap = cmap, norm = Normalize(vmin = 0, vmax = max(spike_table["first_spike_dist"])))
+    clb = fig.colorbar(color_mesh)
+    
+    ##### define axes ranges
+    axes.set_xlim([0,400])
+    
+    ##### change y-achses to dynamic range
+    axes.set_yticklabels(['{} dB'.format(y) for y in axes.get_yticks()])
+    
+    if 'soma_middle_dist' in spike_table.columns:
+        
+        ##### change clb ticks
+        soma = endpoint*midpoint
+        dendrite = soma*0.25
+        axon = soma + (endpoint-soma)*0.75
+        clb.set_ticks([dendrite, soma, axon])
+        clb.set_ticklabels(["dendrite","soma","axon"])
+        clb.set_label('Position of first spike')
+        
+    else:
+        clb.set_label('Distance from peripheral terminal / mm')
+    
+    ##### get labels for the axes    
+    axes.set_xlabel("Fiber index", fontsize=14)
+    axes.set_ylabel("Dynamic range", fontsize=14)
+
