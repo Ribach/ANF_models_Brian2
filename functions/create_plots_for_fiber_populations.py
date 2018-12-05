@@ -172,6 +172,8 @@ def nof_spikes_over_stim_amp(plot_name,
     ##### get labels for the axes    
     axes.set_xlabel("stimulus amplitude / mA", fontsize=14)
     axes.set_ylabel("Number of spiking fibers", fontsize=14)
+    
+    return fig
 
 # =============================================================================
 #  Plot dynamic range over fiber indexes (colored)
@@ -234,19 +236,20 @@ def dyn_range_color_plot(plot_name,
     
     ##### create x and y mesh
     dynamic_ranges = pd.unique(spike_table["dynamic_range"].sort_values())
-    neuron_numbers = pd.unique(spike_table["neuron_number"].sort_values())
-    xmesh, ymesh = np.meshgrid(neuron_numbers, dynamic_ranges)
+    distances_sl = pd.unique(spike_table["dist_along_sl"].sort_values())
+    xmesh, ymesh = np.meshgrid(distances_sl, dynamic_ranges)
     
     ##### get the corresponding first spike distance for each x and y value
-    distances = spike_table.pivot_table(index="dynamic_range", columns="neuron_number", values="first_spike_dist", fill_value=0).as_matrix()
+    distances = spike_table.pivot_table(index="dynamic_range", columns="dist_along_sl", values="first_spike_dist", fill_value=0).as_matrix()
     distances[distances == 0] = 'nan'
     
     ###### show spiking fibers depending on stimulus amplitude
-    color_mesh = axes.pcolormesh(xmesh, ymesh, distances, cmap = cmap, norm = Normalize(vmin = 0, vmax = max(spike_table["first_spike_dist"])))
+    color_mesh = plt.contour(xmesh, ymesh, distances, cmap = cmap, norm = Normalize(vmin = 0, vmax = max(spike_table["first_spike_dist"])))
+    color_mesh = axes.pcolormesh(xmesh, ymesh, distances, cmap = cmap, norm = Normalize(vmin = 0, vmax = max(spike_table["first_spike_dist"])),linewidth=0,rasterized=True)
     clb = fig.colorbar(color_mesh)
     
     ##### define axes ranges
-    axes.set_xlim([0,400])
+    axes.set_xlim([0,max(spike_table["dist_along_sl"])])
     
     ##### change y-achses to dynamic range
     axes.set_yticklabels(['{} dB'.format(y) for y in axes.get_yticks()])
@@ -265,6 +268,8 @@ def dyn_range_color_plot(plot_name,
         clb.set_label('Distance from peripheral terminal / mm')
     
     ##### get labels for the axes    
-    axes.set_xlabel("Fiber index", fontsize=14)
+    axes.set_xlabel("Distance along spiral lamina / mm", fontsize=14)
     axes.set_ylabel("Dynamic range", fontsize=14)
+    
+    return fig
 

@@ -42,8 +42,8 @@ prefs.codegen.target = "numpy"
 # =============================================================================
 plot_voltage_course_lines = True
 plot_voltage_course_colored = True
-plot_gating_variables = False
-plot_ion_currents = False
+plot_gating_variables = True
+plot_ion_currents = True
 
 # =============================================================================
 # Definition of neuron and initialization of state monitor
@@ -103,10 +103,10 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 stimulation_type = "extern",
                                                 pulse_form = "mono",
                                                 stimulated_compartment = stim_comp_index,
-                                                nof_pulses = 5,
+                                                nof_pulses = 0,
                                                 time_before = 1*ms,
-                                                time_after = 2*ms,
-                                                add_noise = True,
+                                                time_after = 8*ms,
+                                                add_noise = False,
                                                 ##### monophasic stimulation
                                                 amp_mono = -200*uA,
                                                 duration_mono = 50*us,
@@ -143,7 +143,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
 
 if plot_gating_variables:
     ##### plot gating variables
-    comp_index = np.where(model.structure == 2)[0][3]
+    comp_index = np.where(model.structure == 2)[0][-2]
     fig = plt.figure("gating variables")
     axes = fig.add_subplot(1, 1, 1)
     if model in [rattay_01,rattay_adap_01,frijns_94,briaire_05,briaire_adap_05,negm_14,negm_ANF_14,rudnicki_18]:

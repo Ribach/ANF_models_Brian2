@@ -558,11 +558,11 @@ def set_up_model(dt, model, update = False):
     # conductances axonal nodes
     neuron.g_Na_Smit[model.end_index_soma+1:] = model.g_Na_Smit
     neuron.g_K_Smit[model.end_index_soma+1:] = model.g_K_Smit
-    neuron.g_K_Smit[model.end_index_soma+1:] = model.g_L_Smit
+    neuron.g_L_Smit[model.end_index_soma+1:] = model.g_L_Smit
     
     neuron.g_Na_Rat[model.end_index_soma+1:] = 0*msiemens/cm**2
     neuron.g_K_Rat[model.end_index_soma+1:] = 0*msiemens/cm**2
-    neuron.g_K_Rat[model.end_index_soma+1:] = 0*msiemens/cm**2
+    neuron.g_L_Rat[model.end_index_soma+1:] = 0*msiemens/cm**2
     
     # conductances soma
     neuron.g_Na_Rat[model.index_soma] = model.g_Na_soma

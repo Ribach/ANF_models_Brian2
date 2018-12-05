@@ -124,7 +124,7 @@ def get_threshold_for_pot_dist(model_name,
     store('initialized')
     
     ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][-10]
+    comp_index = np.where(model.structure == 2)[0][-5]
     
     ##### calculate runtime
     if pulse_form == "mono":
@@ -300,7 +300,7 @@ def get_threshold_for_fire_eff(model_name,
     store('initialized')
     
     ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][-10]
+    comp_index = np.where(model.structure == 2)[0][-5]
     
     ##### calculate runtime
     if pulse_form == "mono":
@@ -474,7 +474,7 @@ def get_spike_trains(model_name,
     store('initialized')
     
     ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][-10]
+    comp_index = np.where(model.structure == 2)[0][-5]
         
     ##### print progress
     if print_progress: print("Model: {}; Fiber: {};".format(model_name,neuron_number))
@@ -535,6 +535,7 @@ def measure_spike(model_name,
                   inter_pulse_gap = 1*ms,
                   reference_amp = 1*mA,
                   measure_first_spike_location = False,
+                  measure_latency = False,
                   add_noise = False,
                   print_progress = True,
                   neuron_number = 0,
@@ -619,7 +620,7 @@ def measure_spike(model_name,
     store('initialized')
     
     ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][-10]
+    comp_index = np.where(model.structure == 2)[0][-5]
     
     ##### calculate runtime
     if pulse_form == "mono":
@@ -668,6 +669,11 @@ def measure_spike(model_name,
     ##### calculate firing efficiency
     spikes = peak.indexes(savgol_filter(M.v[comp_index,:], 51,3), thres = (model.V_res + 60*mV)/volt, thres_abs=True)
     
+    ##### initialize first spike comp, latency and spike at last comp
+    first_spike_comp = None
+    latency = None
+    spike_at_last_comp = False
+    
     ##### measure compartment of first spike
     if measure_first_spike_location and len(spikes) > 0:
         
@@ -675,7 +681,7 @@ def measure_spike(model_name,
         first_spike_comp = comp_index
         
         ##### loop over compartments
-        for comp in range(comp_index):
+        for comp in range(len(model.structure)):
             
             ##### measure if there was a spike and if yes the spike time
             spikes_in_comp = peak.indexes(savgol_filter(M.v[comp,:], 51,3), thres = (model.V_res + 60*mV)/volt, thres_abs=True)
@@ -683,11 +689,31 @@ def measure_spike(model_name,
                 if min(spikes_in_comp) < min_spike_time:
                     min_spike_time = min(spikes_in_comp)
                     first_spike_comp = comp
+        
+        ##### observe if first spike was in the last two compartments
+        if first_spike_comp in [len(model.structure)-2, len(model.structure)-1]:
+            spike_at_last_comp = True
+    
+    ##### measure latency at comp_index
+    if measure_latency and len(spikes) > 0:
+        
+        ##### calculate AP amplitude
+        AP_amp = max(M.v[comp_index,:] - model.V_res)
+        
+        ##### calculate AP time
+        AP_time = M.t[M.v[comp_index,:] - model.V_res == AP_amp]
+        
+        ##### calculate latency
+        latency = (AP_time - time_before)[0]/us
 
     ##### return spike information
     if len(spikes) > 0:
         return {"spike" : 1,
-                "first_spike_comp" : first_spike_comp}
+                "first_spike_comp" : first_spike_comp,
+                "latency" : latency,
+                "spike_at_last_comp" : spike_at_last_comp}
     else:
         return {"spike" : 0,
-                "first_spike_comp" : None}
+                "first_spike_comp" : first_spike_comp,
+                "latency" : latency,
+                "spike_at_last_comp" : spike_at_last_comp}

@@ -103,18 +103,22 @@ with h5py.File(h5py_path, 'r') as potential_data:
 with h5py.File(h5py_path, 'r') as potential_data:
     
     ##### initialize dataframe
-    distances = pd.DataFrame(np.zeros((len(neuron_range),2)), columns = ["neuron_number", "dist_from_base"])
+    distances = pd.DataFrame(np.zeros((len(neuron_range),2)), columns = ["neuron_number", "dist_along_sl"])
     distances["neuron_number"] = neuron_range
     
-    ##### calculate distances from origin
-    for neuron_nr in distances["neuron_number"]:
+    ##### calculate distances along the spiral lamina
+    for ii in range(1,len(neuron_range)):
         
-        coordinates = potential_data['neuron{}'.format(neuron_nr)]["coordinates"][0,:]
+        coord = potential_data['neuron{}'.format(ii)]["coordinates"][0,:]
+        if ii == 1: last_coord = potential_data['neuron{}'.format(ii-1)]["coordinates"][0,:]
         
-        distances["dist_from_base"][distances["neuron_number"] == neuron_nr] = np.sqrt(coordinates[0]**2 + coordinates[1]**2 + coordinates[2]**2)*1e3
+        distances["dist_along_sl"].iloc[ii] = distances["dist_along_sl"].iloc[ii-1] + \
+            np.sqrt((coord[0] - last_coord[0])**2 + (coord[1] - last_coord[1])**2 + (coord[2] - last_coord[2])**2)*1e3
+        
+        last_coord = coord
     
     ##### set minimum distance to zero
-    distances["dist_from_base"] = distances["dist_from_base"] - min(distances["dist_from_base"])
+    distances["dist_along_sl"] = distances["dist_along_sl"] - min(distances["dist_along_sl"])
 
 if measure_spike_trains_with_threshold:
     # =============================================================================
@@ -277,7 +281,8 @@ if dynamic_range_test:
                                            "pulse_form" : pulse_form,
                                            "add_noise" : False,
                                            "reference_amp" : 1*mA,
-                                           "measure_first_spike_location" : True})
+                                           "measure_first_spike_location" : True,
+                                           "measure_latency" : True})
     
         spike_table.reset_index(inplace=True)
     
@@ -289,7 +294,7 @@ if dynamic_range_test:
         # Plot number of spiking fibers over stimulus amplitudes
         # =============================================================================
         ##### load table with spike times
-        spike_table = pd.read_csv("test_battery_results/Fiber_population/dynamic_ranges/181130_spikes_per_stim_amp_elec0.csv")
+        spike_table = pd.read_csv("test_battery_results/Fiber_population/dynamic_ranges/181204_spikes_per_stim_amp_elec10.csv")
         
         ##### generate raster plot for all models
         for model in models_deterministic + models_stochastic:
@@ -306,14 +311,17 @@ if dynamic_range_test:
         # =============================================================================
         # Plots dynamic range over fiber indexes
         # =============================================================================
+        ##### define which electrode to show
+        electrode = 9
+        
         ##### load table with spike times
-        spike_table = pd.read_csv("test_battery_results/Fiber_population/dynamic_ranges/181130_spikes_per_stim_amp_elec0.csv")
+        spike_table = pd.read_csv("test_battery_results/Fiber_population/dynamic_ranges/181204_spikes_per_stim_amp_elec{}.csv".format(electrode))
         
         ##### add distances of fibers from base
         spike_table = pd.merge(spike_table, distances, on=["neuron_number"])
         
         ##### generate plot for all models
-        for model_name in models_deterministic + models_stochastic:
+        for model_name in ["rattay_01", "briaire_05", "imennov_09"]: #models_deterministic + models_stochastic:
             
             ##### get model module
             model = eval(model_name)
@@ -332,3 +340,9 @@ if dynamic_range_test:
             ##### generate plot
             dynamic_range_color_plot = plot.dyn_range_color_plot(plot_name = "Dynamic range over fiber index plot for {}".format(eval("{}.display_name".format(model_name))),
                                                                  spike_table = spike_table_model)
+            
+            ##### save plots
+#            dynamic_range_color_plot.savefig("test_battery_results/{}/dynamic_ranges/dynamic_range_color_plot_elec{}.pdf".format(model.display_name,electrode),
+#                                             bbox_inches='tight', dpi=300)
+            
+            
