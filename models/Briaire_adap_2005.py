@@ -162,9 +162,9 @@ display_name_short = "Briaire 05 a."
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.append(np.linspace(0.8, 0.85, num=20, endpoint = False),
-                                            np.linspace(0.85, 1.3, num=15, endpoint = False)),
-                                            np.linspace(1.3, 5, num=15))*1e-3
+inter_pulse_intervals = np.hstack([np.linspace(0.8, 0.85, num=20, endpoint = False),
+                                   np.linspace(0.85, 1.3, num=15, endpoint = False),
+                                   np.linspace(1.3, 5, num=15)])*1e-3
 
 # =============================================================================
 # Calculations

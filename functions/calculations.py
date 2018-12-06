@@ -194,7 +194,7 @@ def interpolate_potentials(potentials,
         comp_potentials = np.zeros_like(comp_distances)
         
         # fill comp_potentials with minimum potential
-        comp_potentials[:] = min(potentials)
+        comp_potentials[:] = potentials[-1]
         
         # initialize variable that saves the last index of the actual compartment
         last_index = 0
@@ -231,7 +231,6 @@ def interpolate_potentials(potentials,
         knot_points = interpolate.splrep(pot_distances, potentials, s=0)
         comp_potentials = interpolate.splev(comp_distances, knot_points, der=0)
 
-
     return comp_potentials
 
 # =============================================================================
@@ -259,6 +258,14 @@ def shiftedColorMap(cmap, start=0, midpoint=0.5, stop=1.0, name='shiftedcmap'):
           Defaults to 1.0 (no upper offset). Should be between
           `midpoint` and 1.0.
     '''
+
+    
+#    def display_cmap(cmap):
+#        plt.imshow(np.linspace(0, 100, 256)[None, :],  aspect=25,    interpolation='nearest', cmap=cmap) 
+#        plt.axis('off')
+
+#    display_cmap(cmap)
+    
     cdict = {
         'red': [],
         'green': [],

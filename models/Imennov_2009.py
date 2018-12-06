@@ -128,9 +128,9 @@ display_name_short = "Imennov 09"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.append(np.linspace(0.47, 0.48, num=8, endpoint = False),
-                                  np.linspace(0.48, 0.7, num=10, endpoint = False)),
-                                  np.linspace(0.7, 5, num=15))*1e-3
+inter_pulse_intervals = np.hstack([np.linspace(0.47, 0.48, num=8, endpoint = False),
+                                   np.linspace(0.48, 0.7, num=10, endpoint = False),
+                                   np.linspace(0.7, 5, num=15)])*1e-3
 
 # =============================================================================
 # Calculations

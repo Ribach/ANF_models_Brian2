@@ -176,9 +176,9 @@ def nof_spikes_over_stim_amp(plot_name,
     return fig
 
 # =============================================================================
-#  Plot dynamic range over fiber indexes (colored)
+#  Plot dB above threshold over distance along spiral lamina (colored)
 # =============================================================================
-def dyn_range_color_plot(plot_name,
+def spikes_color_plot(plot_name,
                          spike_table):
     """This function plots the refractory curves which show the minimum required
     current amplitudes (thresholds) for a second stimulus to elicit a second
@@ -200,6 +200,9 @@ def dyn_range_color_plot(plot_name,
     figure with refractory curve comparison
     """
     
+    ##### get model module
+    model = eval(spike_table["model_name"].iloc[0])
+    
     ##### calculate spikes per fiber
     spikes_per_fiber = spike_table.groupby(["model_name","stim_amp"])["spike"].sum().reset_index()
     spikes_per_fiber = spikes_per_fiber.rename(index = str, columns={"spike" : "nof_spikes"})
@@ -215,21 +218,34 @@ def dyn_range_color_plot(plot_name,
     fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(12, 8))
 
     ##### define figure title
-    model_name = eval("{}.display_name".format(spike_table["model_name"].iloc[0]))
+    model_name =model.display_name
     fig.suptitle('{}'.format(model_name), fontsize=16)
     
     ##### no grid
     axes.grid(False)
     
-    if 'soma_middle_dist' in spike_table.columns:
+    if hasattr(model, "index_soma"):
         ##### create color map
         basic_cols=['#006837', '#ffffbf', '#a50026']
         cmap = LinearSegmentedColormap.from_list('mycmap', basic_cols)
         
         ##### adjust cmap that middle of diverging colors is at soma
-        endpoint = max(spike_table["first_spike_dist"])
-        midpoint = spike_table["soma_middle_dist"].iloc[0]/endpoint
+        endpoint = model.length_neuron/mm#max(spike_table["first_spike_dist"])
+        midpoint = (np.cumsum(model.compartment_lengths)[model.middle_comp_soma]/mm)/endpoint
         cmap = calc.shiftedColorMap(cmap, midpoint=midpoint, name='shifted')
+        
+        ##### give soma an extra color
+        color_res = cmap.N # resolution of cmap
+        if hasattr(model, "length_soma"):
+            soma_length = model.length_soma
+        else:
+            soma_length = model.diameter_soma
+        soma_range = int(np.ceil(soma_length/model.length_neuron*color_res))
+        start_point = int((np.cumsum(model.compartment_lengths)[model.start_index_soma]/mm)/endpoint*color_res)
+        for ii in range(start_point, start_point + soma_range):
+            cmap_list = [cmap(i) for i in range(cmap.N)]
+            cmap_list[ii] = LinearSegmentedColormap.from_list('mycmap', ['#feff54','#feff54'])(0)
+            cmap = cmap.from_list('Custom cmap', cmap_list, cmap.N)
         
     else:
         cmap = 'YlGnBu'
@@ -244,8 +260,7 @@ def dyn_range_color_plot(plot_name,
     distances[distances == 0] = 'nan'
     
     ###### show spiking fibers depending on stimulus amplitude
-    color_mesh = plt.contour(xmesh, ymesh, distances, cmap = cmap, norm = Normalize(vmin = 0, vmax = max(spike_table["first_spike_dist"])))
-    color_mesh = axes.pcolormesh(xmesh, ymesh, distances, cmap = cmap, norm = Normalize(vmin = 0, vmax = max(spike_table["first_spike_dist"])),linewidth=0,rasterized=True)
+    color_mesh = axes.pcolormesh(xmesh, ymesh, distances, cmap = cmap, norm = Normalize(vmin = 0, vmax = model.length_neuron/mm),linewidth=0,rasterized=True)
     clb = fig.colorbar(color_mesh)
     
     ##### define axes ranges
@@ -254,7 +269,7 @@ def dyn_range_color_plot(plot_name,
     ##### change y-achses to dynamic range
     axes.set_yticklabels(['{} dB'.format(y) for y in axes.get_yticks()])
     
-    if 'soma_middle_dist' in spike_table.columns:
+    if hasattr(model, "index_soma"):
         
         ##### change clb ticks
         soma = endpoint*midpoint
@@ -269,7 +284,85 @@ def dyn_range_color_plot(plot_name,
     
     ##### get labels for the axes    
     axes.set_xlabel("Distance along spiral lamina / mm", fontsize=14)
-    axes.set_ylabel("Dynamic range", fontsize=14)
+    axes.set_ylabel("dB above threshold", fontsize=14)
+    
+    return fig
+
+# =============================================================================
+#  Plot dB above threshold over distance along spiral lamina and mark latencies
+# =============================================================================
+def latencies_color_plot(plot_name,
+                         spike_table):
+    """This function plots the refractory curves which show the minimum required
+    current amplitudes (thresholds) for a second stimulus to elicit a second
+    action potential. There is one plot for each model.
+
+    Parameters
+    ----------
+    plot_name : string
+        This defines how the plot window will be named.
+    refractory_curves : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "interpulse interval" 
+        - "minimum required amplitude"
+        - "threshold"
+        - "model"
+                
+    Returns
+    -------
+    figure with refractory curve comparison
+    """
+    
+    ##### get model module
+    model = eval(spike_table["model_name"].iloc[0])
+    
+    ##### calculate spikes per fiber
+    spikes_per_fiber = spike_table.groupby(["model_name","stim_amp"])["spike"].sum().reset_index()
+    spikes_per_fiber = spikes_per_fiber.rename(index = str, columns={"spike" : "nof_spikes"})
+    
+    ##### calculate dynamic range values
+    stim_amp_min_spikes = max(spikes_per_fiber["stim_amp"][spikes_per_fiber["nof_spikes"] == min(spikes_per_fiber["nof_spikes"])])
+    spike_table["dynamic_range"] = 10*np.log10(spike_table["stim_amp"]/stim_amp_min_spikes)
+        
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### generate figure
+    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(12, 8))
+
+    ##### define figure title
+    model_name =model.display_name
+    fig.suptitle('{}'.format(model_name), fontsize=16)
+    
+    ##### no grid
+    axes.grid(False)
+    
+    ##### define color map
+    cmap = 'YlGnBu'
+    
+    ##### create x and y mesh
+    dynamic_ranges = pd.unique(spike_table["dynamic_range"].sort_values())
+    distances_sl = pd.unique(spike_table["dist_along_sl"].sort_values())
+    xmesh, ymesh = np.meshgrid(distances_sl, dynamic_ranges)
+    
+    ##### get the corresponding first spike distance for each x and y value
+    latencies = spike_table.pivot_table(index="dynamic_range", columns="dist_along_sl", values="latency", fill_value=0).as_matrix()
+    latencies[latencies == 0] = 'nan'
+    
+    ###### show spiking fibers depending on stimulus amplitude
+    color_mesh = axes.pcolormesh(xmesh, ymesh, latencies, cmap = cmap,linewidth=0,rasterized=True)
+    clb = fig.colorbar(color_mesh)
+    
+    ##### define axes ranges
+    axes.set_xlim([0,max(spike_table["dist_along_sl"])])
+    
+    ##### change y-achses to dynamic range
+    axes.set_yticklabels(['{} dB'.format(y) for y in axes.get_yticks()])
+
+    ##### get labels for the axes    
+    axes.set_xlabel("Distance along spiral lamina / mm", fontsize=14)
+    axes.set_ylabel("dB above threshold", fontsize=14)
+    clb.set_label('Spike latency / us')
     
     return fig
 

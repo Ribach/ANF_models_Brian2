@@ -293,8 +293,11 @@ if dynamic_range_test:
         # =============================================================================
         # Plot number of spiking fibers over stimulus amplitudes
         # =============================================================================
+        ##### define which electrode to show
+        electrode = 8
+        
         ##### load table with spike times
-        spike_table = pd.read_csv("test_battery_results/Fiber_population/dynamic_ranges/181204_spikes_per_stim_amp_elec10.csv")
+        spike_table = pd.read_csv("test_battery_results/Fiber_population/dynamic_ranges/181205_spikes_per_stim_amp_elec{}.csv".format(electrode))
         
         ##### generate raster plot for all models
         for model in models_deterministic + models_stochastic:
@@ -309,19 +312,19 @@ if dynamic_range_test:
                                                         spike_table = spike_table_model)
         
         # =============================================================================
-        # Plots dynamic range over fiber indexes
+        # Plots dB above threshold over distance along spiral lamina and mark location of spike initiation
         # =============================================================================
         ##### define which electrode to show
-        electrode = 9
+        electrode = 8
         
         ##### load table with spike times
-        spike_table = pd.read_csv("test_battery_results/Fiber_population/dynamic_ranges/181204_spikes_per_stim_amp_elec{}.csv".format(electrode))
+        spike_table = pd.read_csv("test_battery_results/Fiber_population/dynamic_ranges/181205_spikes_per_stim_amp_elec{}.csv".format(electrode))
         
         ##### add distances of fibers from base
         spike_table = pd.merge(spike_table, distances, on=["neuron_number"])
         
         ##### generate plot for all models
-        for model_name in ["rattay_01", "briaire_05", "imennov_09"]: #models_deterministic + models_stochastic:
+        for model_name in models_deterministic + models_stochastic:
             
             ##### get model module
             model = eval(model_name)
@@ -333,16 +336,38 @@ if dynamic_range_test:
             ##### add distance of compartments to terminal
             spike_table_model["first_spike_dist"] = [np.cumsum(model.compartment_lengths)[int(spike_table_model["first_spike_comp"].iloc[ii])]/mm for ii in range(spike_table_model.shape[0])]
             
-            if hasattr(model, "index_soma"):
-                ##### add the middle point distance of the soma
-                spike_table_model["soma_middle_dist"] = np.cumsum(model.compartment_lengths)[model.middle_comp_soma]/mm
-            
             ##### generate plot
-            dynamic_range_color_plot = plot.dyn_range_color_plot(plot_name = "Dynamic range over fiber index plot for {}".format(eval("{}.display_name".format(model_name))),
+            dynamic_range_color_plot = plot.spikes_color_plot(plot_name = "dB above threshold over distance along spiral lamina plot for {}".format(eval("{}.display_name".format(model_name))),
                                                                  spike_table = spike_table_model)
             
             ##### save plots
 #            dynamic_range_color_plot.savefig("test_battery_results/{}/dynamic_ranges/dynamic_range_color_plot_elec{}.pdf".format(model.display_name,electrode),
 #                                             bbox_inches='tight', dpi=300)
             
+        # =============================================================================
+        # Plots dB above threshold over distance along spiral lamina and mark latency
+        # =============================================================================
+        ##### define which electrode to show
+        electrode = 8
+        
+        ##### load table with spike times
+        spike_table = pd.read_csv("test_battery_results/Fiber_population/dynamic_ranges/181205_spikes_per_stim_amp_elec{}.csv".format(electrode))
+        
+        ##### add distances of fibers from base
+        spike_table = pd.merge(spike_table, distances, on=["neuron_number"])
+        
+        ##### generate plot for all models
+        for model_name in models_deterministic + models_stochastic:
+            
+            ##### get model module
+            model = eval(model_name)
+            
+            ##### build subset for current model
+            spike_table_model = spike_table[spike_table["model_name"] == model_name].copy()
+            spike_table_model = spike_table_model[spike_table_model["spike"] == 1]
+            spike_table_model = spike_table_model[spike_table_model["spike_at_last_comp"] == False]
+            
+            ##### generate plot
+            dynamic_range_color_plot = plot.latencies_color_plot(plot_name = "dB above threshold over distance along spiral lamina plot for {}".format(eval("{}.display_name".format(model_name))),
+                                                                 spike_table = spike_table_model)
             
