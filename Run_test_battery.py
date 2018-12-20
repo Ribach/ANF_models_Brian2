@@ -24,17 +24,17 @@ import functions.calculations as calc
 
 ##### import models
 import models.Rattay_2001 as rattay_01
-import models.Rattay_adap_2001 as rattay_adap_01
 import models.Frijns_1994 as frijns_94
 import models.Briaire_2005 as briaire_05
-import models.Briaire_adap_2005 as briaire_adap_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
-import models.Imennov_adap_2009 as imennov_adap_09
 import models.Negm_2014 as negm_14
-import models.Negm_ANF_2014 as negm_ANF_14
 import models.Rudnicki_2018 as rudnicki_18
+import models.trials.Rattay_adap_2001 as rattay_adap_01
+import models.trials.Briaire_adap_2005 as briaire_adap_05
+import models.trials.Imennov_adap_2009 as imennov_adap_09
+import models.trials.Negm_ANF_2014 as negm_ANF_14
 
 ##### makes code faster and prevents warning
 prefs.codegen.target = "numpy"
@@ -43,7 +43,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "rudnicki_18"
+model_name = "rattay_01"
 model = eval(model_name)
 
 ##### initialize clock
@@ -65,7 +65,7 @@ refractory_periods = False
 refractory_curve = False
 psth_test = False
 
-if any([all_tests, single_node_response_test, refractory_periods, refractory_curve]):
+if any([all_tests, single_node_response_test, refractory_periods, refractory_curve, conduction_velocity_test]):
     # =============================================================================
     # Get thresholds for certain stimulation types and stimulus durations
     # =============================================================================
@@ -90,7 +90,7 @@ if any([all_tests, single_node_response_test, refractory_periods, refractory_cur
                                             "dt" : dt,
                                             "delta" : 0.0001*uA,
                                             "stimulation_type" : "extern",
-                                            "amps_start_interval" : [0,300]*uA,
+                                            "upper_border" : 800*uA,
                                             "add_noise" : False})
     
     ##### change index to column
@@ -108,89 +108,93 @@ if any([all_tests, single_node_response_test, refractory_periods, refractory_cur
     threshold_table = threshold_table[["phase duration (us)", "pulse form", "threshold"]]
     
     ##### Save dataframe as csv    
-    threshold_table.to_csv("test_battery_results/{}/Threshold_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)
+    threshold_table.to_csv("results/{}/Threshold_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)
 
 if all_tests or strength_duration_test:
     # =============================================================================
     # Get chronaxie and rheobase
     # =============================================================================
-    ##### get rheobase
-    rheobase = test.get_threshold(model_name,
-                                  dt,
-                                  phase_duration = 1*ms,
-                                  delta = 0.0001*uA,
-                                  amps_start_interval = [0,300]*uA,
-                                  stimulation_type = "extern",
-                                  pulse_form = "mono")
-    
-    ##### get chronaxie
-    chronaxie = test.get_chronaxie(model_name,
-                                   dt,
-                                   rheobase = rheobase,
-                                   phase_duration_start_interval = [0,1000]*us,
-                                   delta = 1*us,
-                                   stimulation_type = "extern",
-                                   pulse_form = "mono",
-                                   time_before = 2*ms)
-    
-    ##### round values
-    rheobase = np.round(rheobase/nA,1)*nA
-    chronaxie = np.round(chronaxie/us,1)*us
-    
-    ##### save values in dataframe
-    strength_duration_data = pd.DataFrame(np.array([[rheobase/uA], [chronaxie/us]]).T,
-                                             columns = ["rheobase (uA)", "chronaxie (us)"])
-    
-    ##### Save table as csv    
-    strength_duration_data.to_csv("test_battery_results/{}/Strength_duration_data {}.csv".format(model.display_name,model.display_name), index=False, header=True)
-    
-    # =============================================================================
-    # Get strength-duration curve
-    # =============================================================================
-    ##### define phase durations
-    phase_durations = np.round(np.logspace(1, 9, num=50, base=2.0))*us
-    
-    ##### define varied parameter    
-    params = {"phase_duration" : phase_durations}
-    
-    ##### get thresholds
-    strength_duration_plot_table = th.util.map(func = test.get_threshold,
-                                          space = params,
-                                          backend = backend,
-                                          cache = "no",
-                                          kwargs = {"model_name" : model_name,
-                                                    "dt" : 1*us,
-                                                    "delta" : 0.01*uA,
-                                                    "pulse_form" : "mono",
-                                                    "stimulation_type" : "extern",
-                                                    "amps_start_interval" : [0,300]*uA,
-                                                    "add_noise" : False})
-    
-    ##### change index to column
-    strength_duration_plot_table.reset_index(inplace=True)
-    
-    ##### change column names
-    strength_duration_plot_table = strength_duration_plot_table.rename(index = str, columns={"phase_duration" : "phase duration (us)",
-                                                                                             0 : "threshold (uA)"})
-    
-    ##### remove units of columns
-    strength_duration_plot_table["phase duration (us)"] = [ii/us for ii in strength_duration_plot_table["phase duration (us)"]]
-    
-    ##### change unit of threshold column to uA
-    strength_duration_plot_table["threshold (uA)"] = [ii*1e6 for ii in strength_duration_plot_table["threshold (uA)"]]
-    
-    ##### save strength duration table
-    strength_duration_plot_table.to_csv("test_battery_results/{}/Strength_duration_plot_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)
-
-    if generate_plots:
-        ##### plot strength duration curve
-        strength_duration_curve = plot.strength_duration_curve(plot_name = "Strength duration curve {}".format(model.display_name),
-                                                               threshold_data = strength_duration_plot_table,
-                                                               rheobase = rheobase,
-                                                               chronaxie = chronaxie)
+    for polarity in ["cathodic","anodic"]:
         
-        ##### save strength duration curve and table
-        strength_duration_curve.savefig("test_battery_results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+        ##### get rheobase
+        rheobase = test.get_threshold(model_name,
+                                      dt,
+                                      phase_duration = 2*ms,
+                                      delta = 0.0001*uA,
+                                      upper_border = 800*uA,
+                                      stimulation_type = "extern",
+                                      polarity = polarity,                                  
+                                      pulse_form = "mono")
+        
+        ##### get chronaxie
+        chronaxie = test.get_chronaxie(model_name,
+                                       1*us,
+                                       rheobase = rheobase,
+                                       phase_duration_start_interval = [0,1000]*us,
+                                       delta = 1*us,
+                                       stimulation_type = "extern",
+                                       pulse_form = "mono",
+                                       time_before = 2*ms)
+        
+        ##### round values
+        rheobase = np.round(rheobase/nA,1)*nA
+        chronaxie = np.round(chronaxie/us,1)*us
+        
+        ##### save values in dataframe
+        strength_duration_data = pd.DataFrame(np.array([[rheobase/uA], [chronaxie/us]]).T,
+                                                 columns = ["rheobase (uA)", "chronaxie (us)"])
+        
+        ##### Save table as csv    
+        strength_duration_data.to_csv("results/{}/Strength_duration_data_{} {}.csv".format(model.display_name,polarity,model.display_name), index=False, header=True)
+        
+        # =============================================================================
+        # Get strength-duration curve
+        # =============================================================================
+        ##### define phase durations
+        phase_durations = np.unique(np.round(np.logspace(1, 9, num=50, base=2.0))*us)
+        
+        ##### define varied parameter    
+        params = {"phase_duration" : phase_durations}
+        
+        ##### get thresholds
+        strength_duration_plot_table = th.util.map(func = test.get_threshold,
+                                              space = params,
+                                              backend = backend,
+                                              cache = "no",
+                                              kwargs = {"model_name" : model_name,
+                                                        "dt" : 1*us,
+                                                        "delta" : 0.01*uA,
+                                                        "pulse_form" : "mono",
+                                                        "stimulation_type" : "extern",
+                                                        "upper_border" : 1500*uA,
+                                                        "polarity" : polarity,                                                        
+                                                        "add_noise" : False})
+        
+        ##### change index to column
+        strength_duration_plot_table.reset_index(inplace=True)
+        
+        ##### change column names
+        strength_duration_plot_table = strength_duration_plot_table.rename(index = str, columns={"phase_duration" : "phase duration (us)",
+                                                                                                 0 : "threshold (uA)"})
+        
+        ##### remove units of columns
+        strength_duration_plot_table["phase duration (us)"] = [ii/us for ii in strength_duration_plot_table["phase duration (us)"]]
+        
+        ##### change unit of threshold column to uA
+        strength_duration_plot_table["threshold (uA)"] = [ii*1e6 for ii in strength_duration_plot_table["threshold (uA)"]]
+        
+        ##### save strength duration table
+        strength_duration_plot_table.to_csv("results/{}/Strength_duration_plot_table_{} {}.csv".format(model.display_name,polarity,model.display_name), index=False, header=True)
+    
+        if generate_plots:
+            ##### plot strength duration curve
+            strength_duration_curve = plot.strength_duration_curve(plot_name = "Strength duration curve_{} {}".format(polarity,model.display_name),
+                                                                   threshold_data = strength_duration_plot_table,
+                                                                   rheobase = rheobase,
+                                                                   chronaxie = chronaxie)
+            
+            ##### save strength duration curve
+            strength_duration_curve.savefig("results/{}/Strength_duration_curve_{} {}.png".format(model.display_name,polarity,model.display_name), bbox_inches='tight')
     
 if all_tests or relative_spread_test:
     # =============================================================================
@@ -219,7 +223,7 @@ if all_tests or relative_spread_test:
                                                        "dt" : dt,
                                                        "delta" : 0.0005*uA,
                                                        "stimulation_type" : "extern",
-                                                       "amps_start_interval" : [0,300]*uA,
+                                                       "upper_border" : 800*uA,
                                                        "time_before" : 2*ms,
                                                        "time_after" : 2*ms,
                                                        "add_noise" : True})
@@ -250,10 +254,10 @@ if all_tests or relative_spread_test:
                                                     threshold_data = relative_spread_plot_table)
     
         ##### save relative spreads plot
-        relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+        relative_spread_plot.savefig("results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
     
     ##### save relative spreads plot table
-    relative_spread_plot_table.to_csv("test_battery_results/{}/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)
+    relative_spread_plot_table.to_csv("results/{}/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)
     
     ##### calculate relative spread values
     thresholds = relative_spread_plot_table.groupby(["phase duration (us)", "pulse form"])
@@ -263,7 +267,7 @@ if all_tests or relative_spread_test:
     relative_spreads["relative spread"] = ["{}%".format(relative_spreads["relative spread"][ii]) for ii in range(np.shape(relative_spreads)[0])]
     
     ##### Save table as csv    
-    relative_spreads.to_csv("test_battery_results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
+    relative_spreads.to_csv("results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
 
 if all_tests or conduction_velocity_test:
     # =============================================================================
@@ -271,6 +275,14 @@ if all_tests or conduction_velocity_test:
     # =============================================================================
     ##### define compartments to start and end measurements
     node_indexes = np.where(model.structure == 2)[0]
+    
+    ##### initialize stimulation
+    pulse_form = "mono"
+    phase_duration = 100*us
+    
+    ##### look up threshold
+    threshold = threshold_table["threshold"][threshold_table["pulse form"] == pulse_form]\
+                                            [threshold_table["phase duration (us)"] == phase_duration/us].iloc[0]*amp  
     
     ##### models with a soma
     if hasattr(model, "index_soma"):
@@ -280,6 +292,9 @@ if all_tests or conduction_velocity_test:
             
         conduction_velocity_dendrite = test.get_conduction_velocity(model_name,
                                                                     dt,
+                                                                    pulse_form = pulse_form,
+                                                                    phase_duration = phase_duration,
+                                                                    stim_amp = threshold * 2,
                                                                     stimulated_compartment = node_indexes_dendrite[0],
                                                                     measurement_start_comp = node_indexes_dendrite[1],
                                                                     measurement_end_comp = node_indexes_dendrite[-2])
@@ -291,6 +306,9 @@ if all_tests or conduction_velocity_test:
     
         conduction_velocity_axon = test.get_conduction_velocity(model_name,
                                                                 dt,
+                                                                pulse_form = pulse_form,
+                                                                phase_duration = phase_duration,
+                                                                stim_amp = threshold * 2,                                                                
                                                                 stimulated_compartment = node_indexes_dendrite[0],
                                                                 measurement_start_comp = node_indexes_axon[0],
                                                                 measurement_end_comp = node_indexes_axon[-3])
@@ -307,6 +325,9 @@ if all_tests or conduction_velocity_test:
     else:
        conduction_velocity = test.get_conduction_velocity(model_name,
                                                           dt,
+                                                          pulse_form = pulse_form,
+                                                          phase_duration = phase_duration,
+                                                          stim_amp = threshold * 2,                                                          
                                                           stimulated_compartment = node_indexes[1],
                                                           measurement_start_comp = node_indexes[2],
                                                           measurement_end_comp = node_indexes[-3])
@@ -318,7 +339,7 @@ if all_tests or conduction_velocity_test:
                                                 columns = ["velocity (m/s)", "outer diameter (um)", "velocity/diameter"])
     
     ##### Save table as csv    
-    conduction_velocity_table.to_csv("test_battery_results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)
+    conduction_velocity_table.to_csv("results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)
 
 if all_tests or single_node_response_test:
     # =============================================================================
@@ -418,7 +439,7 @@ if all_tests or single_node_response_test:
         if stochasticity:
             
             ##### Save table as csv
-            single_node_response_summary.to_csv("test_battery_results/{}/Single_node_response_stochastic {}.csv".format(model.display_name,model.display_name), index=False, header=True)
+            single_node_response_summary.to_csv("results/{}/Single_node_response_stochastic {}.csv".format(model.display_name,model.display_name), index=False, header=True)
             
             ##### built dataset for voltage courses (to plot them)
             voltage_course_dataset = single_node_response_table[["phase duration (us)","stimulus amplitude (uA)", "amplitude level", "pulse form", "run", "membrane potential (mV)", "time (ms)"]]
@@ -439,10 +460,10 @@ if all_tests or single_node_response_test:
                                                                                 voltage_data = voltage_course_dataset)
                 
                 ##### save voltage courses plot
-                single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+                single_node_response.savefig("results/{}/Single_node_response {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
             
             ###### save voltage courses table
-            voltage_course_dataset.to_csv("test_battery_results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name), index=False, header=True)
+            voltage_course_dataset.to_csv("results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name), index=False, header=True)
         
         ##### for deterministic run
         else:
@@ -451,7 +472,7 @@ if all_tests or single_node_response_test:
             single_node_response_summary = single_node_response_summary.drop(columns = ["jitter (us)"])
             
             ##### save table as csv
-            single_node_response_summary.to_csv("test_battery_results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name), index=False, header=True)
+            single_node_response_summary.to_csv("results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name), index=False, header=True)
 
 if all_tests or refractory_periods:
     # =============================================================================
@@ -509,7 +530,7 @@ if all_tests or refractory_periods:
         refractory_table[ii] = ["%.4g" %refractory_table[ii][jj] for jj in range(refractory_table.shape[0])]
     
     ##### Save dataframe as csv    
-    refractory_table.to_csv("test_battery_results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
+    refractory_table.to_csv("results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
 
 if all_tests or refractory_curve:
     # =============================================================================
@@ -562,10 +583,10 @@ if all_tests or refractory_curve:
                                                  refractory_table = refractory_curve_table)
         
         ##### save refractory curve
-        refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+        refractory_curve.savefig("results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
     
     ##### save refractory curve table
-    refractory_curve_table.to_csv("test_battery_results/{}/Refractory_curve_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
+    refractory_curve_table.to_csv("results/{}/Refractory_curve_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
     
 if all_tests or psth_test:
     # =============================================================================
@@ -593,7 +614,7 @@ if all_tests or psth_test:
                                                    "dt" : 5*us,
                                                    "phase_duration" : phase_duration,
                                                    "delta" : 0.001*uA,
-                                                   "amps_start_interval" : [0,300]*uA,
+                                                   "upper_border" : 800*uA,
                                                    "pulse_form" : pulse_form,
                                                    "add_noise" : False})
     
@@ -669,7 +690,7 @@ if all_tests or psth_test:
                                                                          plot_style = "firing_efficiency")
         
         ###### save post_stimulus_time_histogram
-        post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+        post_stimulus_time_histogram.savefig("results/{}/PSTH {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
         
     ###### save post_stimulus_time_histogram table
-    psth_table.to_csv("test_battery_results/{}/PSTH_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   
+    psth_table.to_csv("results/{}/PSTH_table {}.csv".format(model.display_name,model.display_name), index=False, header=True)   

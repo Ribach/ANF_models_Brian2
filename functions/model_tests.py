@@ -21,18 +21,15 @@ import functions.calculations as calc
 import models.Rattay_2001 as rattay_01
 import models.Frijns_1994 as frijns_94
 import models.Briaire_2005 as briaire_05
-import models.Rattay_2001 as rattay_01
-import models.Rattay_adap_2001 as rattay_adap_01
-import models.Frijns_1994 as frijns_94
-import models.Briaire_2005 as briaire_05
-import models.Briaire_adap_2005 as briaire_adap_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
-import models.Imennov_adap_2009 as imennov_adap_09
 import models.Negm_2014 as negm_14
-import models.Negm_ANF_2014 as negm_ANF_14
 import models.Rudnicki_2018 as rudnicki_18
+import models.trials.Rattay_adap_2001 as rattay_adap_01
+import models.trials.Briaire_adap_2005 as briaire_adap_05
+import models.trials.Imennov_adap_2009 as imennov_adap_09
+import models.trials.Negm_ANF_2014 as negm_ANF_14
 
 # =============================================================================
 # Calculate threshold
@@ -41,7 +38,8 @@ def get_threshold(model_name,
                   dt,
                   phase_duration,
                   delta,
-                  amps_start_interval,
+                  upper_border,
+                  polarity = "cathodic",
                   inter_phase_gap = 0*us,
                   parameter = None,
                   parameter_ratio = None,
@@ -67,8 +65,10 @@ def get_threshold(model_name,
         Duration of one phase of the stimulus current
     delta : current
         Maximum error for the measured spiking threshold
-    amps_start_interval : list of currents of length two
-        First value gives lower border of expected threshold; second value gives upper border
+    upper_border : current
+        Upper border of considered currents. Threshold is expected to be below it
+    polarity : string
+        Describes polarity of stimulus current; either cathodic or anodic is possible
     inter_phase_gap : time or numeric value (numeric values are interpreted as time in second)
         Length of the gap between the two phases of a biphasic stimulation
     parameter : string
@@ -146,11 +146,16 @@ def get_threshold(model_name,
     else:
         I_noise = np.zeros((model.nof_comps,nof_timesteps))
     
+    ##### consider polarity
+    if polarity == "cathodic":
+        pol = -1
+    else:
+        pol = 1
+    
     ##### initializations
     threshold = 0*amp
-    lower_border = amps_start_interval[0]
-    upper_border = amps_start_interval[1]
-    stim_amp = upper_border*0.01
+    lower_border = 0*amp
+    stim_amp = upper_border*0.1
     amp_diff = upper_border - lower_border
     
     ##### adjust stimulus amplitude until required accuracy is obtained
@@ -170,10 +175,10 @@ def get_threshold(model_name,
                                                     time_after = time_after,
                                                     nof_pulses = nof_pulses,
                                                     ##### monophasic stimulation
-                                                    amp_mono = -stim_amp,
+                                                    amp_mono = stim_amp * pol,
                                                     duration_mono = phase_duration,
                                                     ##### biphasic stimulation
-                                                    amps_bi = [-stim_amp/amp,stim_amp/amp]*amp,
+                                                    amps_bi = [stim_amp/amp,-stim_amp/amp]*amp * pol,
                                                     durations_bi = [phase_duration/second,inter_phase_gap/second,phase_duration/second]*second,
                                                     ##### multiple pulses / pulse trains
                                                     inter_pulse_gap = inter_pulse_gap)
@@ -211,7 +216,7 @@ def get_conduction_velocity(model_name,
                             dt,
                             measurement_start_comp = 2,
                             measurement_end_comp = 6,
-                            pulse_form = "bi",
+                            pulse_form = "mono",
                             stimulation_type = "extern",
                             time_before = 2*ms,
                             time_after = 1.5*ms,
@@ -657,7 +662,7 @@ def get_refractory_periods(model_name,
         threshold = get_threshold(model_name = model_name,
                            dt = dt,
                            phase_duration = phase_duration,
-                           amps_start_interval = [0,100]*uA,
+                           upper_border = 800*uA,
                            delta = 0.0001*uA,
                            stimulation_type = stimulation_type,
                            pulse_form = pulse_form,
@@ -885,15 +890,15 @@ def get_refractory_curve(model_name,
     ##### calculate theshold of model
     if threshold is None:
         threshold = get_threshold(model_name = model_name,
-                           dt = dt,
-                           phase_duration = phase_duration,
-                           amps_start_interval = [0,20]*uA,
-                           delta = 0.0001*uA,
-                           stimulation_type = stimulation_type,
-                           pulse_form = pulse_form,
-                           time_before = 2*ms,
-                           time_after = 3*ms,
-                           print_progress = False)
+                                  dt = dt,
+                                  phase_duration = phase_duration,
+                                  upper_border = 800*uA,
+                                  delta = 0.0001*uA,
+                                  stimulation_type = stimulation_type,
+                                  pulse_form = pulse_form,
+                                  time_before = 2*ms,
+                                  time_after = 3*ms,
+                                  print_progress = False)
     
     ##### amplitude of masker stimulus (150% of threshold)
     if amp_masker is None:
@@ -910,7 +915,7 @@ def get_refractory_curve(model_name,
     ##### initializations
     min_amp_spiked = 0*amp
     lower_border = 0*amp
-    upper_border = threshold * 10
+    upper_border = threshold * 50
     stim_amp = upper_border
     amp_diff = upper_border - lower_border
             

@@ -23,6 +23,10 @@ import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
 import models.Negm_2014 as negm_14
 import models.Rudnicki_2018 as rudnicki_18
+import models.trials.Rattay_adap_2001 as rattay_adap_01
+import models.trials.Briaire_adap_2005 as briaire_adap_05
+import models.trials.Imennov_adap_2009 as imennov_adap_09
+import models.trials.Negm_ANF_2014 as negm_ANF_14
 
 # =============================================================================
 # Calculate threshold for given potential distribution
@@ -34,7 +38,7 @@ def get_threshold_for_pot_dist(model_name,
                                phase_duration,
                                delta,
                                reference_amp,
-                               amps_start_interval,
+                               upper_border,
                                inter_phase_gap = 0*us,
                                pulse_form = "mono",
                                time_before = 2*ms,
@@ -144,9 +148,8 @@ def get_threshold_for_pot_dist(model_name,
     
     ##### initializations
     threshold = 0*amp
-    lower_border = amps_start_interval[0]
-    upper_border = amps_start_interval[1]
-    stim_amp = start_amp
+    lower_border = 0*amp
+    stim_amp = upper_border*0.1
     potentials_at_comps = start_potentials
     amp_diff = upper_border - lower_border
     
@@ -210,7 +213,7 @@ def get_threshold_for_fire_eff(model_name,
                                phase_duration,
                                delta,
                                reference_amp,
-                               amps_start_interval,
+                               upper_border,
                                inter_phase_gap = 0*us,
                                pulse_form = "mono",
                                time_before = 2*ms,
@@ -321,9 +324,8 @@ def get_threshold_for_fire_eff(model_name,
     ##### initializations
     fire_eff = 0
     threshold = 0*amp
-    lower_border = amps_start_interval[0]
-    upper_border = amps_start_interval[1]
-    stim_amp = start_amp
+    lower_border = 0*amp
+    stim_amp = upper_border*0.1
     potentials_at_comps = start_potentials
     amp_diff = upper_border - lower_border
     

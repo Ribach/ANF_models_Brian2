@@ -149,13 +149,13 @@ c_mem = 2.8*uF/cm**2
 c_my = 0.6*uF/cm**2
 
 # =============================================================================
-# Condactivities internodes
+# Condactivities and resistivities internodes
 # =============================================================================
 ##### membrane conductivity internodes one layer
 g_m_layer = 1*msiemens/cm**2
-##### cell membrane conductivity internodes
+##### axolemma resistivity internodes
 r_mem = 4.871*10**4*ohm*cm**2 * (1/1.3)**((T_celsius-25)/10)
-##### cell membrane conductivity internodes
+##### myelin layer resistivity internodes
 r_my = 104*ohm*cm**2 * (1/1.3)**((T_celsius-25)/10)
 
 # =============================================================================
@@ -166,7 +166,7 @@ k_noise = 0.002*uA/np.sqrt(mS)
 # =============================================================================
 # Electrode
 # =============================================================================
-electrode_distance = 300*um
+electrode_distance = 500*um
 
 # =============================================================================
 # Display name for plots

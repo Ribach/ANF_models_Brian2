@@ -15,18 +15,15 @@ sns.set(style="ticks", color_codes=True)
 import models.Rattay_2001 as rattay_01
 import models.Frijns_1994 as frijns_94
 import models.Briaire_2005 as briaire_05
-import models.Rattay_2001 as rattay_01
-import models.Rattay_adap_2001 as rattay_adap_01
-import models.Frijns_1994 as frijns_94
-import models.Briaire_2005 as briaire_05
-import models.Briaire_adap_2005 as briaire_adap_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
-import models.Imennov_adap_2009 as imennov_adap_09
 import models.Negm_2014 as negm_14
-import models.Negm_ANF_2014 as negm_ANF_14
 import models.Rudnicki_2018 as rudnicki_18
+import models.trials.Rattay_adap_2001 as rattay_adap_01
+import models.trials.Briaire_adap_2005 as briaire_adap_05
+import models.trials.Imennov_adap_2009 as imennov_adap_09
+import models.trials.Negm_ANF_2014 as negm_ANF_14
 
 # =============================================================================
 #  Voltage course comparison
@@ -1161,7 +1158,7 @@ def thresholds_for_pulse_trains(plot_name,
                 
             ##### logarithmic achses
             axes[row][col].set_xscale('log')
-            axes[row][col].set_yscale('log')
+            #axes[row][col].set_yscale('log')
             
             ##### remove top and right lines
             axes[row][col].spines['top'].set_visible(False)

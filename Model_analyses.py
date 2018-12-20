@@ -25,17 +25,17 @@ import functions.calculations as calc
 
 ##### import models
 import models.Rattay_2001 as rattay_01
-import models.Rattay_adap_2001 as rattay_adap_01
 import models.Frijns_1994 as frijns_94
 import models.Briaire_2005 as briaire_05
-import models.Briaire_adap_2005 as briaire_adap_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
-import models.Imennov_adap_2009 as imennov_adap_09
 import models.Negm_2014 as negm_14
-import models.Negm_ANF_2014 as negm_ANF_14
 import models.Rudnicki_2018 as rudnicki_18
+import models.trials.Rattay_adap_2001 as rattay_adap_01
+import models.trials.Briaire_adap_2005 as briaire_adap_05
+import models.trials.Imennov_adap_2009 as imennov_adap_09
+import models.trials.Negm_ANF_2014 as negm_ANF_14
 
 ##### makes code faster and prevents warning
 prefs.codegen.target = "numpy"
@@ -90,7 +90,7 @@ if any([all_tests, stochastic_properties_test]):
                                   kwargs = {"dt" : 5*us,
                                             "delta" : 0.001*uA,
                                             "stimulation_type" : "extern",
-                                            "amps_start_interval" : [0,400]*uA,
+                                            "upper_border" : 400*uA,
                                             "add_noise" : False})
     
     ##### change index to column
@@ -153,7 +153,7 @@ if all_tests or thresholds_for_pulse_trains:
                                                    "phase_duration" : phase_duration,
                                                    "inter_phase_gap" : inter_phase_gap,
                                                    "delta" : 0.005*uA,
-                                                   "amps_start_interval" : [0,400]*uA,
+                                                   "upper_border" : 400*uA,
                                                    "pulse_form" : "bi",
                                                    "add_noise" : False})
     
@@ -183,9 +183,9 @@ if all_tests or thresholds_for_pulse_trains:
     pulse_train_thresholds = pulse_train_thresholds.sort_values(by=['model', 'pulses per second'])
     
     ##### save dataframe as csv    
-    pulse_train_thresholds.to_csv("test_battery_results/Analyses/pulse_train_thresholds.csv", index=False, header=True)
+    pulse_train_thresholds.to_csv("results/Analyses/pulse_train_thresholds.csv", index=False, header=True)
     
-    #pulse_train_thresholds = pd.read_csv("test_battery_results/Analyses/pulse_train_thresholds_15us.csv")
+    #pulse_train_thresholds = pd.read_csv("results/Analyses/pulse_train_thresholds_15us.csv")
     
     ##### plot thresholds over number of pulses
     thresholds_for_pulse_trains_plot = plot.thresholds_for_pulse_trains(plot_name = "Thresholds for pulse trains",
@@ -193,7 +193,7 @@ if all_tests or thresholds_for_pulse_trains:
     
     if generate_plots:
         ##### save plot
-        thresholds_for_pulse_trains_plot.savefig("test_battery_results/Analyses/pulse_train_thresholds.pdf", bbox_inches='tight')
+        thresholds_for_pulse_trains_plot.savefig("results/Analyses/pulse_train_thresholds.pdf", bbox_inches='tight')
     
 if all_tests or latency_over_stim_amp_test:
     # =============================================================================
@@ -229,7 +229,7 @@ if all_tests or latency_over_stim_amp_test:
                                        "inter_phase_gap" : inter_phase_gap,
                                        "delta" : 0.0001*uA,
                                        "pulse_form" : pulse_form,
-                                       "amps_start_interval" : [0,20]*mA})
+                                       "upper_border" : 400*mA})
     
     ##### change index to column
     thresholds.reset_index(inplace=True)
@@ -320,7 +320,7 @@ if all_tests or latency_over_stim_amp_test:
     latency_table = latency_table.sort_values(by=['model', 'electrode distance (um)'])
     
     ##### Save dataframe as csv    
-    latency_table.to_csv("test_battery_results/Analyses/latencies_over_stim_dur.csv", index=False, header=True)
+    latency_table.to_csv("results/Analyses/latencies_over_stim_dur.csv", index=False, header=True)
     
     ##### get experimental data
     latency_measurements = pd.read_csv("Measurements/Latency_data/latency_measurements.csv")
@@ -328,7 +328,7 @@ if all_tests or latency_over_stim_amp_test:
     ##### add stimulus amplitude levels to latency_measurements
     latency_measurements["amplitude level"] = latency_measurements["stimulus amplitude (uA)"] / latency_measurements["threshold"]
     
-    #latency_table = pd.read_csv("test_battery_results/Analyses/latencies_over_stim_dur_var_dist.csv")
+    #latency_table = pd.read_csv("results/Analyses/latencies_over_stim_dur_var_dist.csv")
     
     ##### plot latencies over stimulus amplitudes
     latencies_over_stimulus_duration_plot = plot.latencies_over_stimulus_duration(plot_name = "Latencies over stimulus durations",
@@ -337,7 +337,7 @@ if all_tests or latency_over_stim_amp_test:
     
     if generate_plots:
         ##### save plot
-        latencies_over_stimulus_duration_plot.savefig("test_battery_results/Analyses/latencies_over_stim_dur.pdf", bbox_inches='tight')
+        latencies_over_stimulus_duration_plot.savefig("results/Analyses/latencies_over_stim_dur.pdf", bbox_inches='tight')
 
 if all_tests or computational_efficiency_test:
     # =============================================================================
@@ -356,7 +356,7 @@ if all_tests or computational_efficiency_test:
                                                            nof_runs = nof_runs)
     
     ##### save dataframe to csv
-    computation_times.to_csv("test_battery_results/Analyses/computational_efficiency.csv", index=False, header=True)
+    computation_times.to_csv("results/Analyses/computational_efficiency.csv", index=False, header=True)
 
 if all_tests or pulse_train_refractory_test:
     # =============================================================================
@@ -415,7 +415,7 @@ if all_tests or pulse_train_refractory_test:
         refractory_table[ii] = ["%.4g" %refractory_table[ii][jj] for jj in range(refractory_table.shape[0])]
     
     ##### Save dataframe as csv    
-    refractory_table.to_csv("test_battery_results/Analyses/refractory_table_pulse_trains.csv", index=False, header=True)
+    refractory_table.to_csv("results/Analyses/refractory_table_pulse_trains.csv", index=False, header=True)
 
 if all_tests or stochastic_properties_test:
     # =============================================================================
@@ -446,7 +446,7 @@ if all_tests or stochastic_properties_test:
                                              "delta" : 0.0005*uA,
                                              "pulse_form" : pulse_form,
                                              "stimulation_type" : "extern",
-                                             "amps_start_interval" : [0,20]*uA,
+                                             "upper_border" : 400*uA,
                                              "time_before" : 2*ms,
                                              "time_after" : 2*ms,
                                              "add_noise" : True})
@@ -472,7 +472,7 @@ if all_tests or stochastic_properties_test:
     relative_spreads = relative_spreads.rename(index = str, columns={"threshold" : "relative spread (%)"})
     
     ##### Save relative spread dataframe as csv    
-    relative_spreads.to_csv("test_battery_results/Analyses/relative_spreads_k_noise_comparison.csv", index=False, header=True)
+    relative_spreads.to_csv("results/Analyses/relative_spreads_k_noise_comparison.csv", index=False, header=True)
     
     # =============================================================================
     # Get jitter for different k_noise values
@@ -537,8 +537,8 @@ if all_tests or stochastic_properties_test:
     # =============================================================================
     # Plot relative spread over jitter for different models and k_noise values
     # =============================================================================
-    relative_spreads = pd.read_csv("test_battery_results/Analyses/relative_spreads_k_noise_comparison.csv")
-    single_node_response_table = pd.read_csv("test_battery_results/Analyses/single_node_response_table_k_noise_comparison.csv")
+    relative_spreads = pd.read_csv("results/Analyses/relative_spreads_k_noise_comparison.csv")
+    single_node_response_table = pd.read_csv("results/Analyses/single_node_response_table_k_noise_comparison.csv")
     
     
     ##### Combine relative spread and jitter information and exclude rows with na values
@@ -549,7 +549,7 @@ if all_tests or stochastic_properties_test:
                                                                stochasticity_table = stochasticity_table)
     
     ##### save plot
-    stochasticity_plot.savefig("test_battery_results/Analyses/stochasticity_plot.PDF", bbox_inches='tight')
+    stochasticity_plot.savefig("results/Analyses/stochasticity_plot.PDF", bbox_inches='tight')
 
 if all_tests or voltage_courses_comparison:
     # =============================================================================
@@ -601,7 +601,7 @@ if all_tests or voltage_courses_comparison:
     
     if generate_plots:
         ##### save plot
-        voltage_course_comparison.savefig("test_battery_results/Analyses/voltage_course_comparison_plot {}.png", bbox_inches='tight')
+        voltage_course_comparison.savefig("results/Analyses/voltage_course_comparison_plot {}.png", bbox_inches='tight')
 
 
 

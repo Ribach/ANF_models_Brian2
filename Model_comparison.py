@@ -26,6 +26,11 @@ import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
 import models.Negm_2014 as negm_14
+import models.Rudnicki_2018 as rudnicki_18
+import models.trials.Rattay_adap_2001 as rattay_adap_01
+import models.trials.Briaire_adap_2005 as briaire_adap_05
+import models.trials.Imennov_adap_2009 as imennov_adap_09
+import models.trials.Negm_ANF_2014 as negm_ANF_14
 
 ##### import functions
 import functions.create_plots_for_model_comparison as plot
@@ -57,7 +62,7 @@ theses_table_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Se
 for ii,model in enumerate(models_with_soma):
     
     ##### get strength duration data
-    data = pd.read_csv("test_battery_results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name)).transpose()
+    data = pd.read_csv("results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name)).transpose()
     
     ##### round for three significant digits
     data[0] = ["%.3g" %data[0][jj] for jj in range(data.shape[0])]
@@ -74,7 +79,7 @@ for ii,model in enumerate(models_with_soma):
 for ii,model in enumerate(models_without_soma):
     
     ##### get strength duration data
-    data = pd.read_csv("test_battery_results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name)).transpose()
+    data = pd.read_csv("results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name)).transpose()
     
     ##### round for three significant digits
     data[0] = ["%.3g" %data[0][jj] for jj in range(data.shape[0])]
@@ -152,7 +157,7 @@ amplitude_level = "1*threshold"
 for ii,model in enumerate(models):
     
     ##### get voltage course of model
-    voltage_course_dataset = pd.read_csv("test_battery_results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name))
+    voltage_course_dataset = pd.read_csv("results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name))
     
     #### add model information
     voltage_course_dataset["model"] = model.display_name
@@ -186,7 +191,7 @@ amplitude_level = "2*threshold"
 for ii,model in enumerate(models):
     
     ##### get node response summery table
-    data  = pd.read_csv("test_battery_results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name))
+    data  = pd.read_csv("results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name))
     
     ##### built subset of relevant rows and columns and transpose dataframe
     data = data[["AP height (mV)", "rise time (us)", "fall time (us)", "AP duration (us)"]]\
@@ -277,7 +282,7 @@ stimulations = stimulations.rename(index = str, columns={0:"phase duration (us)"
 for ii,model in enumerate(models):
     
     ##### get node response summery table
-    data = pd.read_csv("test_battery_results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name))
+    data = pd.read_csv("results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name))
     
     ##### just observe data, with the parameters of the stimulation dataframe
     data = pd.DataFrame(pd.merge(stimulations, data, on=["phase duration (us)","amplitude level", "pulse form"])["latency (us)"].astype(int))
@@ -321,7 +326,7 @@ if save_tables:
 for ii,model in enumerate(models):
     
     ##### get node response summery table
-    data = pd.read_csv("test_battery_results/{}/Single_node_response_stochastic {}.csv".format(model.display_name,model.display_name))
+    data = pd.read_csv("results/{}/Single_node_response_stochastic {}.csv".format(model.display_name,model.display_name))
     
     ##### just observe data, with the parameters of the stimulation dataframe
     data = pd.DataFrame(pd.merge(stimulations, data, on=["phase duration (us)","amplitude level", "pulse form"])["jitter (us)"].astype(int))
@@ -365,7 +370,7 @@ if save_tables:
 for ii,model in enumerate(models):
     
     ##### get strength duration data
-    data = pd.read_csv("test_battery_results/{}/Strength_duration_data {}.csv".format(model.display_name,model.display_name)).transpose()
+    data = pd.read_csv("results/{}/Strength_duration_data {}.csv".format(model.display_name,model.display_name)).transpose()
     
     if ii == 0:
         ##### use model name as column header
@@ -403,7 +408,7 @@ stength_duration_curves = [pd.DataFrame()]*len(models)
 for ii,model in enumerate(models):
     
     ##### get voltage course of model
-    stength_duration_curves[ii] = pd.read_csv("test_battery_results/{}/Strength_duration_plot_table {}.csv".format(model.display_name,model.display_name))
+    stength_duration_curves[ii] = pd.read_csv("results/{}/Strength_duration_plot_table {}.csv".format(model.display_name,model.display_name))
     
     #### add model information
     stength_duration_curves[ii]["model"] = model.display_name
@@ -430,7 +435,7 @@ refractory_curves = [pd.DataFrame()]*len(models)
 for ii,model in enumerate(models):
     
     ##### get voltage course of model
-    refractory_curves[ii] = pd.read_csv("test_battery_results/{}/Refractory_curve_table {}.csv".format(model.display_name,model.display_name))
+    refractory_curves[ii] = pd.read_csv("results/{}/Refractory_curve_table {}.csv".format(model.display_name,model.display_name))
     
     #### add model information
     refractory_curves[ii]["model"] = model.display_name
@@ -462,7 +467,7 @@ stimulations = stimulations.rename(index = str, columns={0:"phase duration (us)"
 for ii,model in enumerate(models):
     
     ##### get data
-    data = pd.read_csv("test_battery_results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name))
+    data = pd.read_csv("results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name))
         
     ##### just observe data, with the parameters of the stimulation dataframe
     data = pd.DataFrame(pd.merge(stimulations, data, on=["phase duration (us)","pulse form"])["absolute refractory period (us)"].astype(int))
@@ -519,7 +524,7 @@ stimulations = stimulations.rename(index = str, columns={0:"phase duration (us)"
 for ii,model in enumerate(models):
     
     ##### get data
-    data = pd.read_csv("test_battery_results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name))
+    data = pd.read_csv("results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name))
         
     ##### just observe data, with the parameters of the stimulation dataframe
     data = pd.DataFrame(pd.merge(stimulations, data, on=["phase duration (us)","pulse form"])["relative refractory period (ms)"])
@@ -568,9 +573,9 @@ if save_tables:
 model = rattay_01
 
 ##### get data for plots
-relative_spread_plot_table_1k = pd.read_csv("test_battery_results/{}/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
-relative_spread_plot_table_2k = pd.read_csv("test_battery_results/{}/2_knoise/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
-relative_spread_plot_table_4k = pd.read_csv("test_battery_results/{}/4_knoise/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
+relative_spread_plot_table_1k = pd.read_csv("results/{}/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
+relative_spread_plot_table_2k = pd.read_csv("results/{}/2_knoise/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
+relative_spread_plot_table_4k = pd.read_csv("results/{}/4_knoise/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
 
 ##### add noise levels to dataframes
 relative_spread_plot_table_1k["noise level"] = "1 $k_{noise}$"
@@ -595,9 +600,9 @@ if save_plots:
 model = rattay_01
 
 ##### get tables
-relative_spreads_1k = pd.read_csv("test_battery_results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
-relative_spreads_2k = pd.read_csv("test_battery_results/{}/2_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
-relative_spreads_4k = pd.read_csv("test_battery_results/{}/4_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
+relative_spreads_1k = pd.read_csv("results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
+relative_spreads_2k = pd.read_csv("results/{}/2_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
+relative_spreads_4k = pd.read_csv("results/{}/4_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
 
 ##### Relative spread of thresholds
 relative_spreads = relative_spreads_1k.rename(index = str, columns={"relative spread":"{} 1*knoise".format(model.display_name_short)})
@@ -630,7 +635,7 @@ if save_tables:
 for ii,model in enumerate(models):
     
     ##### get node response summery table
-    data = pd.read_csv("test_battery_results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
+    data = pd.read_csv("results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
     
     if ii == 0:
         ##### use model name as column header
@@ -641,8 +646,8 @@ for ii,model in enumerate(models):
         relative_spread_table[model.display_name] = data["relative spread"].tolist()
     
     if model == rattay_01:
-        relative_spreads_2k = pd.read_csv("test_battery_results/{}/2_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
-        relative_spreads_4k = pd.read_csv("test_battery_results/{}/4_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
+        relative_spreads_2k = pd.read_csv("results/{}/2_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
+        relative_spreads_4k = pd.read_csv("results/{}/4_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
         relative_spread_table["{} 2*knoise".format(model.display_name)] = relative_spreads_2k["relative spread"].tolist()
         relative_spread_table["{} 4*knoise".format(model.display_name)] = relative_spreads_4k["relative spread"].tolist()
 
@@ -673,7 +678,7 @@ if save_tables:
 # Computational efficiency comparison
 # =============================================================================
 ##### load table with computation times
-computation_times_table = pd.read_csv("test_battery_results/Analyses/computational_efficiency.csv")
+computation_times_table = pd.read_csv("results/Analyses/computational_efficiency.csv")
 
 ##### calculate means, transpose dataframe and order it ascendingly
 computation_times_table = computation_times_table.mean().round(2).to_frame().sort_values(0).rename(index = str, columns={0:"calculation time (sec)"})

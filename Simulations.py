@@ -22,17 +22,17 @@ import functions.model_tests as test
 
 ##### import models
 import models.Rattay_2001 as rattay_01
-import models.Rattay_adap_2001 as rattay_adap_01
 import models.Frijns_1994 as frijns_94
 import models.Briaire_2005 as briaire_05
-import models.Briaire_adap_2005 as briaire_adap_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
-import models.Imennov_adap_2009 as imennov_adap_09
 import models.Negm_2014 as negm_14
-import models.Negm_ANF_2014 as negm_ANF_14
 import models.Rudnicki_2018 as rudnicki_18
+import models.trials.Rattay_adap_2001 as rattay_adap_01
+import models.trials.Briaire_adap_2005 as briaire_adap_05
+import models.trials.Imennov_adap_2009 as imennov_adap_09
+import models.trials.Negm_ANF_2014 as negm_ANF_14
 
 ##### makes code faster and prevents warning
 prefs.codegen.target = "numpy"
@@ -49,7 +49,7 @@ plot_ion_currents = True
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = rattay_01
+model = negm_14
 
 ##### initialize clock
 dt = 5*us
@@ -103,16 +103,16 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 stimulation_type = "extern",
                                                 pulse_form = "mono",
                                                 stimulated_compartment = stim_comp_index,
-                                                nof_pulses = 0,
+                                                nof_pulses = 1,
                                                 time_before = 1*ms,
-                                                time_after = 8*ms,
+                                                time_after = 3*ms,
                                                 add_noise = False,
                                                 ##### monophasic stimulation
-                                                amp_mono = -200*uA,
-                                                duration_mono = 50*us,
+                                                amp_mono = -800*uA,
+                                                duration_mono = 100*us,
                                                 ##### biphasic stimulation
-                                                amps_bi = [-700,700]*uA,
-                                                durations_bi = [15,2,15]*us,
+                                                amps_bi = [-150,150]*uA,
+                                                durations_bi = [400,0,400]*us,
                                                 ##### multiple pulses / pulse trains
                                                 inter_pulse_gap = 1*ms)
     

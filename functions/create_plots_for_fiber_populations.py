@@ -21,18 +21,15 @@ import functions.calculations as calc
 import models.Rattay_2001 as rattay_01
 import models.Frijns_1994 as frijns_94
 import models.Briaire_2005 as briaire_05
-import models.Rattay_2001 as rattay_01
-import models.Rattay_adap_2001 as rattay_adap_01
-import models.Frijns_1994 as frijns_94
-import models.Briaire_2005 as briaire_05
-import models.Briaire_adap_2005 as briaire_adap_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
-import models.Imennov_adap_2009 as imennov_adap_09
 import models.Negm_2014 as negm_14
-import models.Negm_ANF_2014 as negm_ANF_14
 import models.Rudnicki_2018 as rudnicki_18
+import models.trials.Rattay_adap_2001 as rattay_adap_01
+import models.trials.Briaire_adap_2005 as briaire_adap_05
+import models.trials.Imennov_adap_2009 as imennov_adap_09
+import models.trials.Negm_ANF_2014 as negm_ANF_14
 
 # =============================================================================
 #  Raster plot, showing spiketimes of fibers (for one model)
@@ -230,7 +227,7 @@ def spikes_color_plot(plot_name,
         cmap = LinearSegmentedColormap.from_list('mycmap', basic_cols)
         
         ##### adjust cmap that middle of diverging colors is at soma
-        endpoint = model.length_neuron/mm#max(spike_table["first_spike_dist"])
+        endpoint = max(spike_table["first_spike_dist"]) #model.length_neuron/mm
         midpoint = (np.cumsum(model.compartment_lengths)[model.middle_comp_soma]/mm)/endpoint
         cmap = calc.shiftedColorMap(cmap, midpoint=midpoint, name='shifted')
         
@@ -239,8 +236,8 @@ def spikes_color_plot(plot_name,
         if hasattr(model, "length_soma"):
             soma_length = model.length_soma
         else:
-            soma_length = model.diameter_soma
-        soma_range = int(np.ceil(soma_length/model.length_neuron*color_res))
+            soma_length = model.diameter_soma / mm
+        soma_range = int(np.ceil(soma_length/max(spike_table["first_spike_dist"])*color_res))
         start_point = int((np.cumsum(model.compartment_lengths)[model.start_index_soma]/mm)/endpoint*color_res)
         for ii in range(start_point, start_point + soma_range):
             cmap_list = [cmap(i) for i in range(cmap.N)]
@@ -260,7 +257,7 @@ def spikes_color_plot(plot_name,
     distances[distances == 0] = 'nan'
     
     ###### show spiking fibers depending on stimulus amplitude
-    color_mesh = axes.pcolormesh(xmesh, ymesh, distances, cmap = cmap, norm = Normalize(vmin = 0, vmax = model.length_neuron/mm),linewidth=0,rasterized=True)
+    color_mesh = axes.pcolormesh(xmesh, ymesh, distances, cmap = cmap, norm = Normalize(vmin = 0, vmax = max(spike_table["first_spike_dist"])),linewidth=0,rasterized=True)
     clb = fig.colorbar(color_mesh)
     
     ##### define axes ranges
@@ -346,7 +343,7 @@ def latencies_color_plot(plot_name,
     xmesh, ymesh = np.meshgrid(distances_sl, dynamic_ranges)
     
     ##### get the corresponding first spike distance for each x and y value
-    latencies = spike_table.pivot_table(index="dynamic_range", columns="dist_along_sl", values="latency", fill_value=0).as_matrix()
+    latencies = spike_table.pivot_table(index="dynamic_range", columns="dist_along_sl", values="latency", fill_value=0).as_matrix().astype(float)
     latencies[latencies == 0] = 'nan'
     
     ###### show spiking fibers depending on stimulus amplitude
@@ -366,3 +363,126 @@ def latencies_color_plot(plot_name,
     
     return fig
 
+# =============================================================================
+#  Plots dB above threshold over distance along spiral lamina for cathodic, anodic and biphasic pulses
+# =============================================================================
+def compare_pulse_forms(plot_name,
+                        spike_table):
+    """This function plots dB above threshold (of all pulse forms) over distance
+    along spiral lamina and compares different pulse forms. There is one plot
+    for each model.
+
+    Parameters
+    ----------
+    plot_name : string
+        This defines how the plot window will be named.
+    spike_table : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "model_name" 
+        - "neuron_number"
+        - "stim_amp"
+        - "pulse_form"
+                
+    Returns
+    -------
+    figure with comparison of spiking behaviour for different pulse forms
+    """
+    
+    ##### get model names
+    models = spike_table["model_name"].unique().tolist()
+    
+    ##### get pulse forms
+    pulse_forms = np.sort(spike_table["pulse_form"].unique()).tolist()
+    
+    ##### define number of columns
+    nof_cols = 2
+    
+    ##### get number of rows
+    nof_rows = np.ceil(len(models)/nof_cols).astype(int)
+    
+    ##### get number of plots
+    nof_plots = len(models)
+    
+    ##### list electrode positions
+    electrode_positions = [4.593, 7.435, 9.309, 11.389, 13.271, 15.164, 16.774, 18.522, 20.071, 21.364, 22.629, 23.649]
+    
+    ##### get index of stimulus electrode
+    elec_nr = spike_table["elec_nr"].iloc[0]
+    
+    ##### get axes ranges
+    y_min = min(spike_table["dynamic_range"])
+    y_max = max(spike_table["dynamic_range"])
+    x_min = 0
+    x_max = max(spike_table["dist_along_sl"])
+    
+    ##### define colors
+    colors = ["red", "black", "blue"]
+    
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### create figure
+    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=False, num = plot_name, figsize=(6*nof_cols, 4*nof_rows))
+    
+    ##### create plots  
+    for ii in range(nof_rows*nof_cols):
+        
+        ##### get row and column number
+        row = np.floor(ii/nof_cols).astype(int)
+        col = ii-row*nof_cols
+        
+        ##### define axes ranges
+        axes[row][col].set_ylim([y_min,y_max])
+        axes[row][col].set_xlim([x_min,x_max])
+        
+        ##### turn off x-labels for all but the bottom plots
+        if (nof_plots - ii) > nof_cols:
+             plt.setp(axes[row][col].get_xticklabels(), visible=False)
+        
+        ##### remove not needed subplots
+        if ii >= nof_plots:
+            fig.delaxes(axes[row][col])
+        
+        ##### plot thresholds
+        if ii < nof_plots:
+            
+            model = models[ii]
+                
+            ##### building a subset
+            current_data = spike_table[spike_table["model_name"] == model]
+            
+            ##### loop over pulse forms
+            for jj,pulse_form in enumerate(pulse_forms):
+                
+                current_pulse_form = current_data[current_data["pulse_form"] == pulse_form]
+                
+                axes[row][col].plot(current_pulse_form["dist_along_sl"], current_pulse_form["dynamic_range"], color = colors[jj], label = pulse_form)
+                
+            ##### remove top and right lines
+            axes[row][col].spines['top'].set_visible(False)
+            axes[row][col].spines['right'].set_visible(False)
+                
+            ##### write model name in plots
+            axes[row][col].text(x_max*0.3, y_max+0.3, eval("{}.display_name".format(model)))
+            
+            ##### add electrode position
+            axes[row][col].scatter(electrode_positions[elec_nr], -0.2, color = "black", marker = "^", label = "_nolegend_", clip_on=False)
+                
+            ##### change y-achses to dynamic range
+            axes[row][col].set_yticklabels(['{} dB'.format(y) for y in axes[row][col].get_yticks()])
+            
+            ##### add legend
+            axes[row][col].legend()
+                
+            ##### horizontal grid
+            #axes[row][col].yaxis.grid(True)
+            axes[row][col].grid(True)
+    
+    ##### bring subplots close to each other.
+    fig.subplots_adjust(hspace=0.15, wspace=0.2)
+    
+    ##### get labels for the axes
+    fig.text(0.5, 0.05, 'Distance along spiral lamina / mm', ha='center', fontsize=14)
+    fig.text(0.05, 0.5, 'dB above threshold', va='center', rotation='vertical', fontsize=14)
+        
+    return fig

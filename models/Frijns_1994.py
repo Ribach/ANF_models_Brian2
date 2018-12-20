@@ -96,7 +96,7 @@ k_noise = 0.000015*uA*np.sqrt(second/um**3)
 # =============================================================================
 # Electrode
 # =============================================================================
-electrode_distance = 300*um #2*mm
+electrode_distance = 500*um #2*mm
 
 # =============================================================================
 # Display name for plots
@@ -336,7 +336,7 @@ def set_up_model(dt, model, update = False):
                            model = model.eqs,
                            Cm = model.c_m,
                            Ri = model.rho_in,
-                           method="rk4")
+                           method= "rk4")
     
     ##### initial values
     neuron.v = V_res

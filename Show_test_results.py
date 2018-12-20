@@ -18,17 +18,17 @@ import os
 
 ##### import models
 import models.Rattay_2001 as rattay_01
-import models.Rattay_adap_2001 as rattay_adap_01
 import models.Frijns_1994 as frijns_94
 import models.Briaire_2005 as briaire_05
-import models.Briaire_adap_2005 as briaire_adap_05
 import models.Smit_2009 as smit_09
 import models.Smit_2010 as smit_10
 import models.Imennov_2009 as imennov_09
-import models.Imennov_adap_2009 as imennov_adap_09
 import models.Negm_2014 as negm_14
-import models.Negm_ANF_2014 as negm_ANF_14
 import models.Rudnicki_2018 as rudnicki_18
+import models.trials.Rattay_adap_2001 as rattay_adap_01
+import models.trials.Briaire_adap_2005 as briaire_adap_05
+import models.trials.Imennov_adap_2009 as imennov_adap_09
+import models.trials.Negm_ANF_2014 as negm_ANF_14
 
 ##### import functions
 import functions.create_plots as plot
@@ -52,20 +52,20 @@ interim_report_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/
 # Load data
 # =============================================================================
 ##### load dataframes for tables
-strength_duration_data = pd.read_csv("test_battery_results/{}/Strength_duration_data {}.csv".format(model.display_name,model.display_name))
-threshold_table = pd.read_csv("test_battery_results/{}/Threshold_table {}.csv".format(model.display_name,model.display_name))
-relative_spreads = pd.read_csv("test_battery_results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
-conduction_velocity_table = pd.read_csv("test_battery_results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name))
-single_node_response_deterministic  = pd.read_csv("test_battery_results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name))
-single_node_response_stochastic = pd.read_csv("test_battery_results/{}/Single_node_response_stochastic {}.csv".format(model.display_name,model.display_name))
-refractory_table = pd.read_csv("test_battery_results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name))
+strength_duration_data = pd.read_csv("results/{}/Strength_duration_data_cathodic {}.csv".format(model.display_name,model.display_name))
+threshold_table = pd.read_csv("results/{}/Threshold_table {}.csv".format(model.display_name,model.display_name))
+relative_spreads = pd.read_csv("results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
+conduction_velocity_table = pd.read_csv("results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name))
+single_node_response_deterministic  = pd.read_csv("results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name))
+single_node_response_stochastic = pd.read_csv("results/{}/Single_node_response_stochastic {}.csv".format(model.display_name,model.display_name))
+refractory_table = pd.read_csv("results/{}/Refractory_table {}.csv".format(model.display_name,model.display_name))
 
 ##### load dataframes for plots
-strength_duration_plot_table = pd.read_csv("test_battery_results/{}/Strength_duration_plot_table {}.csv".format(model.display_name,model.display_name))
-relative_spread_plot_table = pd.read_csv("test_battery_results/{}/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
-voltage_course_dataset = pd.read_csv("test_battery_results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name))
-refractory_curve_table = pd.read_csv("test_battery_results/{}/Refractory_curve_table {}.csv".format(model.display_name,model.display_name))
-psth_table = pd.read_csv("test_battery_results/{}/PSTH_table {}.csv".format(model.display_name,model.display_name))
+strength_duration_plot_table = pd.read_csv("results/{}/Strength_duration_plot_table_cathodic {}.csv".format(model.display_name,model.display_name))
+relative_spread_plot_table = pd.read_csv("results/{}/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
+voltage_course_dataset = pd.read_csv("results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name))
+refractory_curve_table = pd.read_csv("results/{}/Refractory_curve_table {}.csv".format(model.display_name,model.display_name))
+psth_table = pd.read_csv("results/{}/PSTH_table {}.csv".format(model.display_name,model.display_name))
 
 # =============================================================================
 # Generate plots and save them
@@ -96,18 +96,18 @@ post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PS
 post_stimulus_time_histogram.savefig("C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Zwischenvortrag/Bilder/post_stimulus_time_histogram {}.png".format(model.display_name), bbox_inches='tight')
 
 if save_plots:
-    strength_duration_curve.savefig("test_battery_results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
-    relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
-    single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
-    refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
-    post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    strength_duration_curve.savefig("results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    relative_spread_plot.savefig("results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    single_node_response.savefig("results/{}/Single_node_response {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    refractory_curve.savefig("results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    post_stimulus_time_histogram.savefig("results/{}/PSTH {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
 
 if save_plots_for_report:
-    strength_duration_curve.savefig("{}/Strength_duration_curve {}.png".format(interim_report_path,model.display_name), bbox_inches='tight')
-    relative_spread_plot.savefig("test_battery_results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
-    single_node_response.savefig("test_battery_results/{}/Single_node_response {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
-    refractory_curve.savefig("test_battery_results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
-    post_stimulus_time_histogram.savefig("test_battery_results/{}/PSTH {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    strength_duration_curve.savefig("results/{}/Strength_duration_curve {}.png".format(interim_report_path,model.display_name), bbox_inches='tight')
+    relative_spread_plot.savefig("results/{}/Relative_spreads_plot {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    single_node_response.savefig("results/{}/Single_node_response {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    refractory_curve.savefig("results/{}/Refractory_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+    post_stimulus_time_histogram.savefig("results/{}/PSTH {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
 
 # =============================================================================
 # Add experimental results to tables
