@@ -49,7 +49,7 @@ plot_ion_currents = True
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = negm_14
+model = rattay_01
 
 ##### initialize clock
 dt = 5*us
@@ -108,8 +108,8 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 time_after = 3*ms,
                                                 add_noise = False,
                                                 ##### monophasic stimulation
-                                                amp_mono = -800*uA,
-                                                duration_mono = 100*us,
+                                                amp_mono = 300*uA,
+                                                duration_mono = 1000*us,
                                                 ##### biphasic stimulation
                                                 amps_bi = [-150,150]*uA,
                                                 durations_bi = [400,0,400]*us,

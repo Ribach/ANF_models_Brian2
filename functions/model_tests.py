@@ -499,6 +499,7 @@ def get_chronaxie(model_name,
                   rheobase,
                   phase_duration_start_interval,
                   delta,
+                  polarity = "cathodic",                  
                   pulse_form = "mono",
                   stimulation_type = "extern",
                   time_before = 1*ms,
@@ -550,6 +551,12 @@ def get_chronaxie(model_name,
     
     ##### compartment for measurements
     comp_index = np.where(model.structure == 2)[0][10]
+    
+    ##### consider polarity
+    if polarity == "cathodic":
+        pol = -1
+    else:
+        pol = 1
         
     ##### initializations
     chronaxie = 0*second
@@ -572,10 +579,10 @@ def get_chronaxie(model_name,
                                                     time_before = time_before,
                                                     time_after = time_after,
                                                     ##### monophasic stimulation
-                                                    amp_mono = -2*rheobase,
+                                                    amp_mono = 2*rheobase * pol,
                                                     duration_mono = phase_duration,
                                                     ##### biphasic stimulation
-                                                    amps_bi = [-2*rheobase/amp,2*rheobase/amp]*amp,
+                                                    amps_bi = [2*rheobase/amp,-2*rheobase/amp]*amp * pol,
                                                     durations_bi = [phase_duration/second,0,phase_duration/second]*second)
     
         ##### get TimedArray of stimulus currents and run simulation
@@ -1100,5 +1107,9 @@ def post_stimulus_time_histogram(model_name,
     
     ##### trim zeros
     spike_times = spike_times[spike_times != 0].tolist()
+    
+    ##### return Na, when no spike was measured
+    if len(spike_times) == 0:
+        spike_times = None
     
     return spike_times, "needed for map function"

@@ -118,9 +118,9 @@ if all_tests or strength_duration_test:
         
         ##### get rheobase
         rheobase = test.get_threshold(model_name,
-                                      dt,
+                                      1*us,
                                       phase_duration = 2*ms,
-                                      delta = 0.0001*uA,
+                                      delta = 0.01*uA,
                                       upper_border = 800*uA,
                                       stimulation_type = "extern",
                                       polarity = polarity,                                  
@@ -132,6 +132,7 @@ if all_tests or strength_duration_test:
                                        rheobase = rheobase,
                                        phase_duration_start_interval = [0,1000]*us,
                                        delta = 1*us,
+                                       polarity = polarity,
                                        stimulation_type = "extern",
                                        pulse_form = "mono",
                                        time_before = 2*ms)
@@ -154,21 +155,22 @@ if all_tests or strength_duration_test:
         phase_durations = np.unique(np.round(np.logspace(1, 9, num=50, base=2.0))*us)
         
         ##### define varied parameter    
-        params = {"phase_duration" : phase_durations}
+        params = {"phase_duration" : phase_durations/second}
+        params = {"phase_duration" : [chronaxie/second]}
         
         ##### get thresholds
         strength_duration_plot_table = th.util.map(func = test.get_threshold,
-                                              space = params,
-                                              backend = backend,
-                                              cache = "no",
-                                              kwargs = {"model_name" : model_name,
-                                                        "dt" : 1*us,
-                                                        "delta" : 0.01*uA,
-                                                        "pulse_form" : "mono",
-                                                        "stimulation_type" : "extern",
-                                                        "upper_border" : 1500*uA,
-                                                        "polarity" : polarity,                                                        
-                                                        "add_noise" : False})
+                                                   space = params,
+                                                   backend = backend,
+                                                   cache = "no",
+                                                   kwargs = {"model_name" : model_name,
+                                                             "dt" : 1*us,
+                                                             "delta" : 0.01*uA,
+                                                             "pulse_form" : "mono",
+                                                             "stimulation_type" : "extern",
+                                                             "upper_border" : 1500*uA,
+                                                             "polarity" : polarity,                                                        
+                                                             "add_noise" : False})
         
         ##### change index to column
         strength_duration_plot_table.reset_index(inplace=True)
@@ -185,7 +187,7 @@ if all_tests or strength_duration_test:
         
         ##### save strength duration table
         strength_duration_plot_table.to_csv("results/{}/Strength_duration_plot_table_{} {}.csv".format(model.display_name,polarity,model.display_name), index=False, header=True)
-    
+                        
         if generate_plots:
             ##### plot strength duration curve
             strength_duration_curve = plot.strength_duration_curve(plot_name = "Strength duration curve_{} {}".format(polarity,model.display_name),
@@ -576,7 +578,7 @@ if all_tests or refractory_curve:
     
     ##### add threshold to dataframe
     refractory_curve_table["threshold"] = threshold/amp
-    
+        
     if generate_plots:
         ##### plot refractory curve
         refractory_curve = plot.refractory_curve(plot_name = "Refractory curve {}".format(model.display_name),
@@ -679,10 +681,10 @@ if all_tests or psth_test:
     
     ##### convert stimulus amplitude form amp to uA
     psth_table["stimulus amplitude (uA)"] = round(psth_table["stimulus amplitude (uA)"]*1e6,2)
-    
+        
     ##### remove nans in spike times
     psth_table = psth_table[np.isfinite(psth_table["spike times (us)"])]
-    
+        
     if generate_plots:
         ##### plot post_stimulus_time_histogram
         post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
