@@ -79,7 +79,7 @@ T_celsius : 1
 #  Morphologic data
 # =============================================================================
 ##### structure
-nof_internodes = 15
+nof_internodes = 30
 ##### lengths
 length_nodes = 1.061*um
 ##### diameters

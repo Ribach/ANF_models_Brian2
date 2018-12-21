@@ -154,7 +154,10 @@ def single_node_response_voltage_course(plot_name,
     
     ##### get y-ticks
     y_ticks = [np.round(voltage_data["membrane potential (mV)"].iloc[0]).astype(int), np.round(y_max-5).astype(int)]
-
+    
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
     ##### create figure
     fig, axes = plt.subplots(nof_phase_durations, nof_amplitudes, sharex=True, sharey=True, num = plot_name, figsize=(3*nof_amplitudes, 3*nof_phase_durations))
     

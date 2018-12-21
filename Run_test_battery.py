@@ -55,12 +55,15 @@ backend = "serial"
 ##### define if plots should be generated
 generate_plots = True
 
+##### define location of stimulation
+stim_location = np.where(model.structure == 2)[0][2]
+
 ##### define which tests to run
 all_tests = False
 strength_duration_test = False
 relative_spread_test = False
-conduction_velocity_test = True
-single_node_response_test = False
+conduction_velocity_test = False
+single_node_response_test = True
 refractory_periods = False
 refractory_curve = False
 psth_test = False
@@ -89,6 +92,7 @@ if any([all_tests, single_node_response_test, refractory_periods, refractory_cur
                                   kwargs = {"model_name" : model_name,
                                             "dt" : dt,
                                             "delta" : 0.0001*uA,
+                                            "stimulated_compartment" : stim_location,
                                             "stimulation_type" : "extern",
                                             "upper_border" : 800*uA,
                                             "add_noise" : False})
@@ -116,12 +120,15 @@ if all_tests or strength_duration_test:
     # =============================================================================
     for polarity in ["cathodic","anodic"]:
         
+        strength_duration_plot_table = pd.read_csv("results/{}/strength_duration_plot_table_{} {}.csv".format(model.display_name,polarity,model.display_name))
+        
         ##### get rheobase
         rheobase = test.get_threshold(model_name,
                                       1*us,
                                       phase_duration = 2*ms,
                                       delta = 0.01*uA,
-                                      upper_border = 800*uA,
+                                      upper_border = 1000*uA,
+                                      stimulated_compartment = stim_location,
                                       stimulation_type = "extern",
                                       polarity = polarity,                                  
                                       pulse_form = "mono")
@@ -133,6 +140,7 @@ if all_tests or strength_duration_test:
                                        phase_duration_start_interval = [0,1000]*us,
                                        delta = 1*us,
                                        polarity = polarity,
+                                       stimulated_compartment = stim_location,
                                        stimulation_type = "extern",
                                        pulse_form = "mono",
                                        time_before = 2*ms)
@@ -166,9 +174,10 @@ if all_tests or strength_duration_test:
                                                    kwargs = {"model_name" : model_name,
                                                              "dt" : 1*us,
                                                              "delta" : 0.01*uA,
+                                                             "stimulated_compartment" : stim_location,
                                                              "pulse_form" : "mono",
                                                              "stimulation_type" : "extern",
-                                                             "upper_border" : 1500*uA,
+                                                             "upper_border" : 1000*uA,
                                                              "polarity" : polarity,                                                        
                                                              "add_noise" : False})
         
@@ -224,6 +233,7 @@ if all_tests or relative_spread_test:
                                              kwargs = {"model_name" : model_name,
                                                        "dt" : dt,
                                                        "delta" : 0.0005*uA,
+                                                       "stimulated_compartment" : stim_location,
                                                        "stimulation_type" : "extern",
                                                        "upper_border" : 800*uA,
                                                        "time_before" : 2*ms,
@@ -372,10 +382,10 @@ if all_tests or single_node_response_test:
         ##### define varied parameters 
         params = [{"phase_duration" : phase_durations[ii]*1e-6,
                    "pulse_form" : pulse_forms[ii],
-                   "stim_amp" : stim_amps[2*ii+jj-1],
+                   "stim_amp" : stim_amps[len(stim_amp_levels)*ii+jj],
                    "run_number" : kk}
                      for ii in range(len(phase_durations))\
-                     for jj in stim_amp_levels\
+                     for jj in range(len(stim_amp_levels))\
                      for kk in range(nof_runs)]
         
         ##### get thresholds
@@ -385,6 +395,7 @@ if all_tests or single_node_response_test:
                                                  cache = "no",
                                                  kwargs = {"model_name" : model_name,
                                                            "dt" : 1*us,
+                                                           "stimulated_compartment" : stim_location,
                                                            "stimulation_type" : "extern",
                                                            "time_before" : 3*ms,
                                                            "time_after" : 2*ms,
@@ -437,45 +448,43 @@ if all_tests or single_node_response_test:
         for ii in ["AP height (mV)","rise time (us)","fall time (us)","AP duration (us)","latency (us)","jitter (us)"]:
             single_node_response_summary[ii] = ["%.3g" %single_node_response_summary[ii][jj] for jj in range(single_node_response_summary.shape[0])]
         
-        ##### just for stochastic run
+        ##### save_single_node_response_summary to csv
         if stochasticity:
-            
-            ##### Save table as csv
             single_node_response_summary.to_csv("results/{}/Single_node_response_stochastic {}.csv".format(model.display_name,model.display_name), index=False, header=True)
-            
-            ##### built dataset for voltage courses (to plot them)
-            voltage_course_dataset = single_node_response_table[["phase duration (us)","stimulus amplitude (uA)", "amplitude level", "pulse form", "run", "membrane potential (mV)", "time (ms)"]]
-            
-            ##### split lists in membrane potential and time columns to multiple rows
-            voltage_course_dataset = calc.explode(voltage_course_dataset, ["membrane potential (mV)", "time (ms)"])
-            
-            ##### convert membrane potential to mV and time to ms
-            voltage_course_dataset["membrane potential (mV)"] = voltage_course_dataset["membrane potential (mV)"] *1e3
-            voltage_course_dataset["time (ms)"] = voltage_course_dataset["time (ms)"] *1e3
-            
-            ##### start time values at zero
-            voltage_course_dataset["time (ms)"] = voltage_course_dataset["time (ms)"] - min(voltage_course_dataset["time (ms)"])
-            
-            if generate_plots:
-                ##### plot voltage courses of single node
-                single_node_response = plot.single_node_response_voltage_course(plot_name = "Voltage courses {}".format(model.display_name),
-                                                                                voltage_data = voltage_course_dataset)
-                
-                ##### save voltage courses plot
-                single_node_response.savefig("results/{}/Single_node_response {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
-            
-            ###### save voltage courses table
-            voltage_course_dataset.to_csv("results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name), index=False, header=True)
-        
-        ##### for deterministic run
         else:
-            
-            ##### delete jitter column
             single_node_response_summary = single_node_response_summary.drop(columns = ["jitter (us)"])
-            
-            ##### save table as csv
             single_node_response_summary.to_csv("results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name), index=False, header=True)
-
+            
+        ##### built dataset for voltage courses (to plot them)
+        voltage_course_dataset = single_node_response_table[["phase duration (us)","stimulus amplitude (uA)", "amplitude level", "pulse form", "run", "membrane potential (mV)", "time (ms)"]]
+        
+        ##### split lists in membrane potential and time columns to multiple rows
+        voltage_course_dataset = calc.explode(voltage_course_dataset, ["membrane potential (mV)", "time (ms)"])
+        
+        ##### convert membrane potential to mV and time to ms
+        voltage_course_dataset["membrane potential (mV)"] = voltage_course_dataset["membrane potential (mV)"] *1e3
+        voltage_course_dataset["time (ms)"] = voltage_course_dataset["time (ms)"] *1e3
+        
+        ##### start time values at zero
+        voltage_course_dataset["time (ms)"] = voltage_course_dataset["time (ms)"] - min(voltage_course_dataset["time (ms)"])
+        
+        if generate_plots:
+            ##### plot voltage courses of single node
+            single_node_response = plot.single_node_response_voltage_course(plot_name = "Voltage courses {}".format(model.display_name),
+                                                                            voltage_data = voltage_course_dataset)
+            
+            ##### save voltage courses plot
+            if stochasticity:
+                single_node_response.savefig("results/{}/Single_node_response_stochastic {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+            else:
+                single_node_response.savefig("results/{}/Single_node_response_deterministic {}.png".format(model.display_name,model.display_name), bbox_inches='tight')
+                
+        ###### save voltage courses table
+        if stochasticity:
+            voltage_course_dataset.to_csv("results/{}/Single_node_response_plot_data_stochastic {}.csv".format(model.display_name,model.display_name), index=False, header=True)
+        else:
+            voltage_course_dataset.to_csv("results/{}/Single_node_response_plot_data_deterministic {}.csv".format(model.display_name,model.display_name), index=False, header=True)
+                        
 if all_tests or refractory_periods:
     # =============================================================================
     # Refractory periods
@@ -503,6 +512,7 @@ if all_tests or refractory_periods:
                                    kwargs = {"model_name" : model_name,
                                              "dt" : 1*us,
                                              "delta" : 1*us,
+                                             "stimulated_compartment" : stim_location,
                                              "stimulation_type" : "extern"})
         
     ##### change index to column
@@ -542,7 +552,7 @@ if all_tests or refractory_curve:
     inter_pulse_intervals = model.inter_pulse_intervals
         
     ##### define stimulation parameters
-    phase_duration = 100*us
+    phase_duration = 50*us
     pulse_form = "mono"
     
     ##### look up threshold
@@ -560,6 +570,7 @@ if all_tests or refractory_curve:
                                          kwargs = {"model_name" : model_name,
                                                    "dt" : 1*us,
                                                    "delta" : 0.001*uA,
+                                                   "stimulated_compartment" : stim_location,
                                                    "pulse_form" : pulse_form,
                                                    "stimulation_type" : "extern",
                                                    "phase_duration" : phase_duration,
@@ -618,6 +629,7 @@ if all_tests or psth_test:
                                                    "delta" : 0.001*uA,
                                                    "upper_border" : 800*uA,
                                                    "pulse_form" : pulse_form,
+                                                   "stimulated_compartment" : stim_location,
                                                    "add_noise" : False})
     
     ##### change indexes to column
@@ -655,6 +667,7 @@ if all_tests or psth_test:
                                        "dt" : dt,
                                        "phase_duration" : phase_duration,
                                        "stim_duration" : 300*ms,
+                                       "stimulated_compartment" : stim_location,
                                        "stimulation_type" : "extern",
                                        "pulse_form" : pulse_form})
     
@@ -683,8 +696,8 @@ if all_tests or psth_test:
     psth_table["stimulus amplitude (uA)"] = round(psth_table["stimulus amplitude (uA)"]*1e6,2)
         
     ##### remove nans in spike times
-    psth_table = psth_table[np.isfinite(psth_table["spike times (us)"])]
-        
+    psth_table = psth_table[np.isfinite(psth_table["spike times (us)"].astype(float64))]
+            
     if generate_plots:
         ##### plot post_stimulus_time_histogram
         post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),

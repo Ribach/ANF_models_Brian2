@@ -75,7 +75,7 @@ E_L : volt
 #  Morphologic data
 # ============================================================================= 
 ##### structure
-nof_internodes = 15
+nof_internodes = 30
 ##### lengths
 length_internodes = 1500*um
 length_nodes = 1*um

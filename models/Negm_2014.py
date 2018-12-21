@@ -36,7 +36,7 @@ gamma_HCN = 13*psiemens
 #  Morphologic data
 # ============================================================================= 
 ##### structure
-nof_internodes = 15
+nof_internodes = 30
 nof_segments_internode = 1
 ##### lengths
 length_internodes = 350*um

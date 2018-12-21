@@ -47,6 +47,7 @@ def get_threshold(model_name,
                   stimulation_type = "extern",
                   time_before = 2*ms,
                   time_after = 3*ms,
+                  stimulated_compartment = None,
                   nof_pulses = 1,
                   inter_pulse_gap = 1*ms,
                   add_noise = False,
@@ -128,7 +129,7 @@ def get_threshold(model_name,
         store('initialized')
     
     ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][10]
+    comp_index = np.where(model.structure == 2)[0][-5]
     
     ##### calculate runtime
     if pulse_form == "mono":
@@ -155,7 +156,7 @@ def get_threshold(model_name,
     ##### initializations
     threshold = 0*amp
     lower_border = 0*amp
-    stim_amp = upper_border*0.1
+    stim_amp = upper_border*0.25
     amp_diff = upper_border - lower_border
     
     ##### adjust stimulus amplitude until required accuracy is obtained
@@ -173,6 +174,7 @@ def get_threshold(model_name,
                                                     add_noise = False,
                                                     time_before = time_before,
                                                     time_after = time_after,
+                                                    stimulated_compartment = stimulated_compartment,
                                                     nof_pulses = nof_pulses,
                                                     ##### monophasic stimulation
                                                     amp_mono = stim_amp * pol,
@@ -414,7 +416,7 @@ def get_single_node_response(model_name,
         store('initialized')
     
     ##### compartment for measurements
-    comp_index = np.where(model.structure == 2)[0][10]
+    comp_index = np.where(model.structure == 2)[0][-5]
     
     ##### print progress
     if print_progress: print("Model: {}; {}: {}; Duration: {} us; Run: {}; Stimulus amplitde: {} uA".format(model_name,
@@ -504,6 +506,7 @@ def get_chronaxie(model_name,
                   stimulation_type = "extern",
                   time_before = 1*ms,
                   time_after = 1.5*ms,
+                  stimulated_compartment = None,
                   print_progress = True):
     """This function calculates the chronaxie, which is defined as the time a
     model has stimulated with twice the Rheobase to elicit an AP.
@@ -578,6 +581,7 @@ def get_chronaxie(model_name,
                                                     pulse_form = pulse_form,
                                                     time_before = time_before,
                                                     time_after = time_after,
+                                                    stimulated_compartment = stimulated_compartment,
                                                     ##### monophasic stimulation
                                                     amp_mono = 2*rheobase * pol,
                                                     duration_mono = phase_duration,
@@ -619,6 +623,7 @@ def get_refractory_periods(model_name,
                            stimulation_type = "extern",
                            phase_duration = 100*us,
                            time_before = 2*ms,
+                           stimulated_compartment = None,
                            print_progress = True):
     """This function measures both the absolute and relative refractory period.
 
@@ -717,6 +722,7 @@ def get_refractory_periods(model_name,
                                                                   pulse_form = pulse_form,
                                                                   time_before = time_before,
                                                                   time_after = 0*ms,
+                                                                  stimulated_compartment = stimulated_compartment,
                                                                   # monophasic stimulation
                                                                   amp_mono = -amp_masker,
                                                                   duration_mono = phase_duration,
@@ -730,6 +736,7 @@ def get_refractory_periods(model_name,
                                                             pulse_form = pulse_form,
                                                             time_before = inter_pulse_gap,
                                                             time_after = 3*ms,
+                                                            stimulated_compartment = stimulated_compartment,
                                                             # monophasic stimulation
                                                             amp_mono = -stim_amp_arp,
                                                             duration_mono = phase_duration,
@@ -784,6 +791,7 @@ def get_refractory_periods(model_name,
                                                                   pulse_form = pulse_form,
                                                                   time_before = time_before,
                                                                   time_after = 0*ms,
+                                                                  stimulated_compartment = stimulated_compartment,
                                                                   # monophasic stimulation
                                                                   amp_mono = -amp_masker,
                                                                   duration_mono = phase_duration,
@@ -797,6 +805,7 @@ def get_refractory_periods(model_name,
                                                             pulse_form = pulse_form,
                                                             time_before = inter_pulse_gap,
                                                             time_after = 3*ms,
+                                                            stimulated_compartment = stimulated_compartment,
                                                             # monophasic stimulation
                                                             amp_mono = -stim_amp_rrp,
                                                             duration_mono = phase_duration,
@@ -845,6 +854,7 @@ def get_refractory_curve(model_name,
                          stimulation_type = "extern",
                          phase_duration = 100*us,
                          time_before = 3*ms,
+                         stimulated_compartment = None,
                          print_progress = True):
     """This function measures the minimum required amplitude (threshold) to elicit a second
     spike with a stimulus that is masked by a first spike for a given inter pulse interval
@@ -905,6 +915,7 @@ def get_refractory_curve(model_name,
                                   pulse_form = pulse_form,
                                   time_before = 2*ms,
                                   time_after = 3*ms,
+                                  stimulated_compartment = stimulated_compartment,
                                   print_progress = False)
     
     ##### amplitude of masker stimulus (150% of threshold)
@@ -922,7 +933,7 @@ def get_refractory_curve(model_name,
     ##### initializations
     min_amp_spiked = 0*amp
     lower_border = 0*amp
-    upper_border = threshold * 50
+    upper_border = threshold * 20
     stim_amp = upper_border
     amp_diff = upper_border - lower_border
             
@@ -939,6 +950,7 @@ def get_refractory_curve(model_name,
                                                                   pulse_form = pulse_form,
                                                                   time_before = time_before,
                                                                   time_after = 0*ms,
+                                                                  stimulated_compartment = stimulated_compartment,
                                                                   ##### monophasic stimulation
                                                                   amp_mono = -amp_masker,
                                                                   duration_mono = phase_duration,
@@ -952,6 +964,7 @@ def get_refractory_curve(model_name,
                                                             pulse_form = pulse_form,
                                                             time_before = inter_pulse_interval,
                                                             time_after = 3*ms,
+                                                            stimulated_compartment = stimulated_compartment,
                                                             ##### monophasic stimulation
                                                             amp_mono = -stim_amp,
                                                             duration_mono = phase_duration,
@@ -998,6 +1011,7 @@ def post_stimulus_time_histogram(model_name,
                                  pulse_form = "bi",
                                  stimulation_type = "extern",
                                  phase_duration = 50*us,
+                                 stimulated_compartment = None,
                                  print_progress = True,
                                  run_number = 0):
     """This function calculates the spiking threshold of a model for mono- and
@@ -1083,6 +1097,7 @@ def post_stimulus_time_histogram(model_name,
                                                 time_before = 0*ms,
                                                 time_after = 0*ms,
                                                 add_noise = True,
+                                                stimulated_compartment = stimulated_compartment,
                                                 ##### monophasic stimulation
                                                 amp_mono = -stim_amp*uA,
                                                 duration_mono = phase_duration,
@@ -1110,6 +1125,6 @@ def post_stimulus_time_histogram(model_name,
     
     ##### return Na, when no spike was measured
     if len(spike_times) == 0:
-        spike_times = None
+        spike_times = [None]
     
     return spike_times, "needed for map function"

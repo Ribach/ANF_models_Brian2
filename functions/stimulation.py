@@ -131,7 +131,7 @@ def get_stimulus_current(model,
         for ii in range(nof_comps):
             V_ext[ii,:] = (model.rho_out*I_elec) / (4*np.pi*distance[ii])
 
-        for ii in range(0,nof_comps):
+        for ii in range(nof_comps):
             if ii == 0:
                 I_stim[0,:] = (V_ext[1,:] - V_ext[0,:])/(0.5*model.R_a[ii+1] + 0.5*model.R_a[ii])
             elif ii == nof_comps-1:
@@ -254,7 +254,7 @@ def get_stim_current_for_given_potentials(model,
     ##### Calculate activation function (=stimulus current)
     I_stim = np.zeros((nof_comps,nof_timesteps))*amp
     
-    for ii in range(0,nof_comps):
+    for ii in range(nof_comps):
         if ii == 0:
             I_stim[0,:] = (V_ext[1,:] - V_ext[0,:])/(0.5*model.R_a[ii+1] + 0.5*model.R_a[ii])
         elif ii == nof_comps-1:

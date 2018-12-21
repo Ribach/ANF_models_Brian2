@@ -78,7 +78,7 @@ g_L : siemens/meter**2
 #  Morphologic data
 # ============================================================================= 
 ##### structure
-nof_internodes = 20
+nof_internodes = 30
 ##### lengths
 length_peripheral_terminal = 10*um
 length_internodes = 250*um
