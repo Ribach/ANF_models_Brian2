@@ -156,7 +156,7 @@ def get_threshold(model_name,
     ##### initializations
     threshold = 0*amp
     lower_border = 0*amp
-    stim_amp = upper_border*0.25
+    stim_amp = upper_border*0.2
     amp_diff = upper_border - lower_border
     
     ##### adjust stimulus amplitude until required accuracy is obtained

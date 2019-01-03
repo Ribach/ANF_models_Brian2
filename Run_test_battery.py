@@ -43,7 +43,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "rattay_01"
+model_name = "frijns_94"
 model = eval(model_name)
 
 ##### initialize clock
@@ -119,9 +119,7 @@ if all_tests or strength_duration_test:
     # Get chronaxie and rheobase
     # =============================================================================
     for polarity in ["cathodic","anodic"]:
-        
-        strength_duration_plot_table = pd.read_csv("results/{}/strength_duration_plot_table_{} {}.csv".format(model.display_name,polarity,model.display_name))
-        
+                
         ##### get rheobase
         rheobase = test.get_threshold(model_name,
                                       1*us,
@@ -164,8 +162,7 @@ if all_tests or strength_duration_test:
         
         ##### define varied parameter    
         params = {"phase_duration" : phase_durations/second}
-        params = {"phase_duration" : [chronaxie/second]}
-        
+            
         ##### get thresholds
         strength_duration_plot_table = th.util.map(func = test.get_threshold,
                                                    space = params,

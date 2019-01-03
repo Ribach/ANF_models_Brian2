@@ -33,6 +33,7 @@ import models.trials.Rattay_adap_2001 as rattay_adap_01
 import models.trials.Briaire_adap_2005 as briaire_adap_05
 import models.trials.Imennov_adap_2009 as imennov_adap_09
 import models.trials.Negm_ANF_2014 as negm_ANF_14
+import models.trials.Woo_2010 as woo_10
 
 ##### makes code faster and prevents warning
 prefs.codegen.target = "numpy"
@@ -42,14 +43,14 @@ prefs.codegen.target = "numpy"
 # =============================================================================
 plot_voltage_course_lines = True
 plot_voltage_course_colored = True
-plot_gating_variables = True
-plot_ion_currents = True
+plot_gating_variables = False
+plot_ion_currents = False
 
 # =============================================================================
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = negm_14
+model = woo_10
 
 ##### initialize clock
 dt = 5*us
@@ -100,16 +101,16 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     ##### define how the ANF is stimulated
     I_stim, runtime = stim.get_stimulus_current(model = model,
                                                 dt = dt,
-                                                stimulation_type = "extern",
+                                                stimulation_type = "intern",
                                                 pulse_form = "mono",
                                                 stimulated_compartment = stim_comp_index,
                                                 nof_pulses = 1,
-                                                time_before = 1*ms,
-                                                time_after = 3*ms,
+                                                time_before = 0.5*ms,
+                                                time_after = 1*ms,
                                                 add_noise = False,
                                                 ##### monophasic stimulation
-                                                amp_mono = 800*uA,
-                                                duration_mono = 50*us,
+                                                amp_mono = 60*pA,
+                                                duration_mono = 60*us,
                                                 ##### biphasic stimulation
                                                 amps_bi = [-150,150]*uA,
                                                 durations_bi = [400,0,400]*us,
