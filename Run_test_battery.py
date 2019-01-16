@@ -43,7 +43,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "frijns_94"
+model_name = "smit_09"
 model = eval(model_name)
 
 ##### initialize clock
@@ -125,7 +125,7 @@ if all_tests or strength_duration_test:
                                       1*us,
                                       phase_duration = 2*ms,
                                       delta = 0.01*uA,
-                                      upper_border = 1000*uA,
+                                      upper_border = 600*uA,
                                       stimulated_compartment = stim_location,
                                       stimulation_type = "extern",
                                       polarity = polarity,                                  
@@ -302,6 +302,7 @@ if all_tests or conduction_velocity_test:
         conduction_velocity_dendrite = test.get_conduction_velocity(model_name,
                                                                     dt,
                                                                     pulse_form = pulse_form,
+                                                                    stimulation_type = "extern",
                                                                     phase_duration = phase_duration,
                                                                     stim_amp = threshold * 2,
                                                                     stimulated_compartment = node_indexes_dendrite[0],
@@ -316,6 +317,7 @@ if all_tests or conduction_velocity_test:
         conduction_velocity_axon = test.get_conduction_velocity(model_name,
                                                                 dt,
                                                                 pulse_form = pulse_form,
+                                                                stimulation_type = "extern",
                                                                 phase_duration = phase_duration,
                                                                 stim_amp = threshold * 2,                                                                
                                                                 stimulated_compartment = node_indexes_dendrite[0],
@@ -335,6 +337,7 @@ if all_tests or conduction_velocity_test:
        conduction_velocity = test.get_conduction_velocity(model_name,
                                                           dt,
                                                           pulse_form = pulse_form,
+                                                          stimulation_type = "extern",
                                                           phase_duration = phase_duration,
                                                           stim_amp = threshold * 2,                                                          
                                                           stimulated_compartment = node_indexes[1],
@@ -394,8 +397,8 @@ if all_tests or single_node_response_test:
                                                            "dt" : 1*us,
                                                            "stimulated_compartment" : stim_location,
                                                            "stimulation_type" : "extern",
-                                                           "time_before" : 3*ms,
-                                                           "time_after" : 2*ms,
+                                                           "time_before" : 1*ms,
+                                                           "time_after" : 3*ms,
                                                            "add_noise" : stochasticity})
         
         ##### change index to column
@@ -511,7 +514,7 @@ if all_tests or refractory_periods:
                                              "delta" : 1*us,
                                              "stimulated_compartment" : stim_location,
                                              "stimulation_type" : "extern"})
-        
+    
     ##### change index to column
     refractory_table.reset_index(inplace=True)
     
@@ -624,7 +627,7 @@ if all_tests or psth_test:
                                                    "dt" : 5*us,
                                                    "phase_duration" : phase_duration,
                                                    "delta" : 0.001*uA,
-                                                   "upper_border" : 800*uA,
+                                                   "upper_border" : 1500*uA,
                                                    "pulse_form" : pulse_form,
                                                    "stimulated_compartment" : stim_location,
                                                    "add_noise" : False})

@@ -40,11 +40,11 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "rattay_01"
+model_name = "imennov_09"
 model = eval(model_name)
 
 ##### save plots
-save_plots = True
+save_plots = False
 save_plots_for_report = False
 interim_report_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Zwischenbericht Masterarbeit/images"
 
@@ -53,6 +53,7 @@ interim_report_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/
 # =============================================================================
 ##### load dataframes for tables
 strength_duration_data = pd.read_csv("results/{}/Strength_duration_data_cathodic {}.csv".format(model.display_name,model.display_name))
+strength_duration_data = pd.read_csv("results/{}/Strength_duration_data_anodic {}.csv".format(model.display_name,model.display_name))
 threshold_table = pd.read_csv("results/{}/Threshold_table {}.csv".format(model.display_name,model.display_name))
 relative_spreads = pd.read_csv("results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
 conduction_velocity_table = pd.read_csv("results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name))
@@ -62,8 +63,10 @@ refractory_table = pd.read_csv("results/{}/Refractory_table {}.csv".format(model
 
 ##### load dataframes for plots
 strength_duration_plot_table = pd.read_csv("results/{}/Strength_duration_plot_table_cathodic {}.csv".format(model.display_name,model.display_name))
+strength_duration_plot_table = pd.read_csv("results/{}/Strength_duration_plot_table_anodic {}.csv".format(model.display_name,model.display_name))
 relative_spread_plot_table = pd.read_csv("results/{}/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
-voltage_course_dataset = pd.read_csv("results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name))
+voltage_course_dataset = pd.read_csv("results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name))
+voltage_course_dataset = pd.read_csv("results/{}/Single_node_response_stochastic {}.csv".format(model.display_name,model.display_name))
 refractory_curve_table = pd.read_csv("results/{}/Refractory_curve_table {}.csv".format(model.display_name,model.display_name))
 psth_table = pd.read_csv("results/{}/PSTH_table {}.csv".format(model.display_name,model.display_name))
 

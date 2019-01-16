@@ -99,20 +99,20 @@ fiber_outer_diameter = 2.5*um
 # Capacities
 # =============================================================================
 ##### cell membrane capacity of nodes
-c_mem = 2.05e-5*nF/mm**2 * cons_fac
-##### myelin layer capacity per mm
-c_my_per_mm = 1.45e-10*nF/mm
+c_mem = 2.05e-5*nF/um**2 * cons_fac
+##### myelin sheath capacity per mm
+c_my_per_mm = 0.145e-12*farad/mm
 
 # =============================================================================
 # resistivity internodes
 # =============================================================================
 ##### resistivity internodes per mm
-r_my_per_mm = 1254e6*ohm*mm
+r_my_per_mm = 1254*1e6*ohm*mm
 
 # =============================================================================
 # Noise factor
 # =============================================================================
-k_noise = 0.004*uA/np.sqrt(mS)
+k_noise = 0.01*uA/np.sqrt(mS)
 
 # =============================================================================
 # Electrode
@@ -123,14 +123,14 @@ electrode_distance = 500*um
 # Display name for plots
 # =============================================================================
 display_name = "Imennov and Rubinstein 2009"
+display_name_plots = "Imennov and Rubinstein (2009)"
 display_name_short = "Imennov 09"
 
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.hstack([np.linspace(0.47, 0.48, num=8, endpoint = False),
-                                   np.linspace(0.48, 0.7, num=10, endpoint = False),
-                                   np.linspace(0.7, 5, num=15)])*1e-3
+inter_pulse_intervals = np.hstack([np.linspace(0.6, 1.3, num=40, endpoint = False),
+                                   np.linspace(1.3, 5, num=20)])*1e-3
 
 # =============================================================================
 # Calculations

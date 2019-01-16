@@ -196,7 +196,6 @@ w_init = 1/(np.exp(13/5)+1)**(1/4)
 z_init = 1/(2*(np.exp(0.74)+1))+0.5
 r_init = 1/(np.exp(+62/35)+1)
 
-
 ##### calculate Nerst potential for leakage current
 E_L = -(1/g_L)* (gamma_Na*rho_Na*m_init**3*h_init* E_Na + gamma_K*rho_K*n_init**4*E_K + gamma_KLT*rho_KLT*w_init**4*z_init*E_K + gamma_HCN*rho_HCN*r_init*E_HCN)
 E_L_terminal = -(1/g_L_terminal)* (gamma_Na_terminal*rho_Na*m_init**3*h_init* E_Na + gamma_K_terminal*rho_K*n_init**4*E_K +

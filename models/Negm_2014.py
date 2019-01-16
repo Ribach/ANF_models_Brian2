@@ -73,16 +73,6 @@ rho_in = 50*ohm*cm
 rho_out = 300*ohm*cm
 
 # =============================================================================
-# Initial values for gating variables
-# =============================================================================
-m_init = 0.011
-n_init = 0.0119
-h_init = 0.747
-w_init = 0.5127
-z_init = 0.6615
-r_init = 0.1453
-
-# =============================================================================
 # Differential equations
 # =============================================================================
 eqs = '''
@@ -163,17 +153,49 @@ electrode_distance = 500*um
 # Display name for plots
 # =============================================================================
 display_name = "Negm and Bruce 2014"
+display_name_plots = "Negm and Bruce (2014)"
 display_name_short = "Negm 14"
 
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(1.5, 1.6, num=29, endpoint = False),
-                                  np.linspace(1.6, 5, num=20))*1e-3
+inter_pulse_intervals = np.append(np.linspace(1.7, 1.8, num=30, endpoint = False),
+                                  np.linspace(1.8, 5, num=20))*1e-3
 
 # =============================================================================
 # Calculations
 # =============================================================================
+##### nodal surface aria
+surface_aria_node = diameter_fiber*np.pi*length_nodes
+
+##### conductivity of leakage channels
+g_L = g_L_node/surface_aria_node
+
+##### ion channels per aria
+rho_Na = max_Na/surface_aria_node
+rho_K = max_K/surface_aria_node
+rho_KLT = max_KLT/surface_aria_node
+rho_HCN = max_HCN/surface_aria_node
+                                  
+##### rates for resting potential
+alpha_m_0 = 1.872*(-25.41)/(1-np.exp(25.41/6.06))
+beta_m_0 = 3.793*(21.001)/(1-np.exp(-21.001/9.41))
+alpha_h_0 = -0.549*27.74/(1-np.exp(27.74/9.06))
+beta_h_0 = 22.57/(1+np.exp(56.0/12.5))
+alpha_n_0 = 0.129*(-35)/(1-np.exp((35)/10))
+beta_n_0 = 0.324*35/(1-np.exp(-35/10))
+
+##### initial values for gating variables
+m_init = alpha_m_0 / (alpha_m_0 + beta_m_0)
+n_init = alpha_n_0 / (alpha_n_0 + beta_n_0)
+h_init = alpha_h_0 / (alpha_h_0 + beta_h_0)                                  
+w_init = 1/(np.exp(13/5)+1)**(1/4)
+z_init = 1/(2*(np.exp(0.74)+1))+0.5
+r_init = 1/(np.exp(+62/35)+1)
+
+##### calculate Nerst potential for leakage current
+E_L = -(1/g_L)* (gamma_Na*rho_Na*m_init**3*h_init* E_Na + gamma_K*rho_K*n_init**4*E_K + gamma_KLT*rho_KLT*w_init**4*z_init*E_K + gamma_HCN*rho_HCN*r_init*E_HCN)
+
 #####  Structure of ANF
 # terminal = 0
 # internode = 1
@@ -200,18 +222,6 @@ compartment_diameters = np.zeros(nof_comps+1)*um
 # same diameter for whole fiber
 compartment_diameters[:] = diameter_fiber
 fiber_outer_diameter = diameter_fiber + nof_myelin_layers*thicknes_myelin_layer*2
-
-##### nodal surface aria
-surface_aria_node = diameter_fiber*np.pi*length_nodes
-
-##### ion channels per aria
-rho_Na = max_Na/surface_aria_node
-rho_K = max_K/surface_aria_node
-rho_KLT = max_KLT/surface_aria_node
-rho_HCN = max_HCN/surface_aria_node
-
-##### conductivity of leakage channels
-g_L = g_L_node/surface_aria_node
 
 ##### Surface arias
 # lateral surfaces
@@ -292,6 +302,26 @@ def set_up_model(dt, model, update = False):
     
     ##### Update model parameters (should be done, if original parameters have been changed)
     if update:
+        ##### rates for resting potential
+        alpha_m_0 = 1.872*(-25.41)/(1-np.exp(25.41/6.06))
+        beta_m_0 = 3.793*(21.001)/(1-np.exp(-21.001/9.41))
+        alpha_h_0 = -0.549*27.74/(1-np.exp(27.74/9.06))
+        beta_h_0 = 22.57/(1+np.exp(56.0/12.5))
+        alpha_n_0 = 0.129*(-35)/(1-np.exp((35)/10))
+        beta_n_0 = 0.324*35/(1-np.exp(-35/10))
+        
+        ##### initial values for gating variables
+        model.m_init = alpha_m_0 / (alpha_m_0 + beta_m_0)
+        model.n_init = alpha_n_0 / (alpha_n_0 + beta_n_0)
+        model.h_init = alpha_h_0 / (alpha_h_0 + beta_h_0)                                  
+        model.w_init = 1/(np.exp(13/5)+1)**(1/4)
+        model.z_init = 1/(2*(np.exp(0.74)+1))+0.5
+        model.r_init = 1/(np.exp(+62/35)+1)
+        
+        ##### calculate Nerst potential for leakage current
+        model.E_L = -(1/model.g_L)* (model.gamma_Na*model.rho_Na*model.m_init**3*model.h_init* model.E_Na + model.gamma_K*model.rho_K*model.n_init**4*model.E_K \
+                     + model.gamma_KLT*model.rho_KLT*model.w_init**4*model.z_init*model.E_K + model.gamma_HCN*model.rho_HCN*model.r_init*model.E_HCN)
+        
         #####  Structure of ANF
         # terminal = 0
         # internode = 1

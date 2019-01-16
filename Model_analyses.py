@@ -45,7 +45,6 @@ prefs.codegen.target = "numpy"
 # =============================================================================
 ##### list of all models
 models = ["rattay_01", "frijns_94", "briaire_05", "smit_09", "smit_10", "imennov_09", "negm_14"]
-models = ["rattay_01", "briaire_05", "imennov_09", "smit_10"]
 
 ##### initialize clock
 dt = 5*us
@@ -54,7 +53,8 @@ dt = 5*us
 backend = "serial"
 
 ##### define if plots should be generated
-generate_plots = True
+generate_plots = False
+theses_image_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Abschlussbericht/images/single_fiber_characteristics"
 
 ##### define which tests to run
 all_tests = False
@@ -64,6 +64,7 @@ voltage_courses_comparison = False
 computational_efficiency_test = False
 pulse_train_refractory_test = False
 stochastic_properties_test = False
+somatic_delay_measurement = False
 
 if any([all_tests, stochastic_properties_test]):
     # =============================================================================
@@ -109,91 +110,104 @@ if any([all_tests, stochastic_properties_test]):
     
 if all_tests or thresholds_for_pulse_trains:
     # =============================================================================
-    # Measure thresholds for pulse trains
+    # Measure thresholds for pulse trains with different pulse rate
     # =============================================================================
     ##### define stimulation parameters
-    phase_duration = 15*us # 20*us
-    inter_phase_gap = 2*us
+    phase_duration = 45*us
+    inter_phase_gap = 8*us
     
-    ##### define pulse train durations in ms
-    pulse_train_durations = [0.1,0.2,0.5,1,2,5,10,20] #[0.1,0.3,1,3,10,30]
-    
-    ##### define pulse rates
-    pulses_per_second = [1200,3000,5000,25000] #[1500,3000,5000,11000] 
-    
-    ##### define number of stochastic runs per pulse train tye
-    nof_runs_per_pulse_train = 1
-    
-    ##### initialize dataframe with all stimulation information
-    stim_table = pd.DataFrame(list(itl.product(pulse_train_durations, pulses_per_second)), columns=["pulse train durations (ms)", "pulses per second"])
-    
-    ##### calculate number of pulses for each train duration - pulse rate combination
-    stim_table["number of pulses"] = np.floor(stim_table["pulse train durations (ms)"]*1e-3 * stim_table["pulses per second"]).astype(int)
+    ##### measure threshold over pulse rate and over train duration
+    for method in ["thr_over_rate", "thr_over_dur"]:
         
-    ##### calculate inter_pulse_gap
-    stim_table["inter pulse gap (us)"] = np.round(1e6/stim_table["pulses per second"] - phase_duration*2/us - inter_phase_gap/us).astype(int)
-    
-    ##### drop rows with no pulse
-    stim_table = stim_table[stim_table["number of pulses"] != 0]
-    
-    ##### get thresholds
-    params = [{"model_name" : model,
-               "nof_pulses" : stim_table["number of pulses"].iloc[ii],
-               "inter_pulse_gap" : stim_table["inter pulse gap (us)"].iloc[ii]*1e-6,
-               "run_number" : jj}
-                for model in models
-                for ii in range(len(stim_table))
-                for jj in range(nof_runs_per_pulse_train)]
-    
-    pulse_train_thresholds = th.util.map(func = test.get_threshold,
-                                         space = params,
-                                         backend = backend,
-                                         cache = "no",
-                                         kwargs = {"dt" : 1*us,
-                                                   "phase_duration" : phase_duration,
-                                                   "inter_phase_gap" : inter_phase_gap,
-                                                   "delta" : 0.005*uA,
-                                                   "upper_border" : 400*uA,
-                                                   "pulse_form" : "bi",
-                                                   "add_noise" : False})
-    
-    ##### change index to column
-    pulse_train_thresholds.reset_index(inplace=True)
-    
-    ##### change column names
-    pulse_train_thresholds = pulse_train_thresholds.rename(index = str, columns={"model_name" : "model",
-                                                                                 "nof_pulses" : "number of pulses",
-                                                                                 "inter_pulse_gap" : "inter pulse gap (us)",
-                                                                                 0:"threshold (uA)"})
-    
-    ##### convert threshold to uA and inter pulse gap to us
-    pulse_train_thresholds["threshold (uA)"] = [ii*1e6 for ii in pulse_train_thresholds["threshold (uA)"]]
-    pulse_train_thresholds["inter pulse gap (us)"] = [round(ii*1e6) for ii in pulse_train_thresholds["inter pulse gap (us)"]]
-    
-    ##### exclude spontaneous APs
-    pulse_train_thresholds = pulse_train_thresholds[pulse_train_thresholds["threshold (uA)"] > 1e-9]
-    
-    ##### get mean thresholds
-    pulse_train_thresholds = pulse_train_thresholds.groupby(["model","number of pulses", "inter pulse gap (us)"])["threshold (uA)"].mean().reset_index()
+        ##### define pulse rates
+        if method == "thr_over_rate":
+            pulses_per_second = [200,500,1000,2000,3000,5000,10000]
+        else:
+            pulses_per_second = [200,1000,5000]
         
-    ##### add information of stim_table
-    pulse_train_thresholds = pd.merge(pulse_train_thresholds, stim_table, on=["number of pulses","inter pulse gap (us)"])
-    
-    ##### order dataframe
-    pulse_train_thresholds = pulse_train_thresholds.sort_values(by=['model', 'pulses per second'])
-    
-    ##### save dataframe as csv    
-    pulse_train_thresholds.to_csv("results/Analyses/pulse_train_thresholds.csv", index=False, header=True)
-    
-    #pulse_train_thresholds = pd.read_csv("results/Analyses/pulse_train_thresholds_15us.csv")
-    
-    ##### plot thresholds over number of pulses
-    thresholds_for_pulse_trains_plot = plot.thresholds_for_pulse_trains(plot_name = "Thresholds for pulse trains",
-                                                                        threshold_data = pulse_train_thresholds)
-    
-    if generate_plots:
-        ##### save plot
-        thresholds_for_pulse_trains_plot.savefig("results/Analyses/pulse_train_thresholds.pdf", bbox_inches='tight')
+        ##### define pulse train durations in ms
+        if method == "thr_over_rate":
+            pulse_train_durations = [1,5,50]
+        else:
+            pulse_train_durations = [0.2,0.5,1,2,5,10,20,50]
+        
+        ##### define number of stochastic runs per pulse train type
+        nof_runs_per_pulse_train = 1
+        
+        ##### initialize dataframe with all stimulation information
+        stim_table = pd.DataFrame(list(itl.product(pulse_train_durations, pulses_per_second)), columns=["pulse train durations (ms)", "pulses per second"])
+        
+        ##### calculate number of pulses for each train duration - pulse rate combination
+        stim_table["number of pulses"] = np.floor(stim_table["pulse train durations (ms)"]*1e-3 * stim_table["pulses per second"]).astype(int)
+            
+        ##### calculate inter_pulse_gap
+        stim_table["inter pulse gap (us)"] = np.round(1e6/stim_table["pulses per second"] - phase_duration*2/us - inter_phase_gap/us).astype(int)
+        
+        ##### drop rows with no pulse
+        stim_table = stim_table[stim_table["number of pulses"] != 0]
+        
+        ##### get thresholds
+        params = [{"model_name" : model,
+                   "nof_pulses" : stim_table["number of pulses"].iloc[ii],
+                   "inter_pulse_gap" : stim_table["inter pulse gap (us)"].iloc[ii]*1e-6,
+                   "run_number" : jj}
+                    for model in models
+                    for ii in range(len(stim_table))
+                    for jj in range(nof_runs_per_pulse_train)]
+        
+        pulse_train_thresholds = th.util.map(func = test.get_threshold,
+                                             space = params,
+                                             backend = backend,
+                                             cache = "no",
+                                             kwargs = {"dt" : 1*us,
+                                                       "phase_duration" : phase_duration,
+                                                       "inter_phase_gap" : inter_phase_gap,
+                                                       "delta" : 0.005*uA,
+                                                       "upper_border" : 1000*uA,
+                                                       "pulse_form" : "bi",
+                                                       "add_noise" : False})
+        
+        ##### change index to column
+        pulse_train_thresholds.reset_index(inplace=True)
+        
+        ##### change column names
+        pulse_train_thresholds = pulse_train_thresholds.rename(index = str, columns={"model_name" : "model",
+                                                                                     "nof_pulses" : "number of pulses",
+                                                                                     "inter_pulse_gap" : "inter pulse gap (us)",
+                                                                                     0:"threshold (uA)"})
+        
+        ##### convert threshold to uA and inter pulse gap to us
+        pulse_train_thresholds["threshold (uA)"] = [ii*1e6 for ii in pulse_train_thresholds["threshold (uA)"]]
+        pulse_train_thresholds["inter pulse gap (us)"] = [round(ii*1e6) for ii in pulse_train_thresholds["inter pulse gap (us)"]]
+        
+        ##### exclude spontaneous APs
+        pulse_train_thresholds = pulse_train_thresholds[pulse_train_thresholds["threshold (uA)"] > 1e-9]
+        
+        ##### get mean thresholds
+        pulse_train_thresholds = pulse_train_thresholds.groupby(["model","number of pulses", "inter pulse gap (us)"])["threshold (uA)"].mean().reset_index()
+            
+        ##### add information of stim_table
+        pulse_train_thresholds = pd.merge(pulse_train_thresholds, stim_table, on=["number of pulses","inter pulse gap (us)"])
+        
+        ##### order dataframe
+        pulse_train_thresholds = pulse_train_thresholds.sort_values(by=['model', 'pulses per second'])
+        
+        ##### save dataframe as csv    
+        pulse_train_thresholds.to_csv("results/Analyses/pulse_train_{}_.csv".format(method), index=False, header=True)
+        
+        #pulse_train_thresholds = pd.read_csv("results/Analyses/pulse_train_thresholds_15us.csv")
+        
+        ##### plot thresholds over number of pulses        
+        if generate_plots:
+            if method == "thr_over_rate":
+                thresholds_for_pulse_trains_plot = plot.pulse_train_thres_over_pulse_rate(plot_name = "Thresholds for pulse trains",
+                                                                                          threshold_data = pulse_train_thresholds)
+            else:
+                thresholds_for_pulse_trains_plot = plot.pulse_train_thres_over_train_dur(plot_name = "Thresholds for pulse trains",
+                                                                                         threshold_data = pulse_train_thresholds)
+            
+            ##### save plot
+            thresholds_for_pulse_trains_plot.savefig("results/Analyses/pulse_train_{}.pdf".format(method), bbox_inches='tight')    
     
 if all_tests or latency_over_stim_amp_test:
     # =============================================================================
@@ -555,10 +569,73 @@ if all_tests or voltage_courses_comparison:
     # =============================================================================
     # Plot voltage course for all models
     # =============================================================================
-    models = ["rattay_01", "frijns_94", "briaire_05", "smit_09", "smit_10", "imennov_09"]
+    models = ["rattay_01", "briaire_05", "smit_10"]
+    stim_amps = [0.2, 1.5, 0.3]
+    max_node = [7,15,15]
+    max_comp = [0,0,0]
     
     ##### initialize list to save voltage courses
     voltage_courses =  [ [] for i in range(len(models)) ]
+    
+    for ii, model_name in enumerate(models):
+        
+        ##### get model
+        model = eval(model_name)
+        
+        ##### just save voltage values for a certain compartment range
+        max_comp[ii] = np.where(model.structure == 2)[0][max_node[ii]]
+        
+        ##### set up the neuron
+        neuron, model = model.set_up_model(dt = dt, model = model)
+        
+        ##### record the membrane voltage
+        M = StateMonitor(neuron, 'v', record=True)
+        
+        ##### save initialization of the monitor(s)
+        store('initialized')
+    
+        ##### define how the ANF is stimulated
+        I_stim, runtime = stim.get_stimulus_current(model = model,
+                                                    dt = dt,
+                                                    pulse_form = "mono",
+                                                    stimulation_type = "intern",
+                                                    time_before = 0.2*ms,
+                                                    time_after = 1*ms,
+                                                    stimulated_compartment = np.where(model.structure == 2)[0][1],
+                                                    ##### monophasic stimulation
+                                                    amp_mono = stim_amps[ii]*nA,
+                                                    duration_mono = 100*us)
+        
+        ##### get TimedArray of stimulus currents
+        stimulus = TimedArray(np.transpose(I_stim), dt = dt)
+                
+        ##### run simulation
+        run(runtime)
+        
+        ##### save M.v in voltage_courses
+        voltage_courses[ii] = M.v[:max_comp[ii],:]
+    
+    ##### Plot membrane potential of all compartments over time
+    voltage_course_comparison = plot.voltage_course_comparison_plot(plot_name = "Voltage courses all models",
+                                                                    model_names = models,
+                                                                    time_vector = M.t,
+                                                                    max_comp = max_comp,
+                                                                    voltage_courses = voltage_courses)
+    
+    if generate_plots:
+        ##### save plot
+#        voltage_course_comparison.savefig("results/Analyses/voltage_course_comparison_plot {}.png", bbox_inches='tight')
+        voltage_course_comparison.savefig("{}/voltage_course_comparison_plot.pdf".format(theses_image_path), bbox_inches='tight')
+
+if somatic_delay_measurement:
+    # =============================================================================
+    # Measure the somatic delay of models with a soma
+    # =============================================================================
+    models = ["rattay_01", "briaire_05", "smit_10"]
+    stim_amps = [0.2, 1.5, 0.3]
+    
+    ##### initialize list to save voltage courses
+    somatic_delays =  [ 0*second for i in range(len(models)) ]
     
     for ii, model_name in enumerate(models):
         
@@ -578,10 +655,12 @@ if all_tests or voltage_courses_comparison:
         I_stim, runtime = stim.get_stimulus_current(model = model,
                                                     dt = dt,
                                                     pulse_form = "mono",
+                                                    stimulation_type = "intern",
                                                     time_before = 0.2*ms,
-                                                    time_after = 1.5*ms,
+                                                    time_after = 1*ms,
+                                                    stimulated_compartment = np.where(model.structure == 2)[0][1],
                                                     ##### monophasic stimulation
-                                                    amp_mono = -3*uA,
+                                                    amp_mono = stim_amps[ii]*nA,
                                                     duration_mono = 100*us)
         
         ##### get TimedArray of stimulus currents
@@ -590,18 +669,37 @@ if all_tests or voltage_courses_comparison:
         ##### run simulation
         run(runtime)
         
-        ##### save M.v in voltage_courses
-        voltage_courses[ii] = M.v
-    
-    ##### Plot membrane potential of all compartments over time
-    voltage_course_comparison = plot.voltage_course_comparison_plot(plot_name = "Voltage courses all models",
-                                                                    model_names = models,
-                                                                    time_vector = M.t,
-                                                                    voltage_courses = voltage_courses)
-    
-    if generate_plots:
-        ##### save plot
-        voltage_course_comparison.savefig("results/Analyses/voltage_course_comparison_plot {}.png", bbox_inches='tight')
+        ##### get indexes of the compartments before and after the soma
+        idx_before_soma = np.where(model.structure == 3)[0][0]-2
+        idx_after_soma = np.where(model.structure == 4)[0][-1]+1
+        
+        ##### AP amplitude
+        AP_amp_before_soma = max(M.v[idx_before_soma,:]-model.V_res)
+        AP_amp_after_soma = max(M.v[idx_after_soma,:]-model.V_res)
+        
+        ##### AP time
+        AP_time_before_soma = M.t[M.v[idx_before_soma,:]-model.V_res == AP_amp_before_soma]
+        AP_time_after_soma = M.t[M.v[idx_after_soma,:]-model.V_res == AP_amp_after_soma]
+        
+        ##### save somatic delay
+        somatic_delays[ii] = AP_time_after_soma - AP_time_before_soma
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

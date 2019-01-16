@@ -117,12 +117,14 @@ electrode_distance = 500*um #1.5*mm
 # Display name for plots
 # =============================================================================
 display_name = "Smit et al. 2009"
+display_name_plots = "Smit et al. (2009)"
 display_name_short = "Smit 09"
+
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(2.7, 3, num=30, endpoint = False),
-                                  np.linspace(3, 5, num=10))*1e-3
+inter_pulse_intervals = np.append(np.linspace(2, 3, num=30, endpoint = False),
+                                  np.linspace(3, 8, num=20))*1e-3
 
 # =============================================================================
 # Calculations

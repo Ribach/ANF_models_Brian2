@@ -43,17 +43,17 @@ prefs.codegen.target = "numpy"
 # =============================================================================
 plot_voltage_course_lines = True
 plot_voltage_course_colored = True
-plot_gating_variables = False
-plot_ion_currents = False
+plot_gating_variables = True
+plot_ion_currents = True
 
 # =============================================================================
 # Definition of neuron and initialization of state monitor
 # =============================================================================
 ##### choose model
-model = woo_10
+model = rattay_01
 
 ##### initialize clock
-dt = 5*us
+dt = 1*us
 
 ##### set up the neuron
 neuron, model = model.set_up_model(dt = dt, model = model)
@@ -88,7 +88,7 @@ if plot_ion_currents:
         I_adap = StateMonitor(neuron, ['I_KLT','I_HCN'], record=True)
 
 ##### get compartment number of second node
-stim_comp_index = np.where(model.structure == 2)[0][1]
+stim_comp_index = np.where(model.structure == 2)[0][2]
 
 ##### save initialization of the monitor(s)
 store('initialized')
@@ -101,16 +101,16 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     ##### define how the ANF is stimulated
     I_stim, runtime = stim.get_stimulus_current(model = model,
                                                 dt = dt,
-                                                stimulation_type = "intern",
+                                                stimulation_type = "extern",
                                                 pulse_form = "mono",
                                                 stimulated_compartment = stim_comp_index,
                                                 nof_pulses = 1,
-                                                time_before = 0.5*ms,
-                                                time_after = 1*ms,
+                                                time_before = 1*ms,
+                                                time_after = 2*ms,
                                                 add_noise = False,
                                                 ##### monophasic stimulation
-                                                amp_mono = 60*pA,
-                                                duration_mono = 60*us,
+                                                amp_mono = -350*uA,
+                                                duration_mono = 100*us,
                                                 ##### biphasic stimulation
                                                 amps_bi = [-150,150]*uA,
                                                 durations_bi = [400,0,400]*us,
@@ -144,7 +144,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
 
 if plot_gating_variables:
     ##### plot gating variables
-    comp_index = np.where(model.structure == 2)[0][-2]
+    comp_index = np.where(model.structure == 2)[0][2]
     comp_index = stim_comp_index
     fig = plt.figure("gating variables")
     axes = fig.add_subplot(1, 1, 1)

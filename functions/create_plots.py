@@ -410,7 +410,7 @@ def post_stimulus_time_histogram(plot_name,
     """
     
     ##### convert spike times to ms
-    psth_dataset["spike times (us)"] = np.ceil(psth_dataset["spike times (us)"]*1000).astype(int)
+    psth_dataset["spike times (us)"] = np.ceil(list(psth_dataset["spike times (us)"]*1000)).astype(int)
     psth_dataset = psth_dataset.rename(index = str, columns={"spike times (us)" : "spike times (ms)"})
     
     ##### get amplitude levels and pulse rates
@@ -498,7 +498,6 @@ def post_stimulus_time_histogram(plot_name,
             ##### write stimulus amplitdues in plots
             axes[ii][jj].text(np.ceil(max(bin_edges)/3.2), max_bin_height+0.1, "i={}mA".format(current_data["stimulus amplitude (uA)"][0]))
 
-    
     ##### bring subplots close to each other.
     fig.subplots_adjust(hspace=0.1, wspace=0.1)
     
@@ -522,5 +521,3 @@ def post_stimulus_time_histogram(plot_name,
         fig.text(0.08, 0.5, 'Spikes per timebin ({} ms)'.format(bin_width), va='center', rotation='vertical')
     
     return fig
-
-

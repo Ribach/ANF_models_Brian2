@@ -479,7 +479,8 @@ def get_single_node_response(model_name,
     latency = (AP_time_stim_comp - time_before)[0]
         
     ##### save voltage course of single compartment and corresponding time vector
-    voltage_course = (M.v[comp_index, int(np.floor(time_before/dt)):]/volt).tolist()
+    comp_index_voltage_course = np.where(model.structure == 2)[0][10]
+    voltage_course = (M.v[comp_index_voltage_course, int(np.floor(time_before/dt)):]/volt).tolist()
     time_vector = (M.t[int(np.floor(time_before/dt)):]/second).tolist()
     
     if parameter is not None:
@@ -758,7 +759,7 @@ def get_refractory_periods(model_name,
         run(runtime)
         
         # test if there were two spikes (one for masker and one for 2. stimulus)
-        nof_spikes = len(peak.indexes(M.v[comp_index,:], thres = model.V_res + 60*mV, thres_abs=True))
+        nof_spikes = len(peak.indexes(M.v[comp_index,:]/mV, thres = (model.V_res + 60*mV)/mV, thres_abs=True))
         
         if nof_spikes > 1:
             arp = inter_pulse_gap
@@ -774,7 +775,7 @@ def get_refractory_periods(model_name,
     # initializations
     rrp = 0*second
     lower_border = arp.copy()
-    upper_border = inter_pulse_gap_max.copy()
+    upper_border = inter_pulse_gap_max.copy() + 2*ms
     inter_pulse_gap = (inter_pulse_gap_max-inter_pulse_gap_min)/2
     inter_pulse_gap_diff = upper_border - lower_border
     
@@ -827,7 +828,7 @@ def get_refractory_periods(model_name,
         run(runtime)
         
         # test if there were two spikes (one for masker and one for 2. stimulus)
-        nof_spikes = len(peak.indexes(M.v[comp_index,:], thres = model.V_res + 60*mV, thres_abs=True))
+        nof_spikes = len(peak.indexes(M.v[comp_index,:]/mV, thres = (model.V_res + 60*mV)/mV, thres_abs=True))
         
         if nof_spikes > 1:
             rrp = inter_pulse_gap
@@ -986,7 +987,7 @@ def get_refractory_curve(model_name,
         run(runtime)
                 
         ##### test if there were two spikes (one for masker and one for 2. stimulus)
-        nof_spikes = len(peak.indexes(M.v[comp_index,:], thres = model.V_res + 60*mV, thres_abs=True))
+        nof_spikes = len(peak.indexes(M.v[comp_index,:]/mV, thres = (model.V_res + 60*mV)/mV, thres_abs=True))
         
         if nof_spikes > 1:
             min_amp_spiked = stim_amp

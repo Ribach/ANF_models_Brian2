@@ -7,6 +7,7 @@
 from brian2 import *
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.ticker import ScalarFormatter
 import pandas as pd
 import seaborn as sns
 sns.set(style="ticks", color_codes=True)
@@ -31,6 +32,7 @@ import models.trials.Negm_ANF_2014 as negm_ANF_14
 def voltage_course_comparison_plot(plot_name,
                                    model_names,
                                    time_vector,
+                                   max_comp,
                                    voltage_courses):
     """This function plots the membrane potential of all compartments over time
     as voltage course lines spaced according the real compartment distances. There
@@ -46,6 +48,8 @@ def voltage_course_comparison_plot(plot_name,
     time_vector : list of time values
         Vector contains the time points, that correspond to the voltage values
         of the voltage matrices.
+    max_comp : list of integers
+        defines the maximum number of compartments to show for each model
     voltage_courses : list of matrices of mambrane potentials
         There is one matrix per model. Each matrix has one row for each compartment
         and one columns for each time step. Number of columns has to be the same
@@ -72,7 +76,8 @@ def voltage_course_comparison_plot(plot_name,
     plt.close(plot_name)
     
     ##### create figure
-    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=True, num = plot_name, figsize=(4.5*nof_cols, 4*nof_rows))
+    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=True, num = plot_name, figsize=(3.2*nof_cols, 2.7*nof_rows))
+    fig.subplots_adjust(bottom=0.16)
     
     ##### create plots  
     for ii in range(nof_rows*nof_cols):
@@ -82,22 +87,31 @@ def voltage_course_comparison_plot(plot_name,
         col = ii-row*nof_cols
         
         ##### turn off x-labels for all but the bottom plots
+#        if (nof_plots - ii) > nof_cols:
+#             plt.setp(axes[row][col].get_xticklabels(), visible=False)
+#             axes[row][col].tick_params(axis = 'both', bottom = 'off')
         if (nof_plots - ii) > nof_cols:
-             plt.setp(axes[row][col].get_xticklabels(), visible=False)
-             axes[row][col].tick_params(axis = 'both', bottom = 'off')
+             plt.setp(axes[col].get_xticklabels(), visible=False)
+             axes[col].tick_params(axis = 'both', bottom = 'off')
         
         ##### turn off y-labels
-        plt.setp(axes[row][col].get_yticklabels(), visible=False)
-        axes[row][col].tick_params(axis = 'both', left = 'off')
+#        plt.setp(axes[row][col].get_yticklabels(), visible=False)
+#        axes[row][col].tick_params(axis = 'both', left = 'off')
+        plt.setp(axes[col].get_yticklabels(), visible=False)
+        axes[col].tick_params(axis = 'both', left = 'off')
         
         ##### remove not needed subplots
         if ii >= nof_plots:
-            fig.delaxes(axes[row][col])
+#            fig.delaxes(axes[row][col])
+            fig.delaxes(axes[col])
         
         ##### plot voltage courses
         if ii < nof_plots:
             
             model = models[ii]
+            
+            ##### get array of compartments to plot
+            comps_to_plot = model.comps_to_plot[model.comps_to_plot < max_comp[ii]]
             
             ##### get voltage courses for current model
             voltage_matrix = voltage_courses[ii]
@@ -107,24 +121,29 @@ def voltage_course_comparison_plot(plot_name,
             offset = (offset/max(offset))*10
             
             ##### plot lines
-            for ii in model.comps_to_plot:
-                axes[row][col].plot(time_vector/ms, offset[ii] - 1/(30)*(voltage_matrix[ii, :]-model.V_res)/mV, "#000000")
+            for jj in comps_to_plot:
+#                axes[row][col].plot(time_vector/ms, offset[jj] - 1/(30)*(voltage_matrix[jj, :]-model.V_res)/mV, "#000000")
+                axes[col].plot(time_vector/ms, offset[jj] - 1/(30)*(voltage_matrix[jj, :]-model.V_res)/mV, "#000000")
             
             ##### write model name in plots
-            axes[row][col].text(0.45, -3, "{}".format(model.display_name), fontsize=13.5)
+#            axes[row][col].text(0.45, -3, "{}".format(model.display_name_plots), fontsize=13.5)
+            axes[col].text(0.5, -3, "{}".format(model.display_name_plots), fontsize=10.5)
                 
             ##### no grid
-            axes[row][col].grid(False)
+#            axes[row][col].grid(False)
+            axes[col].grid(False)
     
     ##### invert y-achses
-    axes[row][col].invert_yaxis()
+#    axes[row][col].invert_yaxis()
+    axes[col].invert_yaxis()
     
     ##### bring subplots close to each other.
     fig.subplots_adjust(hspace=0, wspace=0)
     
     ##### get labels for the axes
-    fig.text(0.5, 0.06, 'Time (ms)', ha='center', fontsize=14)
-    fig.text(0.1, 0.5, 'Position [major] membrane potential [minor]', va='center', rotation='vertical', fontsize=14)
+    fig.text(0.5, 0.004, 'Time / ms', ha='center', fontsize=12)
+    fig.text(0.08, 0.5, 'Position along fiber [major]', va='center', rotation='vertical', fontsize=12)
+    fig.text(0.1, 0.5, 'membrane potential [minor]', va='center', rotation='vertical', fontsize=12)
     
     return fig
     
@@ -170,16 +189,16 @@ def conduction_velocity_comparison(plot_name,
     y_Boyd_2 = x_Boyd_2*5.7
     
     ##### define colors and markers
-    colors = ["black","black","black","red","red","red","yellow","yellow","yellow","blue","blue","blue"]
-    markers = ["o","v","s","o","v","s","o","v","s","o","v","s"]
-    edgecolors = ["black","black","black","red","red","red","black","black","black","blue","blue","blue"]
+    colors = ["black","black","black","red","red","yellow","yellow","blue","blue","blue"]
+    markers = ["o","v","s","o","v","o","v","o","v","s"]
+    edgecolors = ["black","black","black","red","red","black","black","blue","blue","blue"]
     
     ##### close possibly open plots
     plt.close(plot_name)
     
     ##### generate figure
     #fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(7, 6))
-    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(9, 5.5))
+    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(9, 4))
     
     ##### no grid
     axes.grid(False)
@@ -192,16 +211,19 @@ def conduction_velocity_comparison(plot_name,
                                 label = "{} {}".format(model_data["model_name"][ii], model_data["section"][ii]))
     
     ##### Plot lines for the experiments
-    axes.plot(x_Hursh,y_Hursh, 'k--', label = "Hursh 1939")
-    axes.plot(x_Boyd_1,y_Boyd_1, 'k:', label = "Boyd and Kalu 1979")
+    axes.plot(x_Hursh,y_Hursh, 'k--', label = "Hursh (1939)")
+    axes.plot(x_Boyd_1,y_Boyd_1, 'k:', label = "Boyd and Kalu (1979)")
     axes.plot(x_Boyd_2,y_Boyd_2, 'k:', label = "_nolegend_")
+    
+    ##### define axes ranges
+    axes.set_xlim([0,16])
 
     ##### show legend
     plt.legend(ncol=2)
-
-    ##### add labels to the axes    
-    axes.set_xlabel('Outer fiber diameter / um', fontsize=16)
-    axes.set_ylabel('Conduction velocity / (m/s)', fontsize=16)  
+    
+    ##### add labels to the axes
+    axes.set_xlabel(r"$D$ / $\rm{\mu m}$", fontsize=14)
+    axes.set_ylabel(r"$v_{\rm{c}}$ / $\rm{ms}^{-1}$", fontsize=14)  
     
     return fig
 
@@ -234,7 +256,7 @@ def single_node_response_comparison(plot_name,
     models = voltage_data["model"].unique().tolist()
     
     ##### define number of columns
-    nof_cols = 2
+    nof_cols = 3
     
     ##### get number of rows
     nof_rows = np.ceil(len(models)/nof_cols).astype(int)
@@ -242,19 +264,19 @@ def single_node_response_comparison(plot_name,
     ##### get number of plots
     nof_plots = len(models)
     
-    ##### get number of runs
-    nof_runs = max(voltage_data["run"])+1
-    
     ##### get axes ranges
     y_min = min(voltage_data["membrane potential (mV)"]) - 5
     y_max = max(voltage_data["membrane potential (mV)"]) + 15
-    x_max = max(voltage_data["time (ms)"])
+    x_max = 1.4
+    
+    ##### initialize handles and labels
+    handles, labels = (0, 0)
     
     ##### close possibly open plots
     plt.close(plot_name)
     
     ##### create figure
-    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=False, num = plot_name, figsize=(4.5*nof_cols, 3*nof_rows))
+    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=False, num = plot_name, figsize=(3*nof_cols, 2*nof_rows))
     
     ##### create plots  
     for ii in range(nof_rows*nof_cols):
@@ -270,15 +292,20 @@ def single_node_response_comparison(plot_name,
         ##### turn off x-labels for all but the bottom plots
         if (nof_plots - ii) > nof_cols:
              plt.setp(axes[row][col].get_xticklabels(), visible=False)
-             axes[row][col].tick_params(axis = 'both', bottom = 'off')
+             axes[row][col].tick_params(axis = "both", bottom = "off")
         
         ##### turn off y-labels for all but the bottom plots
         if (col != 0) and (ii < nof_plots):  
              plt.setp(axes[row][col].get_yticklabels(), visible=False)
-             axes[row][col].tick_params(axis = 'both', left = 'off')
+             axes[row][col].tick_params(axis = "both", left = "off")
         
-        ##### remove not needed subplots
-        if ii >= nof_plots:
+        ##### put legend in first not needed subplot
+        if ii == nof_plots:
+            axes[row][col].set_axis_off()
+            axes[row][col].legend(handles, labels, loc="center", title = "stimulus amplitude")
+            
+        ##### remove further subplots that are not needed
+        if ii > nof_plots:
             fig.delaxes(axes[row][col])
         
         ##### plot voltage courses
@@ -286,31 +313,34 @@ def single_node_response_comparison(plot_name,
             
             model = models[ii]
                 
-            ##### loop over runs
-            for jj in range(nof_runs):
-                
-                ##### building a subset
-                current_data = voltage_data[voltage_data["model"] == model][voltage_data["run"] == jj]
-                                          
-                ##### create plot
-                axes[row][col].plot(current_data["time (ms)"], current_data["membrane potential (mV)"], color = "black")
+            ##### building subsets
+            current_data_1th = voltage_data[voltage_data["model"] == model][voltage_data["amplitude level"] == "1*threshold"]
+            current_data_2th = voltage_data[voltage_data["model"] == model][voltage_data["amplitude level"] == "2*threshold"]         
+            
+            ##### plot lines
+            axes[row][col].plot(current_data_1th["time (ms)"], current_data_1th["membrane potential (mV)"], color = "black", label = r"$1 \cdot I_{\rm{th}}$")
+            axes[row][col].plot(current_data_2th["time (ms)"], current_data_2th["membrane potential (mV)"], color = "red", label = r"$2 \cdot I_{\rm{th}}$")
                 
             ##### remove top and right lines
             axes[row][col].spines['top'].set_visible(False)
             axes[row][col].spines['right'].set_visible(False)
                 
             ##### write model name in plots
-            axes[row][col].text(x_max*0.05, y_max-12.5, "{}".format(model))
+            axes[row][col].text(x_max*0.05, y_max-12.5, "{}".format(model), fontsize=12)
                 
             ##### no grid
             axes[row][col].grid(False)
+        
+        ##### save handles and labels for the plot before the one with the legend
+        if ii == nof_plots-1:
+            handles, labels = axes[row][col].get_legend_handles_labels()
     
     ##### bring subplots close to each other.
-    fig.subplots_adjust(hspace=0.05, wspace=0.1)
+    fig.subplots_adjust(hspace=0.05, wspace=0.05)
     
     ##### get labels for the axes
-    fig.text(0.5, 0.06, 'Time (ms)', ha='center', fontsize=14)
-    fig.text(0.05, 0.5, 'Membrane potential (mV)', va='center', rotation='vertical', fontsize=14)
+    fig.text(0.5, 0.04, 'Time / ms', ha='center', fontsize=13)
+    fig.text(0.05, 0.5, 'Membrane potential / mV', va='center', rotation='vertical', fontsize=13)
         
     return fig
 
@@ -376,7 +406,7 @@ def paintal_rise_time_curve(plot_name,
     axes.grid(False)
     
     ##### Plot AP rise time curve of Paintal
-    axes.plot(x_values,paintal_rise_time(x_values), color = "black", label = "Experimental data from Paintal 1965")
+    axes.plot(x_values,paintal_rise_time(x_values), color = "black", label = "Experimental data from Paintal 1966")
     
     ##### Plot AP rise time values of models
     for ii,model in enumerate(models):
@@ -449,7 +479,7 @@ def paintal_fall_time_curve(plot_name,
     axes.grid(False)
     
     ##### Plot AP rise time curve of Paintal
-    axes.plot(x_values,paintal_fall_time(x_values), color = "black", label = "Experimental data from Paintal 1965")
+    axes.plot(x_values,paintal_fall_time(x_values), color = "black", label = "Experimental data from Paintal 1966")
     
     ##### Plot AP rise time values of models
     for ii,model in enumerate(models):
@@ -467,6 +497,114 @@ def paintal_fall_time_curve(plot_name,
     ##### add labels to the axes    
     axes.set_xlabel('Conduction velocity / (m/s)', fontsize=16)
     axes.set_ylabel('Fall time / us', fontsize=16)  
+    
+    return fig
+
+# =============================================================================
+#  Plot rise and fall time comparison in one figure
+# =============================================================================
+def rise_and_fall_time_comparison(plot_name,
+                                  model_data):
+    """This function plots conduction velocities over ANF diameters. The lines
+    for measurements of two differents experiments are shown as well as points
+    for the model values.
+
+    Parameters
+    ----------
+    plot_name : string
+        This defines how the plot window will be named.
+    model_data : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "velocity (m/s)" 
+        - "outer diameter (um)"
+        - "section"
+        - "model_name"
+                
+    Returns
+    -------
+    figure with conduction velocity comparison
+    """
+    
+    ##### define x-vector for curves
+    x_values = np.linspace(0,80,100)
+    
+    #### rise time and fall time curve
+    # Get points of AP duration curve of Paintal 1965 (with software Engague Digitizer)
+    velocity = [10.61,13.989,19.143,24.295,28.907,34.58,42.199,53.531,63.795,72.116,80.08]
+    AP_duration_paintal = [598.678,565.683,520.758,480.049,454.792,428.841,402.906,374.891,356.704,343.42,330.133]
+    # Interpolate AP duration curve with 4. order polynomial
+    paintal_AP_duration = np.poly1d(np.polyfit(velocity,AP_duration_paintal,4))
+    # Get points of AP fall time curve of Paintal 1965 (with software Engague Digitizer)
+    velocity = [16,64]
+    AP_fall_time_paintal = [350,263]
+    # Interpolate AP fall time curve linearly
+    paintal_fall_time = np.poly1d(np.polyfit(velocity,AP_fall_time_paintal,1))
+    # Get AP rise time curve
+    paintal_rise_time = paintal_AP_duration - paintal_fall_time
+    
+    ##### initialize handles and labels
+    handles, labels = (0, 0)
+    
+    ##### get model names
+    models = model_data["model_name"].tolist()
+    
+    ##### define colors and markers
+    colors = ["black","black","black","red","red","yellow","yellow","blue","blue","blue"]
+    markers = ["o","v","s","o","v","o","v","o","v","s"]
+    edgecolors = ["black","black","black","red","red","black","black","blue","blue","blue"]
+    
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### generate figure
+    fig, axes = plt.subplots(2, 2, sharex=False, sharey=False, num = plot_name, figsize=(11, 5), gridspec_kw = {'height_ratios':[3, 1.1]})
+    
+    ##### no grid
+    axes[0][0].grid(False)
+        
+    ##### remove last subplot
+    fig.delaxes(axes[1][1])
+    
+    ##### Plot AP rise and fall time curves of Paintal
+    axes[0][0].plot(x_values,paintal_rise_time(x_values), color = "black", label = "Experimental data from Paintal (1966)")
+    axes[0][1].plot(x_values,paintal_fall_time(x_values), color = "black", label = "Experimental data from Paintal (1966)")
+    
+    ##### Plot rise and fall time values of models
+    for ii,model in enumerate(models):
+        
+        ##### building a subset
+        current_data = model_data[model_data["model_name"] == model]
+        
+        ##### plot point
+        if current_data["section"].iloc[0] == "dendrite":
+            axes[0][0].scatter(current_data["conduction velocity dendrite (m/s)"],current_data["rise time (us)"],
+                                          color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = "{}".format(model))
+            axes[0][1].scatter(current_data["conduction velocity dendrite (m/s)"],current_data["fall time (us)"],
+                                          color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = "{}".format(model))    
+            
+        else:
+            axes[0][0].scatter(current_data["conduction velocity axon (m/s)"],current_data["rise time (us)"],
+                                          color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = "{}".format(model))
+            axes[0][1].scatter(current_data["conduction velocity axon (m/s)"],current_data["fall time (us)"],
+                                          color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = "{}".format(model))    
+    
+    ##### put legend in first subplot
+    handles, labels = axes[0][0].get_legend_handles_labels()
+    axes[1][0].set_axis_off()
+    axes[1][0].legend(handles, labels, loc=(-0.1,-0.5), ncol=3, fontsize=11.8)
+    
+    ##### set lower y limit to zero
+    axes[0][0].set_ylim(bottom=0)
+    axes[0][1].set_ylim(bottom=0)
+    
+    ##### adjust subplot positions.
+    fig.subplots_adjust(hspace=0.1, wspace=0.2)
+    
+    ##### add labels to the axes    
+    axes[0][0].set_ylabel(r'Rise time / $\rm{\mu s}$', fontsize=14)
+    axes[0][1].set_ylabel(r'Fall time / $\rm{\mu s}$', fontsize=14)
+    axes[0][0].set_xlabel(r'$v_{\rm{c}}$ / $\rm{ms}^{-1}$', fontsize=14)
+    axes[0][1].set_xlabel(r'$v_{\rm{c}}$ / $\rm{ms}^{-1}$', fontsize=14)
     
     return fig
 
@@ -582,20 +720,11 @@ def refractory_curves_comparison(plot_name,
     figure with refractory curve comparison
     """
     
-    ##### remove rows where no second spikes were obtained
-    refractory_curves = refractory_curves[refractory_curves["minimum required amplitude"] != 0]
-        
-    ##### calculate the ratio of the threshold of the second spike and the masker
-    refractory_curves["threshold ratio"] = refractory_curves["minimum required amplitude"]/refractory_curves["threshold"]
-    
-    ##### convert interpulse intervals to ms
-    refractory_curves["interpulse interval"] = refractory_curves["interpulse interval"]*1e3
-    
     ##### get model names
     models = refractory_curves["model"].unique().tolist()
     
     ##### define number of columns
-    nof_cols = 2
+    nof_cols = 3
     
     ##### get number of rows
     nof_rows = np.ceil(len(models)/nof_cols).astype(int)
@@ -604,8 +733,7 @@ def refractory_curves_comparison(plot_name,
     nof_plots = len(models)
     
     ##### get axes ranges
-    y_min = 0
-    y_max = max(refractory_curves["threshold ratio"]) + 1.5
+    y_max = max(refractory_curves["threshold ratio"]) + 6
     x_min = 0
     x_max = max(refractory_curves["interpulse interval"]) + 0.2
     
@@ -613,7 +741,7 @@ def refractory_curves_comparison(plot_name,
     plt.close(plot_name)
     
     ##### create figure
-    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=False, num = plot_name, figsize=(4.5*nof_cols, 3*nof_rows))
+    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=True, num = plot_name, figsize=(3*nof_cols, 2*nof_rows))
     
     ##### create plots  
     for ii in range(nof_rows*nof_cols):
@@ -623,7 +751,6 @@ def refractory_curves_comparison(plot_name,
         col = ii-row*nof_cols
         
         ##### define axes ranges
-        axes[row][col].set_ylim([y_min,y_max])
         axes[row][col].set_xlim([x_min,x_max])
         
         ##### turn off x-labels for all but the bottom plots
@@ -635,8 +762,12 @@ def refractory_curves_comparison(plot_name,
              plt.setp(axes[row][col].get_yticklabels(), visible=False)
              axes[row][col].tick_params(axis = 'both', left = 'off')
         
+        ##### use normal values for axes (no powered numbers)
+        for axis in [axes[row][col].xaxis, axes[row][col].yaxis]:
+            axis.set_major_formatter(ScalarFormatter())
+        
         ##### defining y ticks
-        axes[row][col].set_yticks([1,5,10])
+        axes[row][col].set_yticks([1,2,4,8,16])
         
         ##### remove not needed subplots
         if ii >= nof_plots:
@@ -651,31 +782,32 @@ def refractory_curves_comparison(plot_name,
             current_data = refractory_curves[refractory_curves["model"] == model]
                                       
             ##### plot threshold curve
-            axes[row][col].plot(current_data["interpulse interval"], current_data["threshold ratio"], color = "black")
+            axes[row][col].set_yscale('log', basey=2)
+            axes[row][col].plot(current_data["interpulse interval"], current_data["threshold ratio"], color = "black", linewidth = 2)
             
             ##### add line at threshold level
             axes[row][col].hlines(y=1, xmin=x_min, xmax=x_max, linestyles="dashed", color = "black")
             
             ##### show points
-            axes[row][col].scatter(current_data["interpulse interval"], current_data["threshold ratio"], color = "black", marker = "o", alpha  = 0.5)
+            axes[row][col].scatter(current_data["interpulse interval"], current_data["threshold ratio"], color = "black", marker = "o", alpha  = 0.5, s = 15)
                 
             ##### remove top and right lines
             axes[row][col].spines['top'].set_visible(False)
             axes[row][col].spines['right'].set_visible(False)
                 
             ##### write model name in plots
-            axes[row][col].text(x_max*0.1, y_max-1, "{}".format(model))
+            axes[row][col].text(x_max*0.05, y_max-1, "{}".format(model))
                 
             ##### no grid
             axes[row][col].grid(False)
     
     ##### bring subplots close to each other.
-    fig.subplots_adjust(hspace=0.1, wspace=0.05)
+    fig.subplots_adjust(hspace=0.2, wspace=0.05)
     
     ##### get labels for the axes
-    fig.text(0.5, 0.06, 'Inter pulse interval / ms', ha='center', fontsize=14)
-    fig.text(0.05, 0.5, 'threshold 2nd stimulus / threshold', va='center', rotation='vertical', fontsize=14)
-        
+    fig.text(0.5, 0.06, "IPI / ms", ha="center", fontsize=14)
+    fig.text(0.06, 0.5, r"$I_{\rm{th}}$ (2nd stimulus) / $I_{\rm{th}}$ (masker)", va="center", rotation="vertical", fontsize=14)
+
     return fig
 
 # =============================================================================
@@ -765,7 +897,7 @@ def stochastic_properties_comparison(plot_name,
         
         ##### show points
         axes.scatter(current_data["jitter (us)"], current_data["relative spread (%)"],
-                                  color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = "{}".format(eval("{}.display_name".format(model))))
+                                  color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = "{}".format(eval("{}.display_name_plots".format(model))))
     
     ##### define axes ranges
     axes.set_ylim([0,45])
@@ -847,7 +979,7 @@ def latencies_over_stimulus_duration_old(plot_name,
         
         ##### show points
         axes.scatter(current_data["amplitude level"], current_data["latency (ms)"],
-                                  color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = "{}".format(eval("{}.display_name".format(model))))
+                                  color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = "{}".format(eval("{}.display_name_plots".format(model))))
     
     ##### plot data from measurements
     if latency_measurements is not None:
@@ -1049,7 +1181,7 @@ def latencies_over_stimulus_duration(plot_name,
             axes[row][col].spines['right'].set_visible(False)
                 
             ##### write model name in plots
-            axes[row][col].text(1.2, y_max-0.1*(max(current_model["latency (ms)"]) - min(current_model["latency (ms)"])), "{}".format(eval("{}.display_name".format(model))), fontsize=14)
+            axes[row][col].text(1.2, y_max-0.1*(max(current_model["latency (ms)"]) - min(current_model["latency (ms)"])), "{}".format(eval("{}.display_name_plots".format(model))), fontsize=14)
                 
             ##### no grid
             axes[row][col].grid(False)
@@ -1166,7 +1298,241 @@ def thresholds_for_pulse_trains(plot_name,
                 
             ##### write model name in plots
             axes[row][col].text(1, y_max-0.1*(max(current_model["threshold (uA)"]) - min(current_model["threshold (uA)"])),
-                "{}".format(eval("{}.display_name".format(model))), fontsize=14)
+                "{}".format(eval("{}.display_name_plots".format(model))), fontsize=14)
+                
+            ##### no grid
+            axes[row][col].grid(False)
+            
+            ##### add legend
+            axes[row][col].legend(title = "Pulses per second:")
+    
+    ##### bring subplots close to each other.
+    fig.subplots_adjust(hspace=0.05, wspace=0.1)
+    
+    ##### get labels for the axes
+    fig.text(0.5, 0.055, 'number of pulses', ha='center', fontsize=14)
+    fig.text(0.07, 0.5, 'threshold / uA', va='center', rotation='vertical', fontsize=14)
+        
+    return fig
+
+# =============================================================================
+#  Plot thresholds for pulse trains over pulse rate
+# =============================================================================
+def pulse_train_thres_over_pulse_rate(plot_name,
+                                      threshold_data):
+    """This function plots thresholds for pulse trains over different durations
+    and pulse rates. There is one plot for each model.
+
+    Parameters
+    ----------
+    plot_name : string
+        This defines how the plot window will be named.
+    threshold_data : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "threshold (uA)" 
+        - "number of pulses"
+        - "pulses per second"
+        - "model"
+                
+    Returns
+    -------
+    figure with thresholds per pulse train comparison
+    """
+    
+    ##### get model names
+    models = threshold_data["model"].unique().tolist()
+    
+    ##### get pulse rates
+    pulse_rates = threshold_data["pulses per second"].unique().tolist()
+    
+    ##### define number of columns
+    nof_cols = 2
+    
+    ##### get number of plots
+    nof_plots = len(models)
+    
+    ##### get number of rows
+    nof_rows = np.ceil(nof_plots/nof_cols).astype(int)
+    
+    ##### define colors and markers
+    colors = ["black","red","blue","#33a02c","black","red","blue","#33a02c"]
+    markers = ["o","v","s","d","o","v","s","d"]
+    edgecolors = ["black","red","blue","#33a02c","black","red","blue","#33a02c"]
+              
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### create figure
+    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=False, num = plot_name, figsize=(8*nof_cols, 5*nof_rows))
+    
+    ##### loop over plots 
+    for ii in range(nof_rows*nof_cols):
+        
+        ##### get row and column number
+        row = np.floor(ii/nof_cols).astype(int)
+        col = ii-row*nof_cols
+        
+        ##### turn off x-labels for all but the bottom plots
+        if (nof_plots - ii) > nof_cols:
+             plt.setp(axes[row][col].get_xticklabels(), visible=False)
+        
+        ##### remove not needed subplots
+        if ii >= nof_plots:
+            fig.delaxes(axes[row][col])
+        
+        ##### plot thresholds
+        if ii < nof_plots:
+            
+            ##### building a subset for current model
+            model = models[ii]
+            current_model = threshold_data[threshold_data["model"] == model]
+            
+            ##### define y axis range
+            y_min = min(current_model["threshold (uA)"]) - (max(current_model["threshold (uA)"]) - min(current_model["threshold (uA)"]))*0.05
+            y_max = max(current_model["threshold (uA)"]) + (max(current_model["threshold (uA)"]) - min(current_model["threshold (uA)"]))*0.2
+            axes[row][col].set_ylim([y_min,y_max])
+            
+            ##### loop over electrode distances
+            for jj, pps in enumerate(pulse_rates):
+                
+                ##### built subset for current electrode distance
+                current_data = current_model[current_model["pulses per second"] == pps]
+                
+                ##### plot latency curve
+                axes[row][col].plot(current_data["number of pulses"], current_data["threshold (uA)"], color = colors[jj], label = "_nolegend_")
+                
+                ##### show points
+                axes[row][col].scatter(current_data["number of pulses"], current_data["threshold (uA)"],
+                    color = colors[jj], marker = markers[jj], edgecolor = edgecolors[jj], label = pps)
+                
+            ##### logarithmic achses
+            axes[row][col].set_xscale('log')
+            #axes[row][col].set_yscale('log')
+            
+            ##### remove top and right lines
+            axes[row][col].spines['top'].set_visible(False)
+            axes[row][col].spines['right'].set_visible(False)
+                
+            ##### write model name in plots
+            axes[row][col].text(1, y_max-0.1*(max(current_model["threshold (uA)"]) - min(current_model["threshold (uA)"])),
+                "{}".format(eval("{}.display_name_plots".format(model))), fontsize=14)
+                
+            ##### no grid
+            axes[row][col].grid(False)
+            
+            ##### add legend
+            axes[row][col].legend(title = "Pulses per second:")
+    
+    ##### bring subplots close to each other.
+    fig.subplots_adjust(hspace=0.05, wspace=0.1)
+    
+    ##### get labels for the axes
+    fig.text(0.5, 0.055, 'number of pulses', ha='center', fontsize=14)
+    fig.text(0.07, 0.5, 'threshold / uA', va='center', rotation='vertical', fontsize=14)
+        
+    return fig
+
+# =============================================================================
+#  Plot thresholds for pulse trains over train duration
+# =============================================================================
+def pulse_train_thres_over_train_dur(plot_name,
+                                      threshold_data):
+    """This function plots thresholds for pulse trains over different durations
+    and pulse rates. There is one plot for each model.
+
+    Parameters
+    ----------
+    plot_name : string
+        This defines how the plot window will be named.
+    threshold_data : pandas dataframe
+        This dataframe has to contain the following columns:
+        - "threshold (uA)" 
+        - "number of pulses"
+        - "pulses per second"
+        - "model"
+                
+    Returns
+    -------
+    figure with thresholds per pulse train comparison
+    """
+    
+    ##### get model names
+    models = threshold_data["model"].unique().tolist()
+    
+    ##### get pulse rates
+    pulse_rates = threshold_data["pulses per second"].unique().tolist()
+    
+    ##### define number of columns
+    nof_cols = 2
+    
+    ##### get number of plots
+    nof_plots = len(models)
+    
+    ##### get number of rows
+    nof_rows = np.ceil(nof_plots/nof_cols).astype(int)
+    
+    ##### define colors and markers
+    colors = ["black","red","blue","#33a02c","black","red","blue","#33a02c"]
+    markers = ["o","v","s","d","o","v","s","d"]
+    edgecolors = ["black","red","blue","#33a02c","black","red","blue","#33a02c"]
+              
+    ##### close possibly open plots
+    plt.close(plot_name)
+    
+    ##### create figure
+    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=False, num = plot_name, figsize=(8*nof_cols, 5*nof_rows))
+    
+    ##### loop over plots 
+    for ii in range(nof_rows*nof_cols):
+        
+        ##### get row and column number
+        row = np.floor(ii/nof_cols).astype(int)
+        col = ii-row*nof_cols
+        
+        ##### turn off x-labels for all but the bottom plots
+        if (nof_plots - ii) > nof_cols:
+             plt.setp(axes[row][col].get_xticklabels(), visible=False)
+        
+        ##### remove not needed subplots
+        if ii >= nof_plots:
+            fig.delaxes(axes[row][col])
+        
+        ##### plot thresholds
+        if ii < nof_plots:
+            
+            ##### building a subset for current model
+            model = models[ii]
+            current_model = threshold_data[threshold_data["model"] == model]
+            
+            ##### define y axis range
+            y_min = min(current_model["threshold (uA)"]) - (max(current_model["threshold (uA)"]) - min(current_model["threshold (uA)"]))*0.05
+            y_max = max(current_model["threshold (uA)"]) + (max(current_model["threshold (uA)"]) - min(current_model["threshold (uA)"]))*0.2
+            axes[row][col].set_ylim([y_min,y_max])
+            
+            ##### loop over electrode distances
+            for jj, pps in enumerate(pulse_rates):
+                
+                ##### built subset for current electrode distance
+                current_data = current_model[current_model["pulses per second"] == pps]
+                
+                ##### plot latency curve
+                axes[row][col].plot(current_data["number of pulses"], current_data["threshold (uA)"], color = colors[jj], label = "_nolegend_")
+                
+                ##### show points
+                axes[row][col].scatter(current_data["number of pulses"], current_data["threshold (uA)"],
+                    color = colors[jj], marker = markers[jj], edgecolor = edgecolors[jj], label = pps)
+                
+            ##### logarithmic achses
+            axes[row][col].set_xscale('log')
+            #axes[row][col].set_yscale('log')
+            
+            ##### remove top and right lines
+            axes[row][col].spines['top'].set_visible(False)
+            axes[row][col].spines['right'].set_visible(False)
+                
+            ##### write model name in plots
+            axes[row][col].text(1, y_max-0.1*(max(current_model["threshold (uA)"]) - min(current_model["threshold (uA)"])),
+                "{}".format(eval("{}.display_name_plots".format(model))), fontsize=14)
                 
             ##### no grid
             axes[row][col].grid(False)

@@ -7,7 +7,9 @@ def dataframe_to_latex(dataframe,
                        label = None,
                        caption_top = None,
                        caption_bottom = None,
-                       italic = None):
+                       italic = None,
+                       vert_line = None,
+                       upper_col_names = None):
     """This function converts a pandas dataframe in latex table code.
     
     Parameters
@@ -21,6 +23,12 @@ def dataframe_to_latex(dataframe,
     italic : list of integers
         The list specifies the row numbers of the rows, which should be written
         in italics..
+    vert_line : list of integers
+        The list specifies the column number where a vertical line is put
+        afterwards. Counting starts from zero.
+    upper_col_names : list of strings
+        The list specifies the names of a second column name row above the usual
+        column name row.
     
     Returns
     -------
@@ -44,13 +52,20 @@ def dataframe_to_latex(dataframe,
     output = io.StringIO()
     
     ##### define column format/alignment
-    colFormat = ("%s|%s" % ("l", "c" * nof_cols))
+    if vert_line == None:
+        colFormat = ("%s|%s" % ("l", "c" * nof_cols))
+    else:
+        colFormat = "l|"
+        for ii in range(0,nof_cols):
+            colFormat = colFormat + "c"
+            if ii in vert_line: colFormat = colFormat + "|"
     
     ##### Write table header
     output.write("\\begin{table}[htb]\n")
     output.write("\\centering\n")
     if caption_top is not None: output.write("\\caption{%s}\n" % caption_top)
     output.write("\\begin{tabular}{%s}\n" % colFormat)
+    if upper_col_names is not None: output.write("& \\multicolumn{3}{c|}{%s}\\\\\n" % "} & \\multicolumn{3}{c}{".join(upper_col_names))
     columnLabels = ["%s" % label for label in dataframe.columns]
     output.write("& %s\\\\\\hline\n" % " & ".join(columnLabels))
     
@@ -87,7 +102,7 @@ def dataframe_to_latex(dataframe,
     ##### replace % with /%
     table_string = table_string.replace('%','\%')
         
-    ##### replace u a mikro sign
+    ##### replace u with mikro sign
     table_string = table_string.replace('(u','($\mu$')
      
     return table_string

@@ -52,13 +52,13 @@ models_without_soma = list(itl.compress(models, [not hasattr(model, "index_soma"
 ##### save plots
 save_plots = True
 save_tables = True
-theses_image_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Abschlussbericht/images/03_comparison_of_results"
-theses_table_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Abschlussbericht/tables/03_comparison_of_results"
+theses_image_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Abschlussbericht/images/single_fiber_characteristics"
+theses_table_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Abschlussbericht/tables/single_fiber_characteristics"
 
 # =============================================================================
 # Conduction velocity tables
 # =============================================================================
-##### table for models with soma6
+##### table for models with soma
 for ii,model in enumerate(models_with_soma):
     
     ##### get strength duration data
@@ -69,11 +69,11 @@ for ii,model in enumerate(models_with_soma):
     
     if ii == 0:
         ##### use model name as column header
-        conduction_velocity_table_with_soma = data.rename(index = str, columns={0:model.display_name_short})
+        conduction_velocity_table_with_soma = data.rename(index = str, columns={0:model.display_name_plots})
         
     else:
         ##### add column with AP shape data of current model
-        conduction_velocity_table_with_soma[model.display_name_short] = data[0]
+        conduction_velocity_table_with_soma[model.display_name_plots] = data[0]
 
 ##### table for models without soma
 for ii,model in enumerate(models_without_soma):
@@ -86,21 +86,11 @@ for ii,model in enumerate(models_without_soma):
     
     if ii == 0:
         ##### use model name as column header
-        conduction_velocity_table_without_soma = data.rename(index = str, columns={0:model.display_name_short})
+        conduction_velocity_table_without_soma = data.rename(index = str, columns={0:model.display_name_plots})
         
     else:
         ##### add column with AP shape data of current model
-        conduction_velocity_table_without_soma[model.display_name_short] = data[0]
-
-##### define captions and save tables as tex
-if save_tables:
-    caption_top = "Comparison of conduction velocities, outer diameters and scaling factors for models with a soma."    
-    with open("{}/conduction_velocity_table_with_soma.tex".format(theses_table_path), "w") as tf:
-        tf.write(ptol.dataframe_to_latex(conduction_velocity_table_with_soma, label = "tbl:con_vel_table_with_soma", caption_top = caption_top))
-    
-    caption_top = "Comparison of conduction velocities, outer diameters and scaling factors for models without a soma."    
-    with open("{}/conduction_velocity_table_without_soma.tex".format(theses_table_path), "w") as tf:
-        tf.write(ptol.dataframe_to_latex(conduction_velocity_table_without_soma, label = "tbl:con_vel_table_without_soma", caption_top = caption_top))
+        conduction_velocity_table_without_soma[model.display_name_plots] = data[0]
 
 # =============================================================================
 # Conduction velocity plot
@@ -143,6 +133,43 @@ if save_plots:
     conduction_velocity_plot.savefig("{}/conduction_velocity_plot.pdf".format(theses_image_path), bbox_inches='tight')
 
 # =============================================================================
+# Connect tables for models with and without soma and bring them in an appropriate format for latex
+# =============================================================================
+##### transpose tables
+conduction_velocity_table_with_soma = conduction_velocity_table_with_soma.transpose()
+conduction_velocity_table_without_soma = conduction_velocity_table_without_soma.transpose()
+
+##### change column names
+conduction_velocity_table_without_soma = conduction_velocity_table_without_soma.rename(index = str, columns={"velocity (m/s)":"velocity axon (m/s)",
+                                                                                                             "outer diameter (um)":"outer diameter axon (um)",
+                                                                                                             "velocity/diameter":"velocity/diameter axon"})
+
+##### connect tables
+conduction_velocity_table = pd.concat([conduction_velocity_table_with_soma,conduction_velocity_table_without_soma])
+
+##### order columns
+conduction_velocity_table = conduction_velocity_table[["velocity dendrite (m/s)", "outer diameter dendrite (um)","velocity/diameter dendrite",
+                                                       "velocity axon (m/s)","outer diameter axon (um)","velocity/diameter axon"]]
+
+##### change column names again
+conduction_velocity_table = conduction_velocity_table.rename(index = str, columns={"velocity dendrite (m/s)":"$v_{\T{c}}$/$ms^{-1}$",
+                                                                                   "outer diameter dendrite (um)":"$D$/\SI{}{\micro\meter}",
+                                                                                   "velocity/diameter dendrite":"$k$",
+                                                                                   "velocity axon (m/s)":"$v_{\T{c}}$/$ms^{-1}$",
+                                                                                   "outer diameter axon (um)":"$D$/\SI{}{\micro\meter}",
+                                                                                   "velocity/diameter axon":"$k$"})
+    
+##### fill NA values with ""
+conduction_velocity_table = conduction_velocity_table.fillna("-")
+
+##### define captions and save tables as tex
+if save_tables:
+    caption_top = "Comparison of conduction velocities, outer diameters and scaling factors predicted by the ANF models."    
+    with open("{}/conduction_velocity_table.tex".format(theses_table_path), "w") as tf:
+        tf.write(ptol.dataframe_to_latex(conduction_velocity_table, label = "tbl:con_vel_table",
+                                         caption_top = caption_top, vert_line = [2], upper_col_names = ["dendrite","axon"]))
+
+# =============================================================================
 # Single node response plot
 # =============================================================================
 ##### initialize list of dataframes to save voltage courses
@@ -151,22 +178,20 @@ voltage_courses = [pd.DataFrame()]*len(models)
 ##### define which data to show
 phase_duration = 100*us
 pulse_form = "monophasic"
-amplitude_level = "1*threshold"
 
 ##### loop over models
 for ii,model in enumerate(models):
     
     ##### get voltage course of model
-    voltage_course_dataset = pd.read_csv("results/{}/Single_node_response_plot_data {}.csv".format(model.display_name,model.display_name))
+    voltage_course_dataset = pd.read_csv("results/{}/Single_node_response_plot_data_deterministic {}.csv".format(model.display_name,model.display_name))
     
     #### add model information
-    voltage_course_dataset["model"] = model.display_name
+    voltage_course_dataset["model"] = model.display_name_plots
     
     ##### write subset of dataframe in voltage courses list
-    voltage_courses[ii] = voltage_course_dataset[["model","run","membrane potential (mV)","time (ms)"]]\
+    voltage_courses[ii] = voltage_course_dataset[["model", "membrane potential (mV)","time (ms)", "amplitude level"]]\
                                                 [voltage_course_dataset["pulse form"] == pulse_form]\
-                                                [voltage_course_dataset["phase duration (us)"] == phase_duration/us]\
-                                                [voltage_course_dataset["amplitude level"] == amplitude_level]
+                                                [voltage_course_dataset["phase duration (us)"] == phase_duration/us]
 
 ##### connect dataframes to one dataframe
 voltage_courses = pd.concat(voltage_courses,ignore_index = True)
@@ -180,7 +205,7 @@ if save_plots:
     single_node_response.savefig("{}/single_node_response comparison.pdf".format(theses_image_path), bbox_inches='tight')
 
 # =============================================================================
-# AP shape table
+# AP shape table axons
 # =============================================================================
 ##### define which data to show
 phase_duration = 100*us
@@ -194,75 +219,124 @@ for ii,model in enumerate(models):
     data  = pd.read_csv("results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name))
     
     ##### built subset of relevant rows and columns and transpose dataframe
-    data = data[["AP height (mV)", "rise time (us)", "fall time (us)", "AP duration (us)"]]\
+    data = data[["AP height (mV)", "rise time (us)", "fall time (us)"]]\
                [data["pulse form"] == pulse_form]\
                [data["phase duration (us)"] == phase_duration/us]\
                [data["amplitude level"] == amplitude_level].transpose()
     
     if ii == 0:
         ##### use model name as column header
-        AP_shape = data.rename(index = str, columns={data.columns.values[0]:model.display_name_short})
+        AP_shape_axon = data.rename(index = str, columns={data.columns.values[0]:model.display_name_plots})
         
     else:
         ##### add column with AP shape data of current model
-        AP_shape[model.display_name_short] = data[data.columns.values[0]]
+        AP_shape_axon[model.display_name_plots] = data[data.columns.values[0]]
     
 ##### transpose dataframe
-AP_shape = AP_shape.transpose()
+AP_shape_axon = AP_shape_axon.transpose()
 
 ##### round columns to 3 significant digits
-for ii in ["AP height (mV)","rise time (us)","fall time (us)","AP duration (us)"]:
-    AP_shape[ii] = ["%.4g" %AP_shape[ii][jj] for jj in range(AP_shape.shape[0])]
+for ii in ["AP height (mV)","rise time (us)","fall time (us)"]:
+    AP_shape_axon[ii] = ["%.4g" %AP_shape_axon[ii][jj] for jj in range(AP_shape_axon.shape[0])]
+
+##### change column names for latex export
+AP_shape_latex = AP_shape_axon.rename(index = str, columns={"AP height (mV)":"AP height/mV",
+                                                 "rise time (us)":"rise time/\SI{}{\micro\second}",
+                                                 "fall time (us)":"fall time/\SI{}{\micro\second}"})
 
 ##### define caption and save table as tex
 if save_tables:
-    caption_top = "Comparison of AP shape properties of all models"
+    caption_top = "Comparison of properties, describing the AP shape, measured with the ANF models due to a stimulation with a monophasic \SI{100}{\micro\second}\
+                   cathodic current pulse with amplitude $2I_{\T{th}}$."
     with open("{}/AP_shape_models.tex".format(theses_table_path), "w") as tf:
-         tf.write(ptol.dataframe_to_latex(AP_shape, label = "tbl:AP_shape_comparison", caption_top = caption_top))
+         tf.write(ptol.dataframe_to_latex(AP_shape_latex, label = "tbl:AP_shape_comparison", caption_top = caption_top))
+
+# =============================================================================
+# AP shapes dendrite
+# =============================================================================
+##### define which data to show
+phase_duration = 100*us
+pulse_form = "monophasic"
+amplitude_level = "2*threshold"
+
+##### loop over models with a soma
+for ii,model in enumerate(models_with_soma):
+    
+    ##### get node response summery table
+    data  = pd.read_csv("results/{}/Single_node_response_deterministic dendrite {}.csv".format(model.display_name,model.display_name))
+    
+    ##### built subset of relevant rows and columns and transpose dataframe
+    data = data[["AP height (mV)", "rise time (us)", "fall time (us)"]]\
+               [data["pulse form"] == pulse_form]\
+               [data["phase duration (us)"] == phase_duration/us]\
+               [data["amplitude level"] == amplitude_level].transpose()
+    
+    if ii == 0:
+        ##### use model name as column header
+        AP_shape_dendrite = data.rename(index = str, columns={data.columns.values[0]:"{} dendrite".format(model.display_name_plots)})
+        
+    else:
+        ##### add column with AP shape data of current model
+        AP_shape_dendrite["{} dendrite".format(model.display_name_plots)] = data[data.columns.values[0]]
+    
+##### transpose dataframe
+AP_shape_dendrite = AP_shape_dendrite.transpose()
+
+##### round columns to 3 significant digits
+for ii in ["AP height (mV)","rise time (us)","fall time (us)"]:
+    AP_shape_dendrite[ii] = ["%.4g" %AP_shape_dendrite[ii][jj] for jj in range(AP_shape_dendrite.shape[0])]
 
 # =============================================================================
 # Plot experimental results for rise and fall time
 # =============================================================================
+##### add axon label in row names for human ANF models
+AP_shape_axon = AP_shape_axon.rename(index={"Rattay et al. (2001)":"Rattay et al. (2001) axon",
+                                             "Briaire and Frijns (2005)":"Briaire and Frijns (2005) axon",
+                                             "Smit et al. (2010)":"Smit et al. (2010) axon"})
+
 ##### connect conduction velocities with AP shape values
-AP_shape_cond_vel_table = AP_shape[["rise time (us)","fall time (us)","AP duration (us)"]]
-AP_shape_cond_vel_table["conduction velocity (m/s)"] = 0.0
+AP_shape_cond_vel_table = pd.concat([AP_shape_axon[["rise time (us)","fall time (us)"]], AP_shape_dendrite[["rise time (us)","fall time (us)"]]])
+AP_shape_cond_vel_table["conduction velocity axon (m/s)"] = 0.0
+AP_shape_cond_vel_table["conduction velocity dendrite (m/s)"] = 0.0
+AP_shape_cond_vel_table["section"] = ""
 
 ##### Fill in conduction velocities
 for ii,model in enumerate(models):
     
     ##### models with soma
     if model in models_with_soma:
-        AP_shape_cond_vel_table["conduction velocity (m/s)"][model.display_name_short] = conduction_velocity_table_with_soma[model.display_name_short]["velocity axon (m/s)"]
-    
+        #### write velocity in table
+        AP_shape_cond_vel_table["conduction velocity dendrite (m/s)"]["{} dendrite".format(model.display_name_plots)] = conduction_velocity_table_with_soma["velocity dendrite (m/s)"][model.display_name_plots]
+        AP_shape_cond_vel_table["conduction velocity axon (m/s)"]["{} axon".format(model.display_name_plots)] = conduction_velocity_table_with_soma["velocity axon (m/s)"][model.display_name_plots]
+        #### write section in table
+        AP_shape_cond_vel_table["section"]["{} dendrite".format(model.display_name_plots)] = "dendrite"
+        AP_shape_cond_vel_table["section"]["{} axon".format(model.display_name_plots)] = "axon"
+                
     ##### models without soma
     else:
-        AP_shape_cond_vel_table["conduction velocity (m/s)"][model.display_name_short] = conduction_velocity_table_without_soma[model.display_name_short]["velocity (m/s)"]
-
+        #### write velocity in table
+        AP_shape_cond_vel_table["conduction velocity axon (m/s)"][model.display_name_plots] = conduction_velocity_table_without_soma["velocity axon (m/s)"][model.display_name_plots]
+        #### write section in table
+        AP_shape_cond_vel_table["section"][model.display_name_plots] = ""
+        
 ##### change index to column
 AP_shape_cond_vel_table.reset_index(inplace=True)
 AP_shape_cond_vel_table = AP_shape_cond_vel_table.rename(index = str, columns={"index" : "model_name"})
 
-##### replace short display names with long display names
-for ii,model in enumerate(models):
-    AP_shape_cond_vel_table["model_name"][ii] = model.display_name
-
 ##### change rise time column type to float
 AP_shape_cond_vel_table["rise time (us)"] = AP_shape_cond_vel_table["rise time (us)"].astype(float)
 AP_shape_cond_vel_table["fall time (us)"] = AP_shape_cond_vel_table["fall time (us)"].astype(float)
-AP_shape_cond_vel_table["AP duration (us)"] = AP_shape_cond_vel_table["AP duration (us)"].astype(float)
 
-##### Plot rise time comparison
-rise_time_comparison_paintal = plot.paintal_rise_time_curve(plot_name = "Comparison of rise times with data from Paintal 1965",
-                                                            model_data = AP_shape_cond_vel_table)
+##### order dataframe
+AP_shape_cond_vel_table = AP_shape_cond_vel_table.sort_values("model_name")
 
-##### Plot fall time comparison
-fall_time_comparison_paintal = plot.paintal_fall_time_curve(plot_name = "Comparison of fall times with data from Paintal 1965",
-                                                            model_data = AP_shape_cond_vel_table)
+##### Plot rise and fall time comparison
+rise_and_fall_time_comparison_paintal = plot.rise_and_fall_time_comparison(plot_name = "Comparison of rise times with data from Paintal 1966",
+                                                                           model_data = AP_shape_cond_vel_table)
 
 ##### save plots
 if save_plots:
-    rise_time_comparison_paintal.savefig("{}/rise_time_comparison_paintal.pdf".format(theses_image_path), bbox_inches='tight')
-    fall_time_comparison_paintal.savefig("{}/fall_time_comparison_paintal.pdf".format(theses_image_path), bbox_inches='tight')
+    rise_and_fall_time_comparison_paintal.savefig("{}/rise_and_fall_time_comparison_paintal.pdf".format(theses_image_path), bbox_inches='tight')
 
 # =============================================================================
 # Latency table
@@ -289,16 +363,16 @@ for ii,model in enumerate(models):
     
     if ii == 0:
         ##### use model name as column header
-        latency_table = data.rename(index = str, columns={"latency (us)":model.display_name})
+        latency_table = data.rename(index = str, columns={"latency (us)":model.display_name_plots})
         
     else:
         ##### add column with AP shape data of current model
-        latency_table[model.display_name] = data["latency (us)"].tolist()
+        latency_table[model.display_name_plots] = data["latency (us)"].tolist()
 
 ##### Add experimental data
-latency_table["Miller et al. 1999"] = ["-", "-", "-", "650"]
-latency_table["Van den Honert and Stypulkowski 1984"] = ["-", "685", "352", "-"]
-latency_table["Cartee et al. 2000 (threshold)"] = ["440", "-", "-", "-"]
+latency_table["\cite{Miller1999}"] = ["-", "-", "-", "650"]
+latency_table["\cite{VandenHonert1984}"] = ["-", "685", "352", "-"]
+latency_table["\cite{Cartee2000}"] = ["440", "-", "-", "-"]
 
 ##### Transpose dataframe
 latency_table = latency_table.transpose()
@@ -309,11 +383,13 @@ for ii,letter in enumerate(letters[:len(latency_table.columns)]):
 
 ##### define caption and save table as tex
 if save_tables:
-    caption_top = "Comparison of latencies"
-    caption_bottom = "All latencies are given in $\mu$s. Four different stimuli were applied and compared with experimental data (italicised)\\\\\n"
+    caption_top = "Comparison of latencies, measured with the ANF models, to experimental data (italiced). Four different stimuli were applied. Latencies are given in \SI{}{\micro\second}"
+    caption_bottom = ""
     for ii,letter in enumerate(letters[:len(stimulations)]):
-        caption_bottom = caption_bottom + "{}: {}, phase duration: {} $\mu$s, stimulus amplitude: {}\\\\\n".format(letter,stimulations["pulse form"][ii],
-                                           stimulations["phase duration (us)"][ii],stimulations["amplitude level"][ii])
+        if stimulations["amplitude level"][ii][0] == "1": stim_amp = ""
+        else: stim_amp = stimulations["amplitude level"][ii][0]
+        caption_bottom = caption_bottom + "{}: {} ".format(letter,stimulations["pulse form"][ii]) + "\SI{" + "{}".format(stimulations["phase duration (us)"][ii])\
+                         + "}{\micro\second}" + " cathodic current pulse with amplitude {}".format(stim_amp) + "$I_{\T{th}}$\\\\\n"
     italic_range = range(len(models),len(latency_table))
     with open("{}/latency_table.tex".format(theses_table_path), "w") as tf:
         tf.write(ptol.dataframe_to_latex(latency_table, label = "tbl:latency_comparison",
@@ -333,16 +409,16 @@ for ii,model in enumerate(models):
     
     if ii == 0:
         ##### use model name as column header
-        jitter_table = data.rename(index = str, columns={"jitter (us)":model.display_name})
+        jitter_table = data.rename(index = str, columns={"jitter (us)":model.display_name_plots})
         
     else:
         ##### add column with AP shape data of current model
-        jitter_table[model.display_name] = data["jitter (us)"].tolist()
+        jitter_table[model.display_name_plots] = data["jitter (us)"].tolist()
 
 ##### Add experimental data
-jitter_table["Miller et al. 1999"] = ["-", "-", "-", "100"]
-jitter_table["Van den Honert and Stypulkowski 1984"] = ["-", "352", "8", "-"]
-jitter_table["Cartee et al. 2000"] = ["80", "-", "-", "-"]
+jitter_table["\cite{Miller1999}"] = ["-", "-", "-", "100"]
+jitter_table["\cite{VandenHonert1984}"] = ["-", "352", "8", "-"]
+jitter_table["\cite{Cartee2000}"] = ["80", "-", "-", "-"]
 
 ##### Transpose dataframe
 jitter_table = jitter_table.transpose()
@@ -374,19 +450,19 @@ for ii,model in enumerate(models):
     
     if ii == 0:
         ##### use model name as column header
-        strength_duration_table = data.rename(index = str, columns={0:model.display_name})
+        strength_duration_table = data.rename(index = str, columns={0:model.display_name_plots})
         
     else:
         ##### add column with AP shape data of current model
-        strength_duration_table[model.display_name] = data[0]
+        strength_duration_table[model.display_name_plots] = data[0]
 
 ##### round for three significant digits
 for ii in strength_duration_table.columns.values.tolist():
     strength_duration_table[ii] = ["%.3g" %strength_duration_table[ii][jj] for jj in range(strength_duration_table.shape[0])]
 
 ##### add experimental data
-strength_duration_table["Van den Honert and Stypulkowski 1984"] = ["95.8", "247"]
-strength_duration_table["Bostock et al. 1983"] = ["-", "64.9"]
+strength_duration_table["\cite{VandenHonert1984}"] = ["95.8", "247"]
+strength_duration_table["\cite{Bostock1983}"] = ["-", "64.9"]
 
 ##### transpose dataframe
 strength_duration_table = strength_duration_table.transpose()
@@ -411,7 +487,7 @@ for ii,model in enumerate(models):
     stength_duration_curves[ii] = pd.read_csv("results/{}/Strength_duration_plot_table {}.csv".format(model.display_name,model.display_name))
     
     #### add model information
-    stength_duration_curves[ii]["model"] = model.display_name
+    stength_duration_curves[ii]["model"] = model.display_name_plots
 
 ##### connect dataframes to one dataframe
 stength_duration_curves = pd.concat(stength_duration_curves,ignore_index = True)
@@ -438,10 +514,19 @@ for ii,model in enumerate(models):
     refractory_curves[ii] = pd.read_csv("results/{}/Refractory_curve_table {}.csv".format(model.display_name,model.display_name))
     
     #### add model information
-    refractory_curves[ii]["model"] = model.display_name
+    refractory_curves[ii]["model"] = model.display_name_plots
 
 ##### connect dataframes to one dataframe
 refractory_curves = pd.concat(refractory_curves,ignore_index = True)
+
+##### remove rows where no second spikes were obtained
+refractory_curves = refractory_curves[refractory_curves["minimum required amplitude"] != 0]
+    
+##### calculate the ratio of the threshold of the second spike and the masker
+refractory_curves["threshold ratio"] = refractory_curves["minimum required amplitude"]/refractory_curves["threshold"]
+
+##### convert interpulse intervals to ms
+refractory_curves["interpulse interval"] = refractory_curves["interpulse interval"]*1e3
 
 ##### plot voltage courses
 refractory_curves_plot = plot.refractory_curves_comparison(plot_name = "Refractory curves model comparison",
@@ -474,21 +559,21 @@ for ii,model in enumerate(models):
 
     if ii == 0:
         ##### use model name as column header
-        ARP_comparison_table = data.rename(index = str, columns={"absolute refractory period (us)":model.display_name})
+        ARP_comparison_table = data.rename(index = str, columns={"absolute refractory period (us)":model.display_name_plots})
         
     else:
         ##### add column with AP shape data of current model
-        ARP_comparison_table[model.display_name] = data["absolute refractory period (us)"].tolist()
+        ARP_comparison_table[model.display_name_plots] = data["absolute refractory period (us)"].tolist()
 
 ##### round for four significant digits
 for ii in ARP_comparison_table.columns.values.tolist():
     ARP_comparison_table[ii] = ["%.4g" %ARP_comparison_table[ii][jj] for jj in range(ARP_comparison_table.shape[0])]
         
 ##### Add experimental data
-ARP_comparison_table["Miller et al. 2001"] = ["334", "-", "-", "-"]
-ARP_comparison_table["Stypulkowski and Van den Honert 1984"] = ["-", "300", "-", "-"]
-ARP_comparison_table["Dynes 1996"] = ["-", "-", "500-700", "-"]
-ARP_comparison_table["Brown and Abbas 1990"] = ["-", "-", "-", "400-500"]
+ARP_comparison_table["\cite{Miller2001}"] = ["334", "-", "-", "-"]
+ARP_comparison_table["\cite{Stypulkowski1984}"] = ["-", "300", "-", "-"]
+ARP_comparison_table["\cite{Dynes1996}"] = ["-", "-", "500-700", "-"]
+ARP_comparison_table["\cite{Brown1990}"] = ["-", "-", "-", "400-500"]
 
 ##### Transpose dataframe
 ARP_comparison_table = ARP_comparison_table.transpose()
@@ -499,10 +584,15 @@ for ii,letter in enumerate(letters[:len(ARP_comparison_table.columns)]):
 
 ##### define caption and save table as tex
 if save_tables:
-    caption_top = "Comparison of ARPs"
-    caption_bottom = "All ARP values are given in $\mu$s. Four different stimuli were applied and compared with experimental data (italicised)\\\\\n"
+    caption_top = "Comparison of ARPs, measured with the ANF models, to experimental data (italiced). Four different stimuli were used. ARPs are given in \SI{}{\micro\second}"
+    caption_bottom = ""
     for ii,letter in enumerate(letters[:len(stimulations)]):
-        caption_bottom = caption_bottom + "{}: {}, phase duration: {} $\mu$s\\\\\n".format(letter,stimulations["pulse form"][ii],stimulations["phase duration (us)"][ii])
+        if stimulations["pulse form"][ii] == "monophasic":
+            caption_bottom = caption_bottom + "{}: {} ".format(letter,stimulations["pulse form"][ii]) + "\SI{" + "{}".format(stimulations["phase duration (us)"][ii])\
+                                            + "}{\micro\second} cathodic current pulses\\\\\n"
+        else:
+            caption_bottom = caption_bottom + "{}: {} ".format(letter,stimulations["pulse form"][ii]) + "\SI{" + "{}".format(stimulations["phase duration (us)"][ii])\
+                                + "}{\micro\second} cathodic first current pulses\\\\\n"
     italic_range = range(len(models),len(ARP_comparison_table))
     with open("{}/ARP_comparison_table.tex".format(theses_table_path), "w") as tf:
         tf.write(ptol.dataframe_to_latex(ARP_comparison_table, label = "tbl:ARP_comparison",
@@ -531,21 +621,21 @@ for ii,model in enumerate(models):
 
     if ii == 0:
         ##### use model name as column header
-        RRP_comparison_table = data.rename(index = str, columns={"relative refractory period (ms)":model.display_name})
+        RRP_comparison_table = data.rename(index = str, columns={"relative refractory period (ms)":model.display_name_plots})
         
     else:
         ##### add column with AP shape data of current model
-        RRP_comparison_table[model.display_name] = data["relative refractory period (ms)"].tolist()
+        RRP_comparison_table[model.display_name_plots] = data["relative refractory period (ms)"].tolist()
 
 ##### round for three significant digits
 for ii in RRP_comparison_table.columns.values.tolist():
     RRP_comparison_table[ii] = ["%.3g" %RRP_comparison_table[ii][jj] for jj in range(RRP_comparison_table.shape[0])]
     
 ##### Add experimental data
-RRP_comparison_table["Stypulkowski and Van den Honert 1984"] = ["3-4", "-", "-"]
-RRP_comparison_table["Cartee et al. 2000"] = ["4-5", "-", "-"]
-RRP_comparison_table["Dynes 1996"] = ["-", "5", "-"]
-RRP_comparison_table["Hartmann et al. 1984"] = ["-", "-", "5"]
+RRP_comparison_table["\cite{Stypulkowski1984}"] = ["3-4", "-", "-"]
+RRP_comparison_table["\cite{Cartee2000}"] = ["4-5", "-", "-"]
+RRP_comparison_table["\cite{Dynes1996}"] = ["-", "5", "-"]
+RRP_comparison_table["\cite{Hartmann1984a}"] = ["-", "-", "5"]
 
 ##### Transpose dataframe
 RRP_comparison_table = RRP_comparison_table.transpose()
@@ -555,12 +645,16 @@ for ii,letter in enumerate(letters[:len(RRP_comparison_table.columns)]):
     RRP_comparison_table = RRP_comparison_table.rename(index = str, columns={"{}".format(ii):"Stim. {}".format(letter)})
 
 ##### define caption and save table as tex
-caption = "no caption"
 if save_tables:
-    caption_top = "Comparison of RRPs"
-    caption_bottom = "All RRP values are given in ms. Three different stimuli were applied and compared with experimental data (italicised)\\\\\n"
+    caption_top = "Comparison of RRPs, measured with the ANF models, to experimental data (italiced). Three different stimuli were used. RRPs are given in \SI{}{\milli\second}"
+    caption_bottom = ""
     for ii,letter in enumerate(letters[:len(stimulations)]):
-        caption_bottom = caption_bottom + "{}: {}, phase duration: {} $\mu$s\\\\\n".format(letter,stimulations["pulse form"][ii],stimulations["phase duration (us)"][ii])
+        if stimulations["pulse form"][ii] == "monophasic":
+            caption_bottom = caption_bottom + "{}: {} ".format(letter,stimulations["pulse form"][ii]) + "\SI{" + "{}".format(stimulations["phase duration (us)"][ii])\
+                                            + "}{\micro\second} cathodic current pulses\\\\\n"
+        else:
+            caption_bottom = caption_bottom + "{}: {} ".format(letter,stimulations["pulse form"][ii]) + "\SI{" + "{}".format(stimulations["phase duration (us)"][ii])\
+                                + "}{\micro\second} cathodic first current pulses\\\\\n"
     italic_range = range(len(models),len(RRP_comparison_table))
     with open("{}/RRP_comparison_table.tex".format(theses_table_path), "w") as tf:
         tf.write(ptol.dataframe_to_latex(RRP_comparison_table, label = "tbl:RRP_comparison",
@@ -573,9 +667,9 @@ if save_tables:
 model = rattay_01
 
 ##### get data for plots
-relative_spread_plot_table_1k = pd.read_csv("results/{}/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
-relative_spread_plot_table_2k = pd.read_csv("results/{}/2_knoise/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
-relative_spread_plot_table_4k = pd.read_csv("results/{}/4_knoise/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
+relative_spread_plot_table_1k = pd.read_csv("results/{}/Relative_spread_plot_table {}.csv".format(model.display_name_plots,model.display_name_plots))
+relative_spread_plot_table_2k = pd.read_csv("results/{}/2_knoise/Relative_spread_plot_table {}.csv".format(model.display_name_plots,model.display_name_plots))
+relative_spread_plot_table_4k = pd.read_csv("results/{}/4_knoise/Relative_spread_plot_table {}.csv".format(model.display_name_plots,model.display_name_plots))
 
 ##### add noise levels to dataframes
 relative_spread_plot_table_1k["noise level"] = "1 $k_{noise}$"
@@ -586,7 +680,7 @@ relative_spread_plot_table_4k["noise level"] = "4 $k_{noise}$"
 relative_spread_plot_table = pd.concat([relative_spread_plot_table_1k,relative_spread_plot_table_2k,relative_spread_plot_table_4k], ignore_index = True)
 
 ##### relative spreads plot
-relative_spread_plot = plot.relative_spread_comparison(plot_name = "Relative spreads {}".format(model.display_name),
+relative_spread_plot = plot.relative_spread_comparison(plot_name = "Relative spreads {}".format(model.display_name_plots),
                                                        threshold_data = relative_spread_plot_table)
 
 ##### save plot
@@ -600,14 +694,14 @@ if save_plots:
 model = rattay_01
 
 ##### get tables
-relative_spreads_1k = pd.read_csv("results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
-relative_spreads_2k = pd.read_csv("results/{}/2_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
-relative_spreads_4k = pd.read_csv("results/{}/4_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
+relative_spreads_1k = pd.read_csv("results/{}/Relative_spreads {}.csv".format(model.display_name_plots,model.display_name_plots))
+relative_spreads_2k = pd.read_csv("results/{}/2_knoise/Relative_spreads {}.csv".format(model.display_name_plots,model.display_name_plots))
+relative_spreads_4k = pd.read_csv("results/{}/4_knoise/Relative_spreads {}.csv".format(model.display_name_plots,model.display_name_plots))
 
 ##### Relative spread of thresholds
-relative_spreads = relative_spreads_1k.rename(index = str, columns={"relative spread":"{} 1*knoise".format(model.display_name_short)})
-relative_spreads["{} 2*knoise".format(model.display_name_short)] = relative_spreads_2k["relative spread"].tolist()
-relative_spreads["{} 4*knoise".format(model.display_name_short)] = relative_spreads_4k["relative spread"].tolist()
+relative_spreads = relative_spreads_1k.rename(index = str, columns={"relative spread":"{} 1*knoise".format(model.display_name_plots_short)})
+relative_spreads["{} 2*knoise".format(model.display_name_plots_short)] = relative_spreads_2k["relative spread"].tolist()
+relative_spreads["{} 4*knoise".format(model.display_name_plots_short)] = relative_spreads_4k["relative spread"].tolist()
 
 ##### save stimulus information, build subset and transpose dataframe
 stimulation = relative_spreads[["phase duration (us)", "pulse form"]]
@@ -635,21 +729,21 @@ if save_tables:
 for ii,model in enumerate(models):
     
     ##### get node response summery table
-    data = pd.read_csv("results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
+    data = pd.read_csv("results/{}/Relative_spreads {}.csv".format(model.display_name_plots,model.display_name_plots))
     
     if ii == 0:
         ##### use model name as column header
-        relative_spread_table = data.rename(index = str, columns={"relative spread":model.display_name})
+        relative_spread_table = data.rename(index = str, columns={"relative spread":model.display_name_plots})
         
     else:
         ##### add column with AP shape data of current model
-        relative_spread_table[model.display_name] = data["relative spread"].tolist()
+        relative_spread_table[model.display_name_plots] = data["relative spread"].tolist()
     
     if model == rattay_01:
-        relative_spreads_2k = pd.read_csv("results/{}/2_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
-        relative_spreads_4k = pd.read_csv("results/{}/4_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
-        relative_spread_table["{} 2*knoise".format(model.display_name)] = relative_spreads_2k["relative spread"].tolist()
-        relative_spread_table["{} 4*knoise".format(model.display_name)] = relative_spreads_4k["relative spread"].tolist()
+        relative_spreads_2k = pd.read_csv("results/{}/2_knoise/Relative_spreads {}.csv".format(model.display_name_plots,model.display_name_plots))
+        relative_spreads_4k = pd.read_csv("results/{}/4_knoise/Relative_spreads {}.csv".format(model.display_name_plots,model.display_name_plots))
+        relative_spread_table["{} 2*knoise".format(model.display_name_plots)] = relative_spreads_2k["relative spread"].tolist()
+        relative_spread_table["{} 4*knoise".format(model.display_name_plots)] = relative_spreads_4k["relative spread"].tolist()
 
 ##### Add experimental data
 relative_spread_table["Miller et al. 1999"] = ["6.3%","-","-","-"]
