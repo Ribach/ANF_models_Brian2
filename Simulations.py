@@ -42,9 +42,9 @@ prefs.codegen.target = "numpy"
 # Simulations to be done / Plots to be shown
 # =============================================================================
 plot_voltage_course_lines = True
-plot_voltage_course_colored = True
-plot_gating_variables = True
-plot_ion_currents = True
+plot_voltage_course_colored = False
+plot_gating_variables = False
+plot_ion_currents = False
 
 # =============================================================================
 # Definition of neuron and initialization of state monitor
@@ -105,15 +105,15 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 pulse_form = "mono",
                                                 stimulated_compartment = stim_comp_index,
                                                 nof_pulses = 1,
-                                                time_before = 1*ms,
+                                                time_before = 0.5*ms,
                                                 time_after = 2*ms,
                                                 add_noise = False,
                                                 ##### monophasic stimulation
-                                                amp_mono = -350*uA,
-                                                duration_mono = 100*us,
+                                                amp_mono = -300*uA,
+                                                duration_mono = 50*us,
                                                 ##### biphasic stimulation
-                                                amps_bi = [-150,150]*uA,
-                                                durations_bi = [400,0,400]*us,
+                                                amps_bi = [-500,500]*uA,
+                                                durations_bi = [2,0,2]*us,
                                                 ##### multiple pulses / pulse trains
                                                 inter_pulse_gap = 1*ms)
     
@@ -144,7 +144,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
 
 if plot_gating_variables:
     ##### plot gating variables
-    comp_index = np.where(model.structure == 2)[0][2]
+    comp_index = np.where(model.structure == 2)[0][4]
     comp_index = stim_comp_index
     fig = plt.figure("gating variables")
     axes = fig.add_subplot(1, 1, 1)

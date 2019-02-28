@@ -151,7 +151,7 @@ E_L = -(1/g_L)* (g_Na*m_init**3*h_init* E_Na + g_K*n_init**4*E_K)
 # internode = 1
 # node = 2
 # presomatic region = 3
-# Soma = 4
+# soma = 4
 # postsomatic region = 5)
 structure = np.array([0] + list(np.tile([1,2],5)) + [1] + list(np.tile([3],nof_segments_presomatic_region)) + 
                      list(np.tile([4],nof_segments_soma)) + [5] + list(np.tile([1,2],nof_axonal_internodes-1)) + [1])
@@ -429,13 +429,13 @@ def set_up_model(dt, model, update = False):
                            Ri = model.rho_in,
                            method="exponential_euler")
             
-    ##### initial values
+    ##### initial values of gating variables 
     neuron.v = model.V_res
     neuron.m = model.m_init
     neuron.n = model.n_init
     neuron.h = model.h_init
     
-    ##### Set parameter values of differential equations
+    ##### Set values of parameters in differential equations
     # conductances active compartments
     neuron.g_Na = model.g_Na
     neuron.g_K = model.g_K
@@ -452,7 +452,7 @@ def set_up_model(dt, model, update = False):
     neuron.g_K[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
     neuron.g_L[np.asarray(np.where(model.structure == 1))] = 0*msiemens/cm**2
     
-    # other parameters
+    # potentials
     neuron.V_res = model.V_res
     neuron.E_Na = model.E_Na
     neuron.E_K = model.E_K

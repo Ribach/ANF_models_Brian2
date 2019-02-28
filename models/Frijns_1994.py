@@ -108,8 +108,8 @@ display_name_short = "Frijns 94"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.append(np.linspace(1, 1.5, num=40, endpoint = False),
-                                  np.linspace(1.5, 5, num=20, endpoint = False))*1e-3
+inter_pulse_intervals = np.append(np.linspace(0.71, 0.75, num=18, endpoint = False),
+                                  np.linspace(0.75, 5, num=20, endpoint = False))*1e-3
 
 # =============================================================================
 # Calculations

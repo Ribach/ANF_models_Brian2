@@ -212,6 +212,157 @@ def get_threshold(model_name,
     return threshold
 
 # =============================================================================
+# Calculate thresholds for sinusodial stimulation
+# =============================================================================
+def get_threshold_for_sinus(model_name,
+                            dt,
+                            delta,
+                            stim_length,
+                            upper_border,
+                            frequency,
+                            parameter = None,
+                            parameter_ratio = None,
+                            stimulation_type = "extern",
+                            time_before = 2*ms,
+                            time_after = 3*ms,
+                            stimulated_compartment = None,
+                            add_noise = False,
+                            print_progress = True,
+                            run_number = 0):
+    """This function calculates the spiking threshold of a model for mono- and
+    biphasic pulses, intern and extern stimulation, single pulses and pulse trains.
+    
+    Parameters
+    ----------
+    model_name : string
+        String with the model name in the format of the imported modules on top of the script
+    dt : time
+        Sampling timestep.
+    delta : current
+        Maximum error for the measured spiking threshold
+    stim_length : time
+        Defines length of sinus
+    upper_border : current
+        Upper border of considered currents. Threshold is expected to be below it
+    frequency : frequency
+        Defines frequency of sinus
+    parameter : string
+        String with the name of a model parameter, which will be adjusted
+    parameter_ratio : numeric
+        Numeric value used in cobination with a given parameter. Original value is multiplied with the parameter ratio
+    stimulation_type : string
+        Describes, how the ANF is stimulated; either "internal" or "external" is possible
+    time_before : time
+        Time until (first) pulse starts.
+    time_after : time
+        Time which is still simulated after the end of the last pulse
+    add_noise : boolean
+        Defines, if Gaussian noise is added to the stimulus current.
+    print_progress : boolean
+        Defines, if information about the progress are printed on the console
+    run_number : integer
+        Usefull for multiple threshold measurements using multiprocessing with
+        the thorns package.
+    
+    Returns
+    -------
+    threshold current
+        Gives back the spiking threshold.
+    """
+    
+    ##### add quantity to phase_duration and inter_phase_gap
+    frequency = float(frequency)*Hz
+    stim_length = float(stim_length)*second
+    
+    ##### get model
+    model = eval(model_name)
+    
+    ##### initialize model
+    if parameter is not None:
+        
+        ##### adjust model parameter
+        exec("model.{} = parameter_ratio*model.{}".format(parameter,parameter))
+            
+        ##### initialize model with changed parameter
+        neuron, model = model.set_up_model(dt = dt, model = model, update = True)
+        M = StateMonitor(neuron, 'v', record=True)
+        store('initialized')
+        
+    else:
+        
+        ##### initialize model (no parameter was changed)
+        neuron, model = model.set_up_model(dt = dt, model = model)
+        M = StateMonitor(neuron, 'v', record=True)
+        store('initialized')
+    
+    ##### compartment for measurements
+    comp_index = np.where(model.structure == 2)[0][-5]
+    
+    ##### calculate runtime
+    runtime = time_before + stim_length + time_after
+    
+    ##### calculate number of timesteps
+    nof_timesteps = int(np.ceil(runtime/dt))
+    
+    ##### include noise
+    if add_noise:
+        np.random.seed()
+        I_noise = np.transpose(np.transpose(np.random.normal(0, 1, (model.nof_comps,nof_timesteps)))*model.k_noise*model.noise_term)
+    else:
+        I_noise = np.zeros((model.nof_comps,nof_timesteps))
+    
+    ##### initializations
+    threshold = 0*amp
+    lower_border = 0*amp
+    stim_amp = upper_border*0.2
+    amp_diff = upper_border - lower_border
+    
+    ##### adjust stimulus amplitude until required accuracy is obtained
+    while amp_diff > delta:
+        
+        ##### print progress
+        if print_progress: print("Model: {}; {}: {}; Duration: {} us; Run: {}; Stimulus amplitde: {} uA".format(model_name,
+                                 parameter, parameter_ratio, np.round(stim_length/us),run_number+1,np.round(stim_amp/uA,4)))
+        
+        ##### define how the ANF is stimulated
+        I_stim, runtime = stim.get_stimulus_current_for_sinus(model = model,
+                                                              dt = dt,
+                                                              frequency = frequency,
+                                                              amplitude = stim_amp,
+                                                              stim_length = stim_length,
+                                                              stimulation_type = stimulation_type,
+                                                              add_noise = False,
+                                                              time_before = time_before,
+                                                              time_after = time_after,
+                                                              stimulated_compartment = stimulated_compartment)
+        
+        ##### get TimedArray of stimulus currents and run simulation
+        stimulus = TimedArray(np.transpose(I_stim + I_noise), dt=dt)
+        
+        ##### reset state monitor
+        restore('initialized')
+        
+        ##### run simulation
+        run(runtime)
+        
+        ##### test if there was a spike
+        if max(M.v[comp_index,:]-model.V_res) > 60*mV:
+            threshold = stim_amp
+            upper_border = stim_amp
+            stim_amp = (stim_amp + lower_border)/2
+        else:
+            lower_border = stim_amp
+            stim_amp = (stim_amp + upper_border)/2
+            
+        amp_diff = upper_border - lower_border
+    
+    if parameter is not None:
+        ##### reload module
+        model = reload(model)
+
+    return threshold
+
+# =============================================================================
 #  Calculate conduction velocity
 # =============================================================================
 def get_conduction_velocity(model_name,
@@ -1013,6 +1164,7 @@ def post_stimulus_time_histogram(model_name,
                                  stimulation_type = "extern",
                                  phase_duration = 50*us,
                                  stimulated_compartment = None,
+                                 add_noise = True,
                                  print_progress = True,
                                  run_number = 0):
     """This function calculates the spiking threshold of a model for mono- and
@@ -1037,6 +1189,10 @@ def post_stimulus_time_histogram(model_name,
         Describes, how the ANF is stimulated; either "internal" or "external" is possible
     phase_duration : time or numeric value (numeric values are interpreted as time in second)
         Duration of one phase of the stimulus current
+    stimulated_compartment: integer
+        Index of compartment, where the electrode is located
+    add_noise: boolean
+        Defines, if the gausian noise current term is added to the stimulus
     print_progress : boolean
         Defines, if information about the progress are printed on the console
     run_number : integer
@@ -1097,7 +1253,7 @@ def post_stimulus_time_histogram(model_name,
                                                 nof_pulses = nof_pulses,
                                                 time_before = 0*ms,
                                                 time_after = 0*ms,
-                                                add_noise = True,
+                                                add_noise = add_noise,
                                                 stimulated_compartment = stimulated_compartment,
                                                 ##### monophasic stimulation
                                                 amp_mono = -stim_amp*uA,

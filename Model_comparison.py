@@ -54,6 +54,7 @@ save_plots = True
 save_tables = True
 theses_image_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Abschlussbericht/images/single_fiber_characteristics"
 theses_table_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Abschlussbericht/tables/single_fiber_characteristics"
+presentation_image_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Abschlussvortrag/Bilder"
 
 # =============================================================================
 # Conduction velocity tables
@@ -442,60 +443,95 @@ if save_tables:
 # =============================================================================
 # Strength duration table
 # =============================================================================
-##### loop over models
+##### cathodic stimulus
 for ii,model in enumerate(models):
     
-    ##### get strength duration data
-    data = pd.read_csv("results/{}/Strength_duration_data {}.csv".format(model.display_name,model.display_name)).transpose()
+    # get strength duration data
+    data = pd.read_csv("results/{}/Strength_duration_data_cathodic {}.csv".format(model.display_name,model.display_name)).transpose()
     
     if ii == 0:
-        ##### use model name as column header
-        strength_duration_table = data.rename(index = str, columns={0:model.display_name_plots})
+        # use model name as column header
+        strength_duration_table_cat = data.rename(index = str, columns={0:model.display_name_plots})
         
     else:
-        ##### add column with AP shape data of current model
-        strength_duration_table[model.display_name_plots] = data[0]
+        # add column with AP shape data of current model
+        strength_duration_table_cat[model.display_name_plots] = data[0]
 
-##### round for three significant digits
-for ii in strength_duration_table.columns.values.tolist():
-    strength_duration_table[ii] = ["%.3g" %strength_duration_table[ii][jj] for jj in range(strength_duration_table.shape[0])]
+# round for three significant digits
+for ii in strength_duration_table_cat.columns.values.tolist():
+    strength_duration_table_cat[ii] = ["%.3g" %strength_duration_table_cat[ii][jj] for jj in range(strength_duration_table_cat.shape[0])]
 
-##### add experimental data
-strength_duration_table["\cite{VandenHonert1984}"] = ["95.8", "247"]
-strength_duration_table["\cite{Bostock1983}"] = ["-", "64.9"]
+# rename indices
+strength_duration_table_cat = strength_duration_table_cat.rename(index={"rheobase (uA)":"rheobase cat",
+                                                                        "chronaxie (us)":"chronaxie cat"})
+
+##### anodic stimulus
+for ii,model in enumerate(models):
+    
+    # get strength duration data
+    data = pd.read_csv("results/{}/Strength_duration_data_anodic {}.csv".format(model.display_name,model.display_name)).transpose()
+    
+    if ii == 0:
+        # use model name as column header
+        strength_duration_table_ano = data.rename(index = str, columns={0:model.display_name_plots})
+        
+    else:
+        # add column with AP shape data of current model
+        strength_duration_table_ano[model.display_name_plots] = data[0]
+
+# round for three significant digits
+for ii in strength_duration_table_ano.columns.values.tolist():
+    strength_duration_table_ano[ii] = ["%.3g" %strength_duration_table_ano[ii][jj] for jj in range(strength_duration_table_ano.shape[0])]
+
+# rename indices
+strength_duration_table_ano = strength_duration_table_ano.rename(index={"rheobase (uA)":"rheobase ano",
+                                                                        "chronaxie (us)":"chronaxie ano"})
+
+##### connect dataframes
+strength_duration_table = pd.concat([strength_duration_table_cat,strength_duration_table_ano])
 
 ##### transpose dataframe
 strength_duration_table = strength_duration_table.transpose()
 
+##### change column names again
+strength_duration_table = strength_duration_table.rename(index = str, columns={"rheobase cat":"$I_{\T{rh}}$/\SI{}{\micro\ampere}",
+                                                                               "chronaxie cat":"$\tau_{\T{chr}}$/\SI{}{\micro\second}",
+                                                                               "rheobase ano":"$I_{\T{rh}}$/\SI{}{\micro\ampere}",
+                                                                               "chronaxie ano":"$\tau_{\T{chr}}$/\SI{}{\micro\second}"})
+
 ##### define caption and save table as tex
-if save_tables:
-    caption_top = "Comparison of the rheobase and chronaxie for all models with experimental data (italicised)."
-    italic_range = range(len(models),len(strength_duration_table))
-    with open("{}/strength_duration_table.tex".format(theses_table_path), "w") as tf:
-        tf.write(ptol.dataframe_to_latex(strength_duration_table, label = "tbl:strength_duration_comparison", caption_top = caption_top, italic = italic_range))
+#if save_tables:
+#    caption_top = "Comparison of rheobase $I_{\T{rh}}$ and chronaxie $\tau_{\T{chr}}$ of the ANF models for monophasic cathodic and anodic stimulation."
+#    with open("{}/strength_duration_table.tex".format(theses_table_path), "w") as tf:
+#        tf.write(ptol.dataframe_to_latex(strength_duration_table, label = "tbl:strength_duration_comparison",
+#                                         caption_top = caption_top, vert_line = [1], upper_col_names = ["cathodic","anodic"]))
 
 # =============================================================================
 # Strength duration curve
 # =============================================================================
 ##### initialize list of dataframes to save strength duration curves
-stength_duration_curves = [pd.DataFrame()]*len(models)
+stength_duration_curves_cat = [pd.DataFrame()]*len(models)
+stength_duration_curves_ano = [pd.DataFrame()]*len(models)
 
 ##### loop over models
 for ii,model in enumerate(models):
     
-    ##### get voltage course of model
-    stength_duration_curves[ii] = pd.read_csv("results/{}/Strength_duration_plot_table {}.csv".format(model.display_name,model.display_name))
+    ##### read strength duration curves
+    stength_duration_curves_cat[ii] = pd.read_csv("results/{}/Strength_duration_plot_table_cathodic {}.csv".format(model.display_name,model.display_name))
+    stength_duration_curves_ano[ii] = pd.read_csv("results/{}/Strength_duration_plot_table_anodic {}.csv".format(model.display_name,model.display_name))
     
     #### add model information
-    stength_duration_curves[ii]["model"] = model.display_name_plots
+    stength_duration_curves_cat[ii]["model"] = model.display_name_plots
+    stength_duration_curves_ano[ii]["model"] = model.display_name_plots
 
-##### connect dataframes to one dataframe
-stength_duration_curves = pd.concat(stength_duration_curves,ignore_index = True)
+##### connect list of dataframes to one dataframe
+stength_duration_curves_cat = pd.concat(stength_duration_curves_cat,ignore_index = True)
+stength_duration_curves_ano = pd.concat(stength_duration_curves_ano,ignore_index = True)
 
 ##### plot strength duration curve
 strength_duration_curve = plot.strength_duration_curve_comparison(plot_name = "Strength duration curve model comparison",
-                                                                  threshold_data = stength_duration_curves,
-                                                                  strength_duration_table = strength_duration_table)
+                                                                  threshold_data_cat = stength_duration_curves_cat,
+                                                                  threshold_data_ano = stength_duration_curves_ano)
 
 ##### save plot
 if save_plots:
@@ -694,9 +730,9 @@ if save_plots:
 model = rattay_01
 
 ##### get tables
-relative_spreads_1k = pd.read_csv("results/{}/Relative_spreads {}.csv".format(model.display_name_plots,model.display_name_plots))
-relative_spreads_2k = pd.read_csv("results/{}/2_knoise/Relative_spreads {}.csv".format(model.display_name_plots,model.display_name_plots))
-relative_spreads_4k = pd.read_csv("results/{}/4_knoise/Relative_spreads {}.csv".format(model.display_name_plots,model.display_name_plots))
+relative_spreads_1k = pd.read_csv("results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
+relative_spreads_2k = pd.read_csv("results/{}/2_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
+relative_spreads_4k = pd.read_csv("results/{}/4_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
 
 ##### Relative spread of thresholds
 relative_spreads = relative_spreads_1k.rename(index = str, columns={"relative spread":"{} 1*knoise".format(model.display_name_plots_short)})
@@ -729,7 +765,7 @@ if save_tables:
 for ii,model in enumerate(models):
     
     ##### get node response summery table
-    data = pd.read_csv("results/{}/Relative_spreads {}.csv".format(model.display_name_plots,model.display_name_plots))
+    data = pd.read_csv("results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
     
     if ii == 0:
         ##### use model name as column header
@@ -740,8 +776,8 @@ for ii,model in enumerate(models):
         relative_spread_table[model.display_name_plots] = data["relative spread"].tolist()
     
     if model == rattay_01:
-        relative_spreads_2k = pd.read_csv("results/{}/2_knoise/Relative_spreads {}.csv".format(model.display_name_plots,model.display_name_plots))
-        relative_spreads_4k = pd.read_csv("results/{}/4_knoise/Relative_spreads {}.csv".format(model.display_name_plots,model.display_name_plots))
+        relative_spreads_2k = pd.read_csv("results/{}/2_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
+        relative_spreads_4k = pd.read_csv("results/{}/4_knoise/Relative_spreads {}.csv".format(model.display_name,model.display_name))
         relative_spread_table["{} 2*knoise".format(model.display_name_plots)] = relative_spreads_2k["relative spread"].tolist()
         relative_spread_table["{} 4*knoise".format(model.display_name_plots)] = relative_spreads_4k["relative spread"].tolist()
 
@@ -767,7 +803,40 @@ if save_tables:
     with open("{}/relative_spread_comparison.tex".format(theses_table_path), "w") as tf:
         tf.write(ptol.dataframe_to_latex(relative_spread_table, label = "tbl:relative_spread_comparison",
                                          caption_top = caption_top, caption_bottom = caption_bottom, italic = italic_range))
+
+# =============================================================================
+# PSTHs
+# =============================================================================
+##### initialize list of dataframes to save psth data for each model
+psth_data = [pd.DataFrame()]*len(models)
+
+##### loop over models
+for ii,model in enumerate(models):
     
+    ##### get psth data of model
+    psth_data[ii] = pd.read_csv("results/{}/PSTH_table {}.csv".format(model.display_name,model.display_name))
+    
+    #### add model information
+    psth_data[ii]["model"] = model.display_name_plots
+
+##### connect dataframes to one dataframe
+psth_data = pd.concat(psth_data,ignore_index = True)
+
+##### convert spike times to ms
+psth_data["spike times (us)"] = np.ceil(list(psth_data["spike times (us)"]*1000)).astype(int)
+psth_data = psth_data.rename(index = str, columns={"spike times (us)" : "spike times (ms)"})
+
+##### plot PSTH comparison
+psth_plot = plot.psth_comparison(plot_name = "PSTH model comparison",
+                                 psth_data = psth_data,
+                                 amplitudes = ['1*threshold'],
+                                 pulse_rates = [400, 800, 2000, 5000],
+                                 plot_style = "spikes_per_time_bin")
+
+##### save plot
+if save_plots:
+    psth_plot.savefig("{}/psth_plot_comparison_thr.pdf".format(theses_image_path), bbox_inches='tight')
+
 # =============================================================================
 # Computational efficiency comparison
 # =============================================================================

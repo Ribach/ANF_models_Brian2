@@ -184,7 +184,8 @@ internode_inner_diameter = 0.63*fiber_outer_diameter - 3.4*1e-5*cm
 compartment_diameters = np.zeros(nof_comps+1)*um
 # internodes
 compartment_diameters[:] = internode_inner_diameter
-# diameter_nodes calculateion in paper: (8.502*10**5*(fiber_outer_diameter/cm)**3 - 1.376*10**3*(fiber_outer_diameter/cm)**2 + 8.202*10**-1*(fiber_outer_diameter/cm) - 3.622*10**-5)*cm
+#diameter_nodes calculateion in paper:
+#(8.502*10**5*(fiber_outer_diameter/cm)**3 - 1.376*10**3*(fiber_outer_diameter/cm)**2 + 8.202*10**-1*(fiber_outer_diameter/cm) - 3.622*10**-5)*cm
 
 ##### Number of myelin layers
 nof_myelin_layers = np.floor(0.5*(fiber_outer_diameter-internode_inner_diameter)/myelin_layer_thicknes)

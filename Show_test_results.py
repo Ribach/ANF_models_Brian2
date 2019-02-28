@@ -40,7 +40,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "imennov_09"
+model_name = "rattay_01"
 model = eval(model_name)
 
 ##### save plots
@@ -53,7 +53,7 @@ interim_report_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/
 # =============================================================================
 ##### load dataframes for tables
 strength_duration_data = pd.read_csv("results/{}/Strength_duration_data_cathodic {}.csv".format(model.display_name,model.display_name))
-strength_duration_data = pd.read_csv("results/{}/Strength_duration_data_anodic {}.csv".format(model.display_name,model.display_name))
+strength_duration_data_ano = pd.read_csv("results/{}/Strength_duration_data_anodic {}.csv".format(model.display_name,model.display_name))
 threshold_table = pd.read_csv("results/{}/Threshold_table {}.csv".format(model.display_name,model.display_name))
 relative_spreads = pd.read_csv("results/{}/Relative_spreads {}.csv".format(model.display_name,model.display_name))
 conduction_velocity_table = pd.read_csv("results/{}/Conduction_velocity_table {}.csv".format(model.display_name,model.display_name))
@@ -63,21 +63,27 @@ refractory_table = pd.read_csv("results/{}/Refractory_table {}.csv".format(model
 
 ##### load dataframes for plots
 strength_duration_plot_table = pd.read_csv("results/{}/Strength_duration_plot_table_cathodic {}.csv".format(model.display_name,model.display_name))
-strength_duration_plot_table = pd.read_csv("results/{}/Strength_duration_plot_table_anodic {}.csv".format(model.display_name,model.display_name))
+strength_duration_plot_table_ano = pd.read_csv("results/{}/Strength_duration_plot_table_anodic {}.csv".format(model.display_name,model.display_name))
 relative_spread_plot_table = pd.read_csv("results/{}/Relative_spread_plot_table {}.csv".format(model.display_name,model.display_name))
-voltage_course_dataset = pd.read_csv("results/{}/Single_node_response_deterministic {}.csv".format(model.display_name,model.display_name))
-voltage_course_dataset = pd.read_csv("results/{}/Single_node_response_stochastic {}.csv".format(model.display_name,model.display_name))
+voltage_course_dataset_det = pd.read_csv("results/{}/Single_node_response_plot_data_deterministic {}.csv".format(model.display_name,model.display_name))
+voltage_course_dataset_stoch = pd.read_csv("results/{}/Single_node_response_plot_data_stochastic {}.csv".format(model.display_name,model.display_name))
 refractory_curve_table = pd.read_csv("results/{}/Refractory_curve_table {}.csv".format(model.display_name,model.display_name))
 psth_table = pd.read_csv("results/{}/PSTH_table {}.csv".format(model.display_name,model.display_name))
 
 # =============================================================================
 # Generate plots and save them
 # =============================================================================
-##### strength duration curve
-strength_duration_curve = plot.strength_duration_curve(plot_name = "Strength duration curve {}".format(model.display_name),
+##### strength duration curve (cathodic)
+strength_duration_curve = plot.strength_duration_curve(plot_name = "Strength duration curve cathodic {}".format(model.display_name),
                                                        threshold_data = strength_duration_plot_table,
                                                        rheobase = strength_duration_data["rheobase (uA)"].iloc[0]*uA,
                                                        chronaxie = strength_duration_data["chronaxie (us)"].iloc[0]*us)
+
+##### strength duration curve (anodic)
+strength_duration_curve_ano = plot.strength_duration_curve(plot_name = "Strength duration curve anodic {}".format(model.display_name),
+                                                           threshold_data = strength_duration_plot_table_ano,
+                                                           rheobase = strength_duration_data_ano["rheobase (uA)"].iloc[0]*uA,
+                                                           chronaxie = strength_duration_data_ano["chronaxie (us)"].iloc[0]*us)
 
 ##### relative spreads plot
 relative_spread_plot = plot.relative_spread(plot_name = "Relative spreads {}".format(model.display_name),
@@ -85,7 +91,7 @@ relative_spread_plot = plot.relative_spread(plot_name = "Relative spreads {}".fo
 
 ##### single node response plot
 single_node_response = plot.single_node_response_voltage_course(plot_name = "Voltage courses {}".format(model.display_name),
-                                                                voltage_data = voltage_course_dataset)
+                                                                voltage_data = voltage_course_dataset_stoch)
 
 ##### refractory curve
 refractory_curve = plot.refractory_curve(plot_name = "Refractory curve {}".format(model.display_name),
@@ -95,8 +101,6 @@ refractory_curve = plot.refractory_curve(plot_name = "Refractory curve {}".forma
 post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
                                                                  psth_dataset = psth_table,
                                                                  plot_style = "pulses_per_timebin")
-
-post_stimulus_time_histogram.savefig("C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Masterarbeit/Zwischenvortrag/Bilder/post_stimulus_time_histogram {}.png".format(model.display_name), bbox_inches='tight')
 
 if save_plots:
     strength_duration_curve.savefig("results/{}/Strength_duration_curve {}.png".format(model.display_name,model.display_name), bbox_inches='tight')

@@ -43,7 +43,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "smit_09"
+model_name = "rattay_01"
 model = eval(model_name)
 
 ##### initialize clock
@@ -669,7 +669,8 @@ if all_tests or psth_test:
                                        "stim_duration" : 300*ms,
                                        "stimulated_compartment" : stim_location,
                                        "stimulation_type" : "extern",
-                                       "pulse_form" : pulse_form})
+                                       "pulse_form" : pulse_form,
+                                       "add_noise" : True})
     
     ##### change index to column
     psth_table.reset_index(inplace=True)

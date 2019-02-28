@@ -60,6 +60,7 @@ theses_image_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Se
 all_tests = False
 latency_over_stim_amp_test = False
 thresholds_for_pulse_trains = True
+thresholds_for_sinus = True
 voltage_courses_comparison = False
 computational_efficiency_test = False
 pulse_train_refractory_test = False
@@ -71,7 +72,7 @@ if any([all_tests, stochastic_properties_test]):
     # Get thresholds for certain stimulation types and stimulus durations
     # =============================================================================
     ##### define phase durations (in us) and pulse forms to test
-    phase_durations = [100]
+    phase_durations = [50]
     inter_phase_gap = [0]
     pulse_forms = ["mono"]
     
@@ -91,7 +92,7 @@ if any([all_tests, stochastic_properties_test]):
                                   kwargs = {"dt" : 5*us,
                                             "delta" : 0.001*uA,
                                             "stimulation_type" : "extern",
-                                            "upper_border" : 400*uA,
+                                            "upper_border" : 800*uA,
                                             "add_noise" : False})
     
     ##### change index to column
@@ -121,15 +122,15 @@ if all_tests or thresholds_for_pulse_trains:
         
         ##### define pulse rates
         if method == "thr_over_rate":
-            pulses_per_second = [200,500,1000,2000,3000,5000,10000]
+            pulses_per_second = [250,500,1000,2000,3000,5000,10000]
         else:
-            pulses_per_second = [200,1000,5000]
+            pulses_per_second = [200,3000,10000]
         
         ##### define pulse train durations in ms
         if method == "thr_over_rate":
-            pulse_train_durations = [1,5,50]
+            pulse_train_durations = [0.5,2,50]
         else:
-            pulse_train_durations = [0.2,0.5,1,2,5,10,20,50]
+            pulse_train_durations = [0.1,0.2,0.4,0.7,1,2,5,10,20]
         
         ##### define number of stochastic runs per pulse train type
         nof_runs_per_pulse_train = 1
@@ -193,22 +194,82 @@ if all_tests or thresholds_for_pulse_trains:
         pulse_train_thresholds = pulse_train_thresholds.sort_values(by=['model', 'pulses per second'])
         
         ##### save dataframe as csv    
-        pulse_train_thresholds.to_csv("results/Analyses/pulse_train_{}_.csv".format(method), index=False, header=True)
+        pulse_train_thresholds.to_csv("results/Analyses/pulse_train_{}.csv".format(method), index=False, header=True)
+                
+    ##### plot thresholds over pulse rate and pulse train duration      
+    if generate_plots:
         
-        #pulse_train_thresholds = pd.read_csv("results/Analyses/pulse_train_thresholds_15us.csv")
+        ##### load dataframes
+        pulse_train_thr_over_rate = pd.read_csv("results/Analyses/pulse_train_thr_over_rate.csv")
+        pulse_train_thr_over_dur = pd.read_csv("results/Analyses/pulse_train_thr_over_dur.csv")
         
-        ##### plot thresholds over number of pulses        
-        if generate_plots:
-            if method == "thr_over_rate":
-                thresholds_for_pulse_trains_plot = plot.pulse_train_thres_over_pulse_rate(plot_name = "Thresholds for pulse trains",
-                                                                                          threshold_data = pulse_train_thresholds)
-            else:
-                thresholds_for_pulse_trains_plot = plot.pulse_train_thres_over_train_dur(plot_name = "Thresholds for pulse trains",
-                                                                                         threshold_data = pulse_train_thresholds)
-            
-            ##### save plot
-            thresholds_for_pulse_trains_plot.savefig("results/Analyses/pulse_train_{}.pdf".format(method), bbox_inches='tight')    
+        ##### generate plot
+        thresholds_for_pulse_trains_plot = plot.thresholds_for_pulse_trains(plot_name = "Thresholds for pulse trains",
+                                                                            pulse_train_thr_over_rate = pulse_train_thr_over_rate,
+                                                                            pulse_train_thr_over_dur = pulse_train_thr_over_dur)
     
+        ##### save plot
+        thresholds_for_pulse_trains_plot.savefig("{}/thresholds_for_pulse_trains.pdf".format(theses_image_path), bbox_inches='tight')
+
+if all_tests or thresholds_for_sinus:
+    # =============================================================================
+    # Measure thresholds for sinusodial stimulation
+    # =============================================================================
+    ##### define frequencies (in kHz)
+    frequencies = [0.125,0.25,0.5,1,2,4,8,16]
+    
+    ##### sinus durations (in ms)
+    stim_lengths = [0.5,2,10]
+    
+    ##### get thresholds
+    params = [{"model_name" : model,
+               "frequency" : frequency*1e3,
+               "stim_length" : stim_length*1e-3} 
+                for model in models
+                for frequency in frequencies
+                for stim_length in stim_lengths]
+    
+    sinus_thresholds = th.util.map(func = test.get_threshold_for_sinus,
+                                   space = params,
+                                   backend = backend,
+                                   cache = "no",
+                                   kwargs = {"dt" : 1*us,
+                                             "delta" : 0.005*uA,
+                                             "upper_border" : 1500*uA,
+                                             "add_noise" : False})
+    
+    ##### change index to column
+    sinus_thresholds.reset_index(inplace=True)
+    
+    ##### change column names
+    sinus_thresholds = sinus_thresholds.rename(index = str, columns={"model_name" : "model",
+                                                                     "stim_length" : "stimulus length (ms)",
+                                                                     0:"threshold (uA)"})
+    
+    ##### convert threshold to uA and stimulus length to ms and frequency to kHz
+    sinus_thresholds["threshold (uA)"] = [ii*1e6 for ii in sinus_thresholds["threshold (uA)"]]
+    sinus_thresholds["stimulus length (ms)"] = [ii*1e3 for ii in sinus_thresholds["stimulus length (ms)"]]
+    sinus_thresholds["frequency"] = [ii*1e-3 for ii in sinus_thresholds["frequency"]]
+    
+    ##### exclude spontaneous APs
+    sinus_thresholds = sinus_thresholds[sinus_thresholds["threshold (uA)"] > 1e-9]
+    
+    ##### save dataframe as csv    
+    sinus_thresholds.to_csv("results/Analyses/sinus_thresholds.csv", index=False, header=True)
+                
+    ##### plot thresholds over pulse rate and pulse train duration      
+    if generate_plots:
+        
+        ##### load dataframes
+        sinus_thresholds = pd.read_csv("results/Analyses/sinus_thresholds.csv")
+        
+        ##### generate plot
+        thresholds_for_sinus = plot.thresholds_for_sinus(plot_name = "Thresholds for pulse trains",
+                                                         sinus_thresholds = sinus_thresholds)
+    
+        ##### save plot
+        thresholds_for_sinus.savefig("{}/thresholds_for_sinus.pdf".format(theses_image_path), bbox_inches='tight')
+        
 if all_tests or latency_over_stim_amp_test:
     # =============================================================================
     # Measure latencies for different stimulus amplitudes and electrode distances
@@ -436,11 +497,10 @@ if all_tests or stochastic_properties_test:
     # Get relative spread for different k_noise values
     # =============================================================================
     ##### define k_noise values to test
-    k_noise_factor = np.append(np.round(np.arange(0.2,1,0.1),1), np.arange(1,5,0.5)).tolist()
-    #k_noise_factor = [0.5,1,2]
+    k_noise_factor = np.append(np.round(np.arange(0,1,0.1),1), np.arange(1,5,0.25)).tolist()
     
     ##### define test parameters
-    phase_duration = 100*us
+    phase_duration = 50*us
     pulse_form = "mono"
     runs_per_k_noise = 100
     
@@ -460,7 +520,7 @@ if all_tests or stochastic_properties_test:
                                              "delta" : 0.0005*uA,
                                              "pulse_form" : pulse_form,
                                              "stimulation_type" : "extern",
-                                             "upper_border" : 400*uA,
+                                             "upper_border" : 800*uA,
                                              "time_before" : 2*ms,
                                              "time_after" : 2*ms,
                                              "add_noise" : True})
@@ -492,13 +552,12 @@ if all_tests or stochastic_properties_test:
     # Get jitter for different k_noise values
     # =============================================================================
     ##### define k_noise values to test
-    k_noise_factor = np.append(np.round(np.arange(0.2,1,0.1),1), np.arange(1,5,0.5)).tolist()
-    #k_noise_factor = [0.5,1,2]
+    k_noise_factor = np.append(np.round(np.arange(0,1,0.1),1), np.arange(1,5,0.25)).tolist()
     
     ##### define test parameters
-    phase_duration = 100*us
+    phase_duration = 50*us
     pulse_form = "mono"
-    runs_per_k_noise = 100
+    runs_per_k_noise = 500
     
     ##### look up deterministic thresholds
     thresholds = threshold_table[threshold_table["phase duration (us)"] == phase_duration/us]
@@ -538,6 +597,9 @@ if all_tests or stochastic_properties_test:
     ##### exclude data, where no action potential was elicited 
     single_node_response_table = single_node_response_table[single_node_response_table["AP height (mV)"] > 0.06]
     
+    ##### exclude latencies smaller than zero
+    single_node_response_table = single_node_response_table[single_node_response_table["latency (us)"] > 0]
+    
     ##### build subset of relevant columns
     single_node_response_table = single_node_response_table[["model","knoise ratio","run","latency (us)"]]
     
@@ -547,6 +609,9 @@ if all_tests or stochastic_properties_test:
     ##### calculate jitter
     single_node_response_table = single_node_response_table.groupby(["model","knoise ratio"])["latency (us)"].std().reset_index()
     single_node_response_table = single_node_response_table.rename(index = str, columns={"latency (us)" : "jitter (us)"})
+    
+    ##### Save jitter dataframe as csv    
+    single_node_response_table.to_csv("results/Analyses/single_node_response_table_k_noise_comparison.csv", index=False, header=True)
     
     # =============================================================================
     # Plot relative spread over jitter for different models and k_noise values
@@ -558,12 +623,15 @@ if all_tests or stochastic_properties_test:
     ##### Combine relative spread and jitter information and exclude rows with na values
     stochasticity_table = pd.merge(relative_spreads, single_node_response_table, on=["model","knoise ratio"]).dropna()
     
+    ##### Exclude relative spreads bigger than 30% and jitters bigger than 200 us
+    stochasticity_table = stochasticity_table[(stochasticity_table["relative spread (%)"] < 30) & (stochasticity_table["jitter (us)"] < 200)]
+    
     ##### plot table
     stochasticity_plot = plot.stochastic_properties_comparison(plot_name = "Comparison of stochastic properties",
                                                                stochasticity_table = stochasticity_table)
     
     ##### save plot
-    stochasticity_plot.savefig("results/Analyses/stochasticity_plot.PDF", bbox_inches='tight')
+    stochasticity_plot.savefig("{}/stochasticity_plot.pdf".format(theses_image_path), bbox_inches='tight')
 
 if all_tests or voltage_courses_comparison:
     # =============================================================================

@@ -108,7 +108,7 @@ electrode_distance = 500*um
 # Display name for plots
 # =============================================================================
 display_name = "Rudnicki 2018"
-display_name_plots = "Rudnicki (2018)
+display_name_plots = "Rudnicki (2018)"
 display_name_short = "Rudnicki 18"
 
 # =============================================================================
