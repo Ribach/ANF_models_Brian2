@@ -256,11 +256,9 @@ def single_node_response_comparison(plot_name,
     
     ##### get model names
     models = voltage_data["model"].unique().tolist()
-    if presentation: models = ['Rattay et al. (2001)', 'Briaire and Frijns (2005)', 'Smit et al. (2010)', 'Imennov and Rubinstein (2009)']
     
     ##### define number of columns
-    if presentation: nof_cols = 4
-    else: nof_cols = 3
+    nof_cols = 3
     
     ##### get number of rows
     nof_rows = np.ceil(len(models)/nof_cols).astype(int)
