@@ -31,7 +31,6 @@ import models.trials.Briaire_adap_2005 as briaire_adap_05
 import models.trials.Imennov_adap_2009 as imennov_adap_09
 import models.trials.Negm_ANF_2014 as negm_ANF_14
 
-
 # =============================================================================
 #  Raster plot comparison
 # =============================================================================

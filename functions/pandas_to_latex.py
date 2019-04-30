@@ -12,19 +12,30 @@ def dataframe_to_latex(dataframe,
                        upper_col_names = None):
     """This function converts a pandas dataframe in latex table code.
     
+    Example for using the function:
+    
+        with open("path/my_table.tex", "w") as tf:
+            tf.write(dataframe_to_latex(my_table, label = "tbl:table_caption"))
+    
+    The table can then be included to a latex script with:
+    
+        \input{path/my_table}
+    
     Parameters
     ----------
     dataframe : pandas dataframe
         Dataframe to be converted.
     label : string
-        If specified, it defines the label of the latex tabe
-    caption : string
-        If specified, it defines the caption of the latex tabe
+        Specifies label of the latex table
+    caption_top : string
+        Specifies caption above the latex table
+    caption_bottom : string
+        Specifies caption below the latex table
     italic : list of integers
-        The list specifies the row numbers of the rows, which should be written
+        The list specifies the numbers of the rows, which should be written
         in italics..
     vert_line : list of integers
-        The list specifies the column number where a vertical line is put
+        The list specifies the column numbers where a vertical line is put
         afterwards. Counting starts from zero.
     upper_col_names : list of strings
         The list specifies the names of a second column name row above the usual
@@ -37,16 +48,13 @@ def dataframe_to_latex(dataframe,
     """
     
     ##### get number of columns and rows
-    nof_cols = dataframe.shape[1]
-    nof_rows = dataframe.shape[0]
+    nof_rows, nof_cols = dataframe.shape
     
     ##### get range of none italic columns
     if italic is None:
-        normal_range = range(nof_rows)
-        italic_range = range(0)
+        italic_rows = []
     else:
-        normal_range = range(0, italic[0])
-        italic_range = italic
+        italic_rows = italic
     
     ##### initialize output
     output = io.StringIO()
@@ -69,15 +77,16 @@ def dataframe_to_latex(dataframe,
     columnLabels = ["%s" % label for label in dataframe.columns]
     output.write("& %s\\\\\\hline\n" % " & ".join(columnLabels))
     
-    ##### Write data lines (no italic)
-    for ii in normal_range:
-        output.write("%s & %s\\\\\n"
-                     % (dataframe.index[ii], " & ".join([str(val) for val in dataframe.iloc[ii]])))
-    
-    ##### Write data lines (italic)
-    for ii in italic_range:
-        output.write("\\textit{%s} & %s\\\\\n"
+    ##### Write data rows
+    for ii in range(nof_rows):
+        if ii in italic_rows:
+            ##### italic row
+            output.write("\\textit{%s} & %s\\\\\n"
                      % (dataframe.index[ii], " & ".join(["\\textit{%s}" % str(val) for val in dataframe.iloc[ii]])))
+        else:
+            ##### normal row
+            output.write("%s & %s\\\\\n"
+                     % (dataframe.index[ii], " & ".join([str(val) for val in dataframe.iloc[ii]])))
     
     ##### Write footer
     if caption_bottom is None:

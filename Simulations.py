@@ -88,7 +88,7 @@ if plot_ion_currents:
         I_adap = StateMonitor(neuron, ['I_KLT','I_HCN'], record=True)
 
 ##### get compartment number of second node
-stim_comp_index = np.where(model.structure == 2)[0][2]
+stim_comp_index = np.where(model.structure == 2)[0][18]
 
 ##### save initialization of the monitor(s)
 store('initialized')
@@ -102,9 +102,9 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     I_stim, runtime = stim.get_stimulus_current(model = model,
                                                 dt = dt,
                                                 stimulation_type = "extern",
-                                                pulse_form = "mono",
+                                                pulse_form = "bi",
                                                 stimulated_compartment = stim_comp_index,
-                                                nof_pulses = 1,
+                                                nof_pulses = 20,
                                                 time_before = 0.5*ms,
                                                 time_after = 2*ms,
                                                 add_noise = False,
@@ -113,9 +113,9 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
                                                 duration_mono = 50*us,
                                                 ##### biphasic stimulation
                                                 amps_bi = [-500,500]*uA,
-                                                durations_bi = [2,0,2]*us,
+                                                durations_bi = [40,0,40]*us,
                                                 ##### multiple pulses / pulse trains
-                                                inter_pulse_gap = 1*ms)
+                                                inter_pulse_gap = 0.2*ms)
     
     ##### get TimedArray of stimulus currents
     stimulus = TimedArray(np.transpose(I_stim), dt = dt)
@@ -128,7 +128,7 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
 
     ##### Plot membrane potential of all compartments over time (2 plots)
     if plot_voltage_course_lines:
-       voltage_course_lines = plot.voltage_course_lines(plot_name = "Voltage course {}".format(model.display_name),
+       voltage_course_lines = plot.voltage_course_lines(plot_name = "Voltage course2 {}".format(model.display_name),
                                                         time_vector = M.t,
                                                         voltage_matrix = M.v,
                                                         comps_to_plot = model.comps_to_plot,

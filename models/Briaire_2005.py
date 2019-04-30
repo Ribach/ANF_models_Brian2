@@ -83,7 +83,7 @@ nof_segments_soma = 10
 nof_axonal_internodes = 30 # have to be at least 5
 ##### lengths
 length_peripheral_terminal = 10*um
-length_internodes_dendrite = [175,175,175,175,175,50]*um
+length_internodes_dendrite = [250,250,250,150,100,50]*um
 length_internodes_axon = [150,200,250,300,350]*um # the last value defines the lengths of further internodes
 length_nodes = 1*um
 length_presomatic_region = 100*um
@@ -128,8 +128,8 @@ display_name_short = "Briaire 05"
 # =============================================================================
 # Define inter-pulse intervalls for refractory curve calculation
 # =============================================================================
-inter_pulse_intervals = np.hstack([np.linspace(1.3, 1.35, num=20, endpoint = False),
-                                   np.linspace(1.35, 1.565, num=20, endpoint = False),
+inter_pulse_intervals = np.hstack([np.linspace(1.40, 1.42, num=20, endpoint = False),
+                                   np.linspace(1.42, 1.565, num=10, endpoint = False),
                                    np.linspace(1.565, 5, num=15)])*1e-3
 
 # =============================================================================

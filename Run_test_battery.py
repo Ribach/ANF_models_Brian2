@@ -43,7 +43,7 @@ prefs.codegen.target = "numpy"
 # Initializations
 # =============================================================================
 ##### choose model
-model_name = "rattay_01"
+model_name = "briaire_05"
 model = eval(model_name)
 
 ##### initialize clock
@@ -186,7 +186,7 @@ if all_tests or strength_duration_test:
                                                                                                  0 : "threshold (uA)"})
         
         ##### remove units of columns
-        strength_duration_plot_table["phase duration (us)"] = [ii/us for ii in strength_duration_plot_table["phase duration (us)"]]
+        #strength_duration_plot_table["phase duration (us)"] = [ii/us for ii in strength_duration_plot_table["phase duration (us)"]]
         
         ##### change unit of threshold column to uA
         strength_duration_plot_table["threshold (uA)"] = [ii*1e6 for ii in strength_duration_plot_table["threshold (uA)"]]

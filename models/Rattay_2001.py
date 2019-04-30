@@ -81,7 +81,7 @@ nof_segments_soma = 10
 nof_axonal_internodes = 20
 ##### lengths
 length_peripheral_terminal = 10*um
-length_internodes_dendrite = 350*um
+length_internodes_dendrite = [430,430,430,430,430,360]*um
 length_internodes_axon = 500*um
 length_nodes_dendrite = 2.5*um
 length_nodes_axon = 2.5*um

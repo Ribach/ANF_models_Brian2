@@ -1259,7 +1259,7 @@ def post_stimulus_time_histogram(model_name,
                                                 amp_mono = -stim_amp*uA,
                                                 duration_mono = phase_duration,
                                                 ##### biphasic stimulation
-                                                amps_bi = [-stim_amp/uA,0,stim_amp/uA]*uA,
+                                                amps_bi = [-stim_amp/uA,stim_amp/uA]*uA,
                                                 durations_bi = [phase_duration/us,0,phase_duration/us]*us,
                                                 ##### multiple pulses / pulse trains
                                                 inter_pulse_gap = inter_pulse_gap)

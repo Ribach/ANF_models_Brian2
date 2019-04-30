@@ -59,8 +59,9 @@ theses_image_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Se
 ##### define which tests to run
 all_tests = False
 latency_over_stim_amp_test = False
-thresholds_for_pulse_trains = True
-thresholds_for_sinus = True
+thresholds_for_pulse_trains_over_rate_and_dur = False
+thresholds_for_pulse_trains_over_nof_pulses = True
+thresholds_for_sinus = False
 voltage_courses_comparison = False
 computational_efficiency_test = False
 pulse_train_refractory_test = False
@@ -109,9 +110,9 @@ if any([all_tests, stochastic_properties_test]):
     threshold_table["phase duration (us)"] = [round(ii*1e6) for ii in threshold_table["phase duration (us)"]]
     threshold_table["inter phase gap (us)"] = [round(ii*1e6,1) for ii in threshold_table["inter phase gap (us)"]]
     
-if all_tests or thresholds_for_pulse_trains:
+if all_tests or thresholds_for_pulse_trains_over_rate_and_dur:
     # =============================================================================
-    # Measure thresholds for pulse trains with different pulse rate
+    # Measure thresholds for pulse trains with different pulse rates and train durations
     # =============================================================================
     models = ["rattay_01", "briaire_05", "smit_10"]
     
@@ -205,8 +206,8 @@ if all_tests or thresholds_for_pulse_trains:
     if generate_plots:
         
         ##### load dataframes
-        pulse_train_thr_over_rate = pd.read_csv("results/Analyses/pulse_train_thr_over_rate.csv")
-        pulse_train_thr_over_dur = pd.read_csv("results/Analyses/pulse_train_thr_over_dur.csv")
+        pulse_train_thr_over_rate = pd.read_csv("results/Analyses/pulse_train_thr_over_rate_45us.csv")
+        pulse_train_thr_over_dur = pd.read_csv("results/Analyses/pulse_train_thr_over_dur_45us.csv")
         
         ##### generate plot
         thresholds_for_pulse_trains_plot = plot.thresholds_for_pulse_trains(plot_name = "Thresholds for pulse trains",
@@ -215,6 +216,99 @@ if all_tests or thresholds_for_pulse_trains:
     
         ##### save plot
         thresholds_for_pulse_trains_plot.savefig("{}/thresholds_for_pulse_trains.pdf".format(theses_image_path), bbox_inches='tight')
+        
+if all_tests or thresholds_for_pulse_trains_over_nof_pulses:
+    # =============================================================================
+    # Measure thresholds for pulse trains over number of pulses
+    # =============================================================================
+    models = ["imennov_09", "rattay_01", "briaire_05", "smit_10"]
+    
+    ##### define stimulation parameters
+    phase_duration = 15*us # 20*us
+    inter_phase_gap = 2*us
+    
+    ##### define pulse train durations in ms
+    pulse_train_durations = [0.1,0.2,0.5,1,2,5,10,20] #[0.1,0.3,1,3,10,30]
+    
+    ##### define pulse rates
+    pulses_per_second = [1200,3000,5000,25000] #[1500,3000,5000,11000] 
+    
+    ##### define number of stochastic runs per pulse train tye
+    nof_runs_per_pulse_train = 1
+    
+    ##### initialize dataframe with all stimulation information
+    stim_table = pd.DataFrame(list(itl.product(pulse_train_durations, pulses_per_second)), columns=["pulse train durations (ms)", "pulses per second"])
+    
+    ##### calculate number of pulses for each train duration - pulse rate combination
+    stim_table["number of pulses"] = np.floor(stim_table["pulse train durations (ms)"]*1e-3 * stim_table["pulses per second"]).astype(int)
+        
+    ##### calculate inter_pulse_gap
+    stim_table["inter pulse gap (us)"] = np.round(1e6/stim_table["pulses per second"] - phase_duration*2/us - inter_phase_gap/us).astype(int)
+    
+    ##### drop rows with no pulse
+    stim_table = stim_table[stim_table["number of pulses"] != 0]
+    
+    ##### get thresholds
+    params = [{"model_name" : model,
+               "nof_pulses" : stim_table["number of pulses"].iloc[ii],
+               "inter_pulse_gap" : stim_table["inter pulse gap (us)"].iloc[ii]*1e-6,
+               "run_number" : jj}
+                for model in models
+                for ii in range(len(stim_table))
+                for jj in range(nof_runs_per_pulse_train)]
+    
+    pulse_train_thresholds = th.util.map(func = test.get_threshold,
+                                         space = params,
+                                         backend = backend,
+                                         cache = "no",
+                                         kwargs = {"dt" : 1*us,
+                                                   "phase_duration" : phase_duration,
+                                                   "inter_phase_gap" : inter_phase_gap,
+                                                   "delta" : 0.005*uA,
+                                                   "upper_border" : 1500*uA,
+                                                   "pulse_form" : "bi",
+                                                   "add_noise" : False})
+    
+    ##### change index to column
+    pulse_train_thresholds.reset_index(inplace=True)
+    
+    ##### change column names
+    pulse_train_thresholds = pulse_train_thresholds.rename(index = str, columns={"model_name" : "model",
+                                                                                 "nof_pulses" : "number of pulses",
+                                                                                 "inter_pulse_gap" : "inter pulse gap (us)",
+                                                                                 0:"threshold (uA)"})
+    
+    ##### convert threshold to uA and inter pulse gap to us
+    pulse_train_thresholds["threshold (uA)"] = [ii*1e6 for ii in pulse_train_thresholds["threshold (uA)"]]
+    pulse_train_thresholds["inter pulse gap (us)"] = [round(ii*1e6) for ii in pulse_train_thresholds["inter pulse gap (us)"]]
+    
+    ##### exclude spontaneous APs
+    pulse_train_thresholds = pulse_train_thresholds[pulse_train_thresholds["threshold (uA)"] > 1e-9]
+    
+    ##### get mean thresholds
+    pulse_train_thresholds = pulse_train_thresholds.groupby(["model","number of pulses", "inter pulse gap (us)"])["threshold (uA)"].mean().reset_index()
+        
+    ##### add information of stim_table
+    pulse_train_thresholds = pd.merge(pulse_train_thresholds, stim_table, on=["number of pulses","inter pulse gap (us)"])
+    
+    ##### order dataframe
+    pulse_train_thresholds = pulse_train_thresholds.sort_values(by=['model', 'pulses per second'])
+    
+    ##### save dataframe as csv    
+    pulse_train_thresholds.to_csv("results/Analyses/pulse_train_thresholds_15us.csv", index=False, header=True)
+    
+    ##### plot thresholds over pulse rate and pulse train duration      
+    if generate_plots:
+        
+        ##### load dataframes
+        pulse_train_thresholds = pd.read_csv("results/Analyses/pulse_train_thresholds_15us.csv")
+        
+        ##### plot thresholds over number of pulses
+        thresholds_for_pulse_trains_plot = plot.thresholds_for_pulse_trains_over_nof_pulses(plot_name = "Thresholds for pulse trains",
+                                                                                            threshold_data = pulse_train_thresholds)
+        
+        ##### save plot
+        thresholds_for_pulse_trains_plot.savefig("results/Analyses/pulse_train_thresholds.pdf", bbox_inches='tight')
 
 if all_tests or thresholds_for_sinus:
     # =============================================================================
@@ -498,6 +592,8 @@ if all_tests or pulse_train_refractory_test:
     refractory_table.to_csv("results/Analyses/refractory_table_pulse_trains.csv", index=False, header=True)
 
 if all_tests or stochastic_properties_test:
+    models = ["rattay_01", "briaire_05", "smit_10"]
+    
     # =============================================================================
     # Get relative spread for different k_noise values
     # =============================================================================
@@ -507,7 +603,7 @@ if all_tests or stochastic_properties_test:
     ##### define test parameters
     phase_duration = 50*us
     pulse_form = "mono"
-    runs_per_k_noise = 100
+    runs_per_k_noise = 1000
     
     ##### define varied parameters
     params = {"model_name" : models,
@@ -562,7 +658,7 @@ if all_tests or stochastic_properties_test:
     ##### define test parameters
     phase_duration = 50*us
     pulse_form = "mono"
-    runs_per_k_noise = 500
+    runs_per_k_noise = 1000
     
     ##### look up deterministic thresholds
     thresholds = threshold_table[threshold_table["phase duration (us)"] == phase_duration/us]

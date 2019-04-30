@@ -85,6 +85,12 @@ cond_vel = pd.concat((cond_vel_dendrite, cond_vel_axon), axis=0)
 cond_vel.reset_index(inplace=True)
 cond_vel = cond_vel.rename(index = str, columns={"index":"model_name"})
 
+##### add short name of models to table
+cond_vel["short_name"] = ""
+cond_vel["short_name"][cond_vel["model_name"] == "Briaire and Frijns (2005)"] = "BF"
+cond_vel["short_name"][cond_vel["model_name"] == "Rattay et al. (2001)"] = "RA"
+cond_vel["short_name"][cond_vel["model_name"] == "Smit et al. (2010)"] = "SH"
+
 ##### order dataframe
 cond_vel = cond_vel.sort_values("model_name")
 
@@ -151,13 +157,19 @@ for ii,model in enumerate(models):
 ##### connect dataframes to one dataframe
 voltage_courses = pd.concat(voltage_courses,ignore_index = True)
 
+##### add short name of models to table
+voltage_courses["short_name"] = ""
+voltage_courses["short_name"][voltage_courses["model"] == "Briaire and Frijns (2005)"] = "BF"
+voltage_courses["short_name"][voltage_courses["model"] == "Rattay et al. (2001)"] = "RA"
+voltage_courses["short_name"][voltage_courses["model"] == "Smit et al. (2010)"] = "SH"
+
 ##### plot voltage courses
 single_node_response = plot.single_node_response_comparison(plot_name = "Voltage courses model comparison",
                                                             voltage_data = voltage_courses)
 
 ##### save plot
 if save_plots:
-    single_node_response.savefig("{}/single_node_response comparison.pdf".format(paper_image_path), bbox_inches='tight')
+    single_node_response.savefig("{}/single_node_response_comparison.pdf".format(paper_image_path), bbox_inches='tight')
 
 # =============================================================================
 # AP shape table axons
@@ -201,7 +213,7 @@ AP_shape_latex = AP_shape_axon.rename(index = str, columns={"AP height (mV)":"AP
 
 ##### define caption and save table as tex
 if save_tables:
-    caption_top = "Comparison of properties, describing the AP shape, measured with the ANF models due to a stimulation with a monophasic \SI{100}{\micro\second}\
+    caption_top = "Comparison of AP shapes, measured with the axons of the ANF models for a stimulation with a monophasic \SI{100}{\micro\second}\
                    cathodic current pulse with amplitude $2I_{\T{th}}$."
     with open("{}/AP_shape_models.tex".format(paper_table_path), "w") as tf:
          tf.write(ptol.dataframe_to_latex(AP_shape_latex, label = "tbl:AP_shape_comparison", caption_top = caption_top))
@@ -313,9 +325,14 @@ for ii,model in enumerate(models):
         latency_table[model.display_name_plots] = data["latency (us)"].tolist()
 
 ##### Add experimental data
-latency_table["\cite{Miller1999}"] = ["-", "-", "-", "650"]
-latency_table["\cite{VandenHonert1984}"] = ["-", "685", "352", "-"]
 latency_table["\cite{Cartee2000}"] = ["440", "-", "-", "-"]
+latency_table["\cite{VandenHonert1984}"] = ["-", "685", "352", "-"]
+latency_table["\cite{Miller1999}"] = ["-", "-", "-", "650"]
+
+##### change column names / model names
+latency_table = latency_table.rename(index = str, columns={"Rattay et al. (2001)":"Rattay model",
+                                                         "Briaire and Frijns (2005)":"Briaire-Frijns model",
+                                                         "Smit et al. (2010)":"Smit-Hanekom model"})
 
 ##### Transpose dataframe
 latency_table = latency_table.transpose()
@@ -326,7 +343,7 @@ for ii,letter in enumerate(letters[:len(latency_table.columns)]):
 
 ##### define caption and save table as tex
 if save_tables:
-    caption_top = "Comparison of latencies, measured with the ANF models, to experimental data (italiced). Four different stimuli were applied. Latencies are given in \SI{}{\micro\second}"
+    caption_top = "Action potential latency of ANF models measured with four different stimuli (Unit: \SI{}{\micro\second}). Latency values from exicting feline studies are also included (italicized)."
     caption_bottom = ""
     for ii,letter in enumerate(letters[:len(stimulations)]):
         if stimulations["amplitude level"][ii][0] == "1": stim_amp = ""
@@ -388,21 +405,29 @@ strength_duration_table_ano = strength_duration_table_ano.rename(index={"rheobas
 ##### connect dataframes
 strength_duration_table = pd.concat([strength_duration_table_cat,strength_duration_table_ano])
 
+##### change column names / model names
+strength_duration_table = strength_duration_table.rename(index = str, columns={"Rattay et al. (2001)":"Rattay model",
+                                                                               "Briaire and Frijns (2005)":"Briaire-Frijns model",
+                                                                               "Smit et al. (2010)":"Smit-Hanekom model"})
+
 ##### transpose dataframe
 strength_duration_table = strength_duration_table.transpose()
 
+##### change order of columns
+strength_duration_table = strength_duration_table[["rheobase cat", "rheobase ano", "chronaxie cat", "chronaxie ano"]]
+
 ##### change column names again
-strength_duration_table = strength_duration_table.rename(index = str, columns={"rheobase cat":"$I_{\T{rh}}$/\SI{}{\micro\ampere}",
-                                                                               "chronaxie cat":"$\tau_{\T{chr}}$/\SI{}{\micro\second}",
-                                                                               "rheobase ano":"$I_{\T{rh}}$/\SI{}{\micro\ampere}",
-                                                                               "chronaxie ano":"$\tau_{\T{chr}}$/\SI{}{\micro\second}"})
+strength_duration_table = strength_duration_table.rename(index = str, columns={"rheobase cat":"cathodic",
+                                                                               "rheobase ano":"anodic",
+                                                                               "chronaxie cat":"cathodic",
+                                                                               "chronaxie ano":"anodic"})
 
 #### define caption and save table as tex
-#if save_tables:
-#    caption_top = "Comparison of rheobase $I_{\T{rh}}$ and chronaxie $\tau_{\T{chr}}$ of the ANF models for monophasic cathodic and anodic stimulation."
-#    with open("{}/strength_duration_table.tex".format(paper_table_path), "w") as tf:
-#        tf.write(ptol.dataframe_to_latex(strength_duration_table, label = "tbl:strength_duration_comparison",
-#                                         caption_top = caption_top, vert_line = [1], upper_col_names = ["cathodic","anodic"]))
+if save_tables:
+    caption_top = "Rheobase $I_{\T{rh}}$ and chronaxie $\tau_{\T{chr}}$ of ANF models for monophasic cathodic and anodic stimulations."
+    with open("{}/strength_duration_table.tex".format(paper_table_path), "w") as tf:
+        tf.write(ptol.dataframe_to_latex(strength_duration_table, label = "tbl:strength_duration_comparison",
+                                         caption_top = caption_top, vert_line = [1], upper_col_names = ["$I_{\T{rh}}$/\SI{}{\micro\ampere}","$\tau_{\T{chr}}$/\SI{}{\micro\second}"]))
 
 # =============================================================================
 # Strength duration curve
@@ -426,6 +451,17 @@ for ii,model in enumerate(models):
 stength_duration_curves_cat = pd.concat(stength_duration_curves_cat,ignore_index = True)
 stength_duration_curves_ano = pd.concat(stength_duration_curves_ano,ignore_index = True)
 
+##### add short name of models to tables
+stength_duration_curves_cat["short_name"] = ""
+stength_duration_curves_cat["short_name"][stength_duration_curves_cat["model"] == "Briaire and Frijns (2005)"] = "BF"
+stength_duration_curves_cat["short_name"][stength_duration_curves_cat["model"] == "Rattay et al. (2001)"] = "RA"
+stength_duration_curves_cat["short_name"][stength_duration_curves_cat["model"] == "Smit et al. (2010)"] = "SH"
+
+stength_duration_curves_ano["short_name"] = ""
+stength_duration_curves_ano["short_name"][stength_duration_curves_ano["model"] == "Briaire and Frijns (2005)"] = "BF"
+stength_duration_curves_ano["short_name"][stength_duration_curves_ano["model"] == "Rattay et al. (2001)"] = "RA"
+stength_duration_curves_ano["short_name"][stength_duration_curves_ano["model"] == "Smit et al. (2010)"] = "SH"
+
 ##### plot strength duration curve
 strength_duration_curve = plot.strength_duration_curve_comparison(plot_name = "Strength duration curve model comparison",
                                                                   threshold_data_cat = stength_duration_curves_cat,
@@ -433,7 +469,7 @@ strength_duration_curve = plot.strength_duration_curve_comparison(plot_name = "S
 
 ##### save plot
 if save_plots:
-    strength_duration_curve.savefig("{}/strength_duration_curve comparison.pdf".format(paper_image_path), bbox_inches='tight')
+    strength_duration_curve.savefig("{}/strength_duration_curve_comparison.pdf".format(paper_image_path), bbox_inches='tight')
 
 # =============================================================================
 # Refractory curves
@@ -462,13 +498,19 @@ refractory_curves["threshold ratio"] = refractory_curves["minimum required ampli
 ##### convert interpulse intervals to ms
 refractory_curves["interpulse interval"] = refractory_curves["interpulse interval"]*1e3
 
+##### add short name of models to tables
+refractory_curves["short_name"] = ""
+refractory_curves["short_name"][refractory_curves["model"] == "Briaire and Frijns (2005)"] = "BF"
+refractory_curves["short_name"][refractory_curves["model"] == "Rattay et al. (2001)"] = "RA"
+refractory_curves["short_name"][refractory_curves["model"] == "Smit et al. (2010)"] = "SH"
+
 ##### plot voltage courses
 refractory_curves_plot = plot.refractory_curves_comparison(plot_name = "Refractory curves model comparison",
                                                            refractory_curves = refractory_curves)
 
 ##### save plot
 if save_plots:
-    refractory_curves_plot.savefig("{}/refractory_curves_plot comparison.pdf".format(paper_image_path), bbox_inches='tight')
+    refractory_curves_plot.savefig("{}/refractory_curves_plot_comparison.pdf".format(paper_image_path), bbox_inches='tight')
 
 # =============================================================================
 # Absolute refractory table model comparison
@@ -507,7 +549,12 @@ for ii in ARP_comparison_table.columns.values.tolist():
 ARP_comparison_table["\cite{Miller2001}"] = ["334", "-", "-", "-"]
 ARP_comparison_table["\cite{Stypulkowski1984}"] = ["-", "300", "-", "-"]
 ARP_comparison_table["\cite{Dynes1996}"] = ["-", "-", "500-700", "-"]
-ARP_comparison_table["\cite{Brown1990}"] = ["-", "-", "-", "400-500"]
+ARP_comparison_table["\cite{Brown1990}"] = ["-", "-", "-", "500"]
+
+##### change column names / model names
+ARP_comparison_table = ARP_comparison_table.rename(index = str, columns={"Rattay et al. (2001)":"Rattay model",
+                                                                         "Briaire and Frijns (2005)":"Briaire-Frijns model",
+                                                                         "Smit et al. (2010)":"Smit-Hanekom model"})
 
 ##### Transpose dataframe
 ARP_comparison_table = ARP_comparison_table.transpose()
@@ -518,7 +565,7 @@ for ii,letter in enumerate(letters[:len(ARP_comparison_table.columns)]):
 
 ##### define caption and save table as tex
 if save_tables:
-    caption_top = "Comparison of ARPs, measured with the ANF models, to experimental data (italiced). Four different stimuli were used. ARPs are given in \SI{}{\micro\second}"
+    caption_top = "Absolute refractory period of ANF models measured with four stimuli (Unit: \SI{}{\micro\second}). Measurements from existing feline studies are also included (italicized)."
     caption_bottom = ""
     for ii,letter in enumerate(letters[:len(stimulations)]):
         if stimulations["pulse form"][ii] == "monophasic":
@@ -571,6 +618,11 @@ RRP_comparison_table["\cite{Cartee2000}"] = ["4-5", "-", "-"]
 RRP_comparison_table["\cite{Dynes1996}"] = ["-", "5", "-"]
 RRP_comparison_table["\cite{Hartmann1984a}"] = ["-", "-", "5"]
 
+##### change column names / model names
+RRP_comparison_table = RRP_comparison_table.rename(index = str, columns={"Rattay et al. (2001)":"Rattay model",
+                                                                         "Briaire and Frijns (2005)":"Briaire-Frijns model",
+                                                                         "Smit et al. (2010)":"Smit-Hanekom model"})
+
 ##### Transpose dataframe
 RRP_comparison_table = RRP_comparison_table.transpose()
 
@@ -580,7 +632,7 @@ for ii,letter in enumerate(letters[:len(RRP_comparison_table.columns)]):
 
 ##### define caption and save table as tex
 if save_tables:
-    caption_top = "Comparison of RRPs, measured with the ANF models, to experimental data (italiced). Three different stimuli were used. RRPs are given in \SI{}{\milli\second}"
+    caption_top = "Relative refractory period of ANF models measured with four stimuli (Unit: \SI{}{\milli\second}). Measurements from existing feline studies are also included (italicized)."
     caption_bottom = ""
     for ii,letter in enumerate(letters[:len(stimulations)]):
         if stimulations["pulse form"][ii] == "monophasic":
@@ -616,6 +668,12 @@ psth_data = pd.concat(psth_data,ignore_index = True)
 psth_data["spike times (us)"] = np.ceil(list(psth_data["spike times (us)"]*1000)).astype(int)
 psth_data = psth_data.rename(index = str, columns={"spike times (us)" : "spike times (ms)"})
 
+##### add short name of models to tables
+psth_data["short_name"] = ""
+psth_data["short_name"][psth_data["model"] == "Briaire and Frijns (2005)"] = "BF"
+psth_data["short_name"][psth_data["model"] == "Rattay et al. (2001)"] = "RA"
+psth_data["short_name"][psth_data["model"] == "Smit et al. (2010)"] = "SH"
+
 ##### plot PSTH comparison
 psth_plot = plot.psth_comparison(plot_name = "PSTH model comparison",
                                  psth_data = psth_data,
@@ -630,8 +688,8 @@ if save_plots:
 # =============================================================================
 # Plot voltage course for all models
 # =============================================================================
-stim_amps = [0.2, 1.5, 0.3]
-max_node = [7,15,15]
+stim_amps = [0.14, 1.2, 0.3]
+max_node = [7,15,16]
 max_comp = [0,0,0]
 
 ##### initialize list to save voltage courses
@@ -698,6 +756,12 @@ stochasticity_table = stochasticity_table[(stochasticity_table["relative spread 
 ##### confine dataset to human ANF models
 stochasticity_table = stochasticity_table[stochasticity_table["model"].isin(["rattay_01", "briaire_05", "smit_10"])]
 
+##### add short name of models to tables
+stochasticity_table["short_name"] = ""
+stochasticity_table["short_name"][stochasticity_table["model"] == "briaire_05"] = "BF"
+stochasticity_table["short_name"][stochasticity_table["model"] == "rattay_01"] = "RA"
+stochasticity_table["short_name"][stochasticity_table["model"] == "smit_10"] = "SH"
+
 ##### plot table
 stochasticity_plot = plot.stochastic_properties_comparison(plot_name = "Comparison of stochastic properties",
                                                            stochasticity_table = stochasticity_table)
@@ -709,15 +773,26 @@ stochasticity_plot.savefig("{}/stochasticity_plot.pdf".format(paper_image_path),
 # Thresholds for pulse train stimulation
 # =============================================================================
 ##### load dataframes
-pulse_train_thr_over_rate = pd.read_csv("results/Analyses/pulse_train_thr_over_rate.csv")
-pulse_train_thr_over_dur = pd.read_csv("results/Analyses/pulse_train_thr_over_dur.csv")
+pulse_train_thr_over_rate = pd.read_csv("results/Analyses/pulse_train_thr_over_rate_45us.csv")
+pulse_train_thr_over_dur = pd.read_csv("results/Analyses/pulse_train_thr_over_dur_45us.csv")
 
 ##### confine datasets to human ANF models
 pulse_train_thr_over_rate = pulse_train_thr_over_rate[pulse_train_thr_over_rate["model"].isin(["rattay_01", "briaire_05", "smit_10"])]
 pulse_train_thr_over_dur = pulse_train_thr_over_dur[pulse_train_thr_over_dur["model"].isin(["rattay_01", "briaire_05", "smit_10"])]
 
+##### add short name of models to tables
+pulse_train_thr_over_rate["short_name"] = ""
+pulse_train_thr_over_rate["short_name"][pulse_train_thr_over_rate["model"] == "briaire_05"] = "BF"
+pulse_train_thr_over_rate["short_name"][pulse_train_thr_over_rate["model"] == "rattay_01"] = "RA"
+pulse_train_thr_over_rate["short_name"][pulse_train_thr_over_rate["model"] == "smit_10"] = "SH"
+
+pulse_train_thr_over_dur["short_name"] = ""
+pulse_train_thr_over_dur["short_name"][pulse_train_thr_over_dur["model"] == "briaire_05"] = "BF"
+pulse_train_thr_over_dur["short_name"][pulse_train_thr_over_dur["model"] == "rattay_01"] = "RA"
+pulse_train_thr_over_dur["short_name"][pulse_train_thr_over_dur["model"] == "smit_10"] = "SH"
+
 ##### generate plot
-thresholds_for_pulse_trains_plot = plot.thresholds_for_pulse_trains(plot_name = "Thresholds for pulse trains",
+thresholds_for_pulse_trains_plot = plot.thresholds_for_pulse_trains(plot_name = "Thresholds for pulse trains2",
                                                                     pulse_train_thr_over_rate = pulse_train_thr_over_rate,
                                                                     pulse_train_thr_over_dur = pulse_train_thr_over_dur)
 
@@ -732,6 +807,12 @@ sinus_thresholds = pd.read_csv("results/Analyses/sinus_thresholds.csv")
 
 ##### confine dataset to human ANF models
 sinus_thresholds = sinus_thresholds[sinus_thresholds["model"].isin(["rattay_01", "briaire_05", "smit_10"])]
+
+##### add short name of models to tables
+sinus_thresholds["short_name"] = ""
+sinus_thresholds["short_name"][sinus_thresholds["model"] == "briaire_05"] = "BF"
+sinus_thresholds["short_name"][sinus_thresholds["model"] == "rattay_01"] = "RA"
+sinus_thresholds["short_name"][sinus_thresholds["model"] == "smit_10"] = "SH"
 
 ##### generate plot
 thresholds_for_sinus = plot.thresholds_for_sinus(plot_name = "Thresholds for pulse trains",

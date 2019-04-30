@@ -63,7 +63,7 @@ def conduction_velocity_comparison(plot_name,
     plt.close(plot_name)
     
     ##### generate figure
-    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(9, 4))
+    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(7, 3))
     fig.subplots_adjust(bottom=0.15)
     
     ##### no grid
@@ -74,11 +74,11 @@ def conduction_velocity_comparison(plot_name,
         
         ##### plot dendrite point
         current_model = velocity_data[(velocity_data["model_name"] == model) & (velocity_data["section"] == "dendrite")]
-        axes.scatter(current_model["outer diameter (um)"], current_model["velocity (m/s)"], color = colors[ii], marker = "o", edgecolor = edgecolors[ii],label = "{} {}".format(model, "dendrite"))
+        axes.scatter(current_model["outer diameter (um)"], current_model["velocity (m/s)"], color = colors[ii], marker = "o", edgecolor = edgecolors[ii],label = "{} {}".format(current_model["short_name"].iloc[0], "dendrite"))
         
         ##### plot axon point
         current_model = velocity_data[(velocity_data["model_name"] == model) & (velocity_data["section"] == "axon")]
-        axes.scatter(current_model["outer diameter (um)"], current_model["velocity (m/s)"], color = colors[ii], marker = "v", edgecolor = edgecolors[ii],label = "{} {}".format(model, "axon"))
+        axes.scatter(current_model["outer diameter (um)"], current_model["velocity (m/s)"], color = colors[ii], marker = "v", edgecolor = edgecolors[ii],label = "{} {}".format(current_model["short_name"].iloc[0], "axon"))
     
     ##### Plot lines for the experiments
     axes.plot(x_Hursh,y_Hursh, 'k--', label = "Hursh (1939)")
@@ -137,7 +137,7 @@ def single_node_response_comparison(plot_name,
     plt.close(plot_name)
     
     ##### create figure
-    fig, axes = plt.subplots(1, nof_models, sharex=False, sharey=False, num = plot_name, figsize=(10,3))
+    fig, axes = plt.subplots(1, nof_models, sharex=True, sharey=False, num = plot_name, figsize=(10,3))
     fig.subplots_adjust(bottom=0.22)
     
     ##### create plots  
@@ -162,14 +162,14 @@ def single_node_response_comparison(plot_name,
         
         ##### put legend next to plots
         if ii == len(models)-2:
-            axes[ii].legend(loc = (0.42, 0.4), shadow = False, title = "stimulus amplitude", fontsize=10)
+            axes[ii].legend(loc = (0.42, 0.65), shadow = False, title = "stimulus amplitude", fontsize=10)
             
         ##### remove top and right lines
         axes[ii].spines['top'].set_visible(False)
         axes[ii].spines['right'].set_visible(False)
             
         ##### write model name in plots
-        axes[ii].text(x_max*0.05, y_max-10, model, fontsize=12)
+        axes[ii].text(x_max*0.05, y_max-10, current_data_1th["short_name"].iloc[0], fontsize=12)
             
         ##### no grid
         axes[ii].grid(False)
@@ -358,7 +358,7 @@ def strength_duration_curve_comparison(plot_name,
             ##### building a subset
             if polarity == "cathodic":
                 current_data = threshold_data_cat[threshold_data_cat["model"] == model]
-                label = model
+                label = current_data["short_name"].iloc[0]
             else:
                 current_data = threshold_data_ano[threshold_data_ano["model"] == model]
                 label = "_nolegend_"
@@ -389,8 +389,8 @@ def strength_duration_curve_comparison(plot_name,
     axes[1].tick_params(axis = 'y', left = 'off', right = "on", labelright = True)
     
     #### add titles
-    axes[0].set_title("cathodic stimulation")
-    axes[1].set_title("anodic stimulation")
+    axes[0].set_title("Cathodic stimulation")
+    axes[1].set_title("Anodic stimulation")
     
     ##### bring subplots close to each other.
     fig.subplots_adjust(wspace=0)
@@ -440,7 +440,7 @@ def refractory_curves_comparison(plot_name,
     plt.close(plot_name)
     
     ##### create figure
-    fig, axes = plt.subplots(1, nof_models, sharex=False, sharey=True, num = plot_name, figsize=(12, 3))
+    fig, axes = plt.subplots(1, nof_models, sharex=True, sharey=True, num = plot_name, figsize=(10, 3))
     fig.subplots_adjust(bottom=0.18)
     
     ##### create plots  
@@ -479,7 +479,8 @@ def refractory_curves_comparison(plot_name,
         axes[ii].spines['right'].set_visible(False)
             
         ##### write model name above plots
-        axes[ii].set_title(model.display_name_plots, fontsize=13)
+        axes[ii].text(3, 16, current_data["short_name"].iloc[0], fontsize=14)
+        #axes[ii].set_title(current_data["short_name"].iloc[0], fontsize=14)
             
         ##### no grid
         axes[ii].grid(False)
@@ -488,8 +489,8 @@ def refractory_curves_comparison(plot_name,
     fig.subplots_adjust(hspace=0.2, wspace=0.05)
     
     ##### get labels for the axes
-    fig.text(0.5, 0.02, "IPI / ms", ha="center", fontsize=14)
-    fig.text(0.07, 0.5, r"$I_{\rm{th}}$ (2nd stimulus) / $I_{\rm{th}}$ (masker)", va="center", rotation="vertical", fontsize=14)
+    fig.text(0.5, 0.02, "IPI / ms", ha="center", fontsize=12)
+    fig.text(0.07, 0.5, r"$I_{\rm{th}}$ (2nd stimulus) / $I_{\rm{th}}$ (single pulse)", va="center", rotation="vertical", fontsize=11)
 
     return fig
 
@@ -524,7 +525,7 @@ def psth_comparison(plot_name,
     
     ##### get model names
     models = psth_data["model"].unique().tolist()
-    models = ['Briaire and Frijns (2005)', 'Rattay et al. (2001)', 'Smit et al. (2010)']
+    models = ['Rattay et al. (2001)', 'Briaire and Frijns (2005)', 'Smit et al. (2010)']
         
     ##### get amplitude levels and pulse rates
     if amplitudes is None: amplitudes = psth_data["amplitude"].unique().tolist()
@@ -601,7 +602,7 @@ def psth_comparison(plot_name,
                 ##### add letter on right side to identify model
                 if col == nof_amplitudes*nof_pulse_rates-1:
                     axes[ii][col].yaxis.set_label_position("right")
-                    axes[ii][col].set_ylabel(letters[ii], fontsize=16, rotation = 0)
+                    axes[ii][col].set_ylabel(current_data["short_name"].iloc[0], fontsize=14, rotation = 0)
                     axes[ii][col].yaxis.set_label_coords(1.1,0.5)
                     
                 ##### no grid
@@ -646,11 +647,11 @@ def psth_comparison(plot_name,
         ax.set_title(columtitle, y = 1.1)
     
     ##### get labels for the axes
-    fig.text(0.5, 0.01, 'Time after pulse-train onset / ms', ha='center', fontsize=14)
+    fig.text(0.5, 0.01, 'Time after stimulus onset / ms', ha='center', fontsize=14)
     if plot_style == "firing_efficiency":
         fig.text(0.03, 0.5, 'firing efficiency', va='center', rotation='vertical', fontsize=14)
     else:
-        fig.text(0.065, 0.5, 'APs per timebin ({} ms)'.format(bin_width), va='center', rotation='vertical', fontsize=14)
+        fig.text(0.065, 0.5, 'Number of APs per {} ms timebin'.format(bin_width), va='center', rotation='vertical', fontsize=14)
 
     return fig
 
@@ -742,7 +743,10 @@ def voltage_course_comparison_plot(plot_name,
                 axes[col].plot(time_vector/ms, offset[jj] - 1/(30)*(voltage_matrix[jj, :]-model.V_res)/mV, "black", linewidth = 0.9)
             
             ##### write model name in plots
-            axes[col].text(0.5, -3, "{}".format(model.display_name_plots), fontsize=11)
+            if model == rattay_01: short_name = "RA"
+            elif model == briaire_05: short_name = "BF"
+            else: short_name = "SH"
+            axes[col].text(1.4, -3, "{}".format(short_name), fontsize=14)
                 
             ##### no grid
             axes[col].grid(False)
@@ -755,8 +759,6 @@ def voltage_course_comparison_plot(plot_name,
     
     ##### get labels for the axes
     fig.text(0.5, 0.004, 'Time / ms', ha='center', fontsize=12)
-    fig.text(0.08, 0.5, 'Position along fiber [major]', va='center', rotation='vertical', fontsize=12)
-    fig.text(0.1, 0.5, 'membrane potential [minor]', va='center', rotation='vertical', fontsize=12)
     
     return fig
 
@@ -815,14 +817,14 @@ def stochastic_properties_comparison(plot_name,
         
         ##### show points
         axes.scatter(current_data["jitter (us)"], current_data["relative spread (%)"],
-                                  color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = "{}".format(eval("{}.display_name_plots".format(model))))
+                                  color = colors[ii], marker = markers[ii], edgecolor = edgecolors[ii], label = "{}".format(current_data["short_name"].iloc[0]))
     
     ##### define axes ranges
-    axes.set_ylim([0,30])
+    axes.set_ylim([0,28])
     axes.set_xlim([0,200])
                 
     ##### add legend
-    plt.legend(ncol=2)
+    plt.legend(ncol=4)
     
     ##### Write relative spreads as percentage
     vals = axes.get_yticks().astype(int)
@@ -864,6 +866,7 @@ def thresholds_for_pulse_trains(plot_name,
 
     ##### get model names
     models = pulse_train_thr_over_rate["model"].unique().tolist()
+    models = ["rattay_01", "briaire_05", "smit_10"]
     
     ##### get number of rows
     nof_rows = len(models)
@@ -871,12 +874,12 @@ def thresholds_for_pulse_trains(plot_name,
     ##### define colors and markers for rate plots
     colors_rate = ["black","red","blue"]
     edgecolors_rate = ["black","red","blue"]
-    markers_rate = ["o","v","s"]
+    markers_rate = ["s","o","v"]
     
     ##### define colors and markers for duration plots
-    colors_dur = ["black","red","blue"]
-    markers_dur = ["v","s","o"]
-    edgecolors_dur = ["black","red","blue"]
+    colors_dur = ["blue","black","red"]
+    markers_dur = ["s","o","v"]
+    edgecolors_dur = ["blue","black","red"]
               
     ##### close possibly open plots
     plt.close(plot_name)
@@ -952,7 +955,7 @@ def thresholds_for_pulse_trains(plot_name,
                 axes[jj][ii].set_xticks([100,1000,10000])
                 ##### add letter on right side to identify model
                 axes[jj][ii].yaxis.set_label_position("right")
-                axes[jj][ii].set_ylabel(letters[jj], fontsize=14, rotation = 0)
+                axes[jj][ii].set_ylabel(current_data["short_name"].iloc[0], fontsize=13, rotation = 0)
                 axes[jj][ii].yaxis.set_label_coords(1.048,0.57)
             else:
                 axes[jj][ii].set_xlim([0.09,30])
@@ -969,9 +972,9 @@ def thresholds_for_pulse_trains(plot_name,
     fig.subplots_adjust(hspace=0, wspace=0.1)
     
     ##### get labels for the axes
-    axes[nof_rows-1][0].set_xlabel('Pulse rate (pps)', fontsize=12)
+    axes[nof_rows-1][0].set_xlabel('Pulse rate / pps', fontsize=12)
     axes[nof_rows-1][1].set_xlabel('Pulse-train duration / ms', fontsize=12)
-    fig.text(0.07, 0.5, 'Threshold (dB re single pulse threshold)', va='center', rotation='vertical', fontsize=12)
+    fig.text(0.07, 0.5, 'Thre in dB (re single biphasic pulse)', va='center', rotation='vertical', fontsize=12)
         
     return fig
 
@@ -1004,7 +1007,7 @@ def thresholds_for_sinus(plot_name,
     sinus_thresholds = sinus_thresholds[(sinus_thresholds["stimulus length (ms)"] != 2) | (sinus_thresholds["frequency"] >= 0.5)]
     
     ##### only frequencies higher than 0.125 kHz
-    sinus_thresholds = sinus_thresholds[sinus_thresholds["frequency"] >= 1]
+    #sinus_thresholds = sinus_thresholds[sinus_thresholds["frequency"] >= 1]
     
     ##### get model names
     models = sinus_thresholds["model"].unique().tolist()
@@ -1017,7 +1020,7 @@ def thresholds_for_sinus(plot_name,
     
     ##### define colors and markers
     colors = ["blue","black","red","blue","black","red"]
-    markers = ["o","s","v","o","s","v"]
+    markers = ["s","o","v","s","o","v"]
     edgecolors = ["blue","black","red","blue","black","red"]
               
     ##### close possibly open plots
@@ -1065,9 +1068,11 @@ def thresholds_for_sinus(plot_name,
             axis.set_major_formatter(ScalarFormatter())
         
         #### define x axis range and x ticks and write model names in plots
-        axes[ii].set_xlim([0.8,20])
-        axes[ii].set_xticks(np.array([1,2,4,8,16]).round(2))
-        axes[ii].text(1, 0,"{}".format(eval("{}.display_name_plots".format(model))), fontsize=12)
+        #axes[ii].set_xlim([0.8,20])
+        axes[ii].set_xticks(np.array([0.25,0.5,1,2,4,8,16]))
+        ##### change y-achses to dynamic range
+        axes[ii].set_xticklabels(['{}'.format(y) for y in axes[ii].get_xticks()])
+        axes[ii].text(0.15, 0,"{}".format(current_model["short_name"].iloc[0]), fontsize=12)
         
         ##### set y ticks
         axes[ii].set_yticks([0, -5,-10,-15,-20,-25])
@@ -1077,13 +1082,13 @@ def thresholds_for_sinus(plot_name,
         
         ##### save handles and labels for the plot before the one with the legend
         if ii == 1:
-            axes[ii].legend(loc=(0.01,0.05), title = "stimulus duration", ncol=2)
+            axes[ii].legend(loc=(0.01,0.05), title = "Stimulus duration", ncol=2)
     
     ##### bring subplots close to each other.
     fig.subplots_adjust(hspace=0, wspace=0)
     
     ##### get labels for the axes
-    fig.text(0.5, 0.01, 'frequency / kHz', ha='center', fontsize=12)
+    fig.text(0.5, 0.01, 'Frequency / kHz', ha='center', fontsize=12)
     fig.text(0.045, 0.5, 'Threshold', va='center', rotation='vertical', fontsize=12)
     fig.text(0.065, 0.5, '(dB re threshold for 16 kHz)', va='center', rotation='vertical', fontsize=12)
         
