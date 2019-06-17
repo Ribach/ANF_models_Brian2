@@ -1,0 +1,463 @@
+\begin{thebibliography}{58}
+\providecommand{\natexlab}[1]{#1}
+\expandafter\ifx\csname urlstyle\endcsname\relax
+  \providecommand{\doi}[1]{doi:\discretionary{}{}{}#1}\else
+  \providecommand{\doi}{doi:\discretionary{}{}{}\begingroup
+  \urlstyle{rm}\Url}\fi
+\providecommand{\selectlanguage}[1]{\relax}
+\providecommand{\bibAnnoteFile}[1]{%
+  \IfFileExists{#1}{\begin{quotation}\noindent\textsc{Key:} #1\\
+  \textsc{Annotation:}\ \input{#1}\end{quotation}}{}}
+\providecommand{\bibAnnote}[2]{%
+  \begin{quotation}\noindent\textsc{Key:} #1\\
+  \textsc{Annotation:}\ #2\end{quotation}}
+
+\bibitem[{Armstrong et~al.(1973)Armstrong, Harvey, and Schild}]{Armstrong1973}
+Armstrong, D., Harvey, R., and Schild, R.~F. (1973).
+\newblock {The Spatial Organisation of Climbing Fibre Branching in the Cat
+  Cerebellum}.
+\newblock \emph{Experimental Brain Research} 58, 40--58
+\bibAnnoteFile{Armstrong1973}
+
+\bibitem[{Badenhorst et~al.(2016)Badenhorst, Hanekom, and
+  Hanekom}]{Badenhorst2016}
+Badenhorst, W., Hanekom, T., and Hanekom, J.~J. (2016).
+\newblock {Development of a voltage-dependent current noise algorithm for
+  conductance-based stochastic modelling of auditory nerve fibres}.
+\newblock \emph{Biological Cybernetics} 110, 403--416.
+\newblock \doi{10.1007/s00422-016-0694-6}
+\bibAnnoteFile{Badenhorst2016}
+
+\bibitem[{Baylor and Nicholls(1969)}]{Baylor1969}
+Baylor, D.~A. and Nicholls, J. (1969).
+\newblock {Changes in extracellular potassium concentration produced by
+  neuronal activity in the central nervous system of the leech}.
+\newblock \emph{Journal of Physiology} , 555--569
+\bibAnnoteFile{Baylor1969}
+
+\bibitem[{BeMent and Ranck(1969)}]{BeMent1969}
+BeMent, S.~L. and Ranck, J.~B. (1969).
+\newblock {Quantitative Study Central of Electrical Stimulation Fibers of
+  Myelinated}.
+\newblock \emph{Experimental Neurology} 170, 147--170
+\bibAnnoteFile{BeMent1969}
+
+\bibitem[{Blight(1985)}]{Blight1985}
+Blight, A.~R. (1985).
+\newblock {Computer simulation and afterpotentials in axons: the case for a
+  lower resistance myelin sheath}.
+\newblock \emph{Neuroscience} 15, 13--31
+\bibAnnoteFile{Blight1985}
+
+\bibitem[{Boyd and Kalu(1979)}]{Boyd1979}
+Boyd, I. and Kalu, K. (1979).
+\newblock {Scaling factor relating conduction velocity and diameter for
+  myelinated afferent nerve fibres in the cat hind limb}.
+\newblock \emph{Journal of Physiology} , 277--297
+\bibAnnoteFile{Boyd1979}
+
+\bibitem[{Briaire and Frijns(2005)}]{Briaire2005}
+Briaire, J.~J. and Frijns, J.~H. (2005).
+\newblock {Unraveling the electrically evoked compound action potential}.
+\newblock \emph{Hearing Research} 205, 143--156.
+\newblock \doi{10.1016/j.heares.2005.03.020}
+\bibAnnoteFile{Briaire2005}
+
+\bibitem[{Brown and Abbas(1990)}]{Brown1990}
+Brown, C.~J. and Abbas, P.~J. (1990).
+\newblock {Electrically evoked whole-nerve action potentials : Parametric data
+  from the cat}.
+\newblock \emph{Acoustical Society of America} 2205.
+\newblock \doi{10.1121/1.400117}
+\bibAnnoteFile{Brown1990}
+
+\bibitem[{Carlyon et~al.(2015)Carlyon, Deeks, and McKay}]{Carlyon2015}
+Carlyon, R.~P., Deeks, J.~M., and McKay, C.~M. (2015).
+\newblock {Effect of Pulse Rate and Polarity on the Sensitivity of Auditory
+  Brainstem and Cochlear Implant Users to Electrical Stimulation}.
+\newblock \emph{JARO - Journal of the Association for Research in
+  Otolaryngology} 668, 653--668.
+\newblock \doi{10.1007/s10162-015-0530-z}
+\bibAnnoteFile{Carlyon2015}
+
+\bibitem[{Cartee et~al.(2000)Cartee, {Van Den Honert}, Finley, and
+  Miller}]{Cartee2000}
+Cartee, L.~A., {Van Den Honert}, C., Finley, C.~C., and Miller, R.~L. (2000).
+\newblock {Evaluation of a model of the cochlear neural membrane. I.
+  Physiological measurement of membrane characteristics in response to
+  intrameatal electrical stimulation}.
+\newblock \emph{Hearing Research} 146, 143--152.
+\newblock \doi{10.1016/S0378-5955(00)00109-X}
+\bibAnnoteFile{Cartee2000}
+
+\bibitem[{Clay and Brown(2007)}]{Clay2007}
+Clay, K.~M. and Brown, C.~J. (2007).
+\newblock {Adaptation of the Electrically Evoked Compound Action Potential
+  (ECAP) Recorded from Nucleus CI24 Cochlear Implant Users}.
+\newblock \emph{Ear {\&} Hearing}
+\bibAnnoteFile{Clay2007}
+
+\bibitem[{Dynes and Delgutte(1992)}]{Dynes1992}
+Dynes, S. B.~C. and Delgutte, B. (1992).
+\newblock {Phase-locking of auditory-nerve discharges to sinusoidal electric
+  stimulation of the cochlea}.
+\newblock \emph{Hearing Research} 58, 79--90
+\bibAnnoteFile{Dynes1992}
+
+\bibitem[{Dynes(1996)}]{Dynes1996}
+Dynes, S. B.~S. (1996).
+\newblock \emph{{Discharge Characteristics of Auditory Nerve Fibers for
+  Pulsatile Electrical Stimuli.pdf}}.
+\newblock Ph.D. thesis, Massachusetts institute of technology
+\bibAnnoteFile{Dynes1996}
+
+\bibitem[{Frankenhaeuser and Huxley(1964)}]{Frankenhaeuser1964}
+Frankenhaeuser, B. and Huxley, A.~F. (1964).
+\newblock {The action potential in the myelinated nerve fibre of Xenopus laevis
+  as computed on the basis of voltage clamp data}.
+\newblock \emph{J.Physiol} , 302--315
+\bibAnnoteFile{Frankenhaeuser1964}
+
+\bibitem[{Frijns et~al.(1995)Frijns, Desnoo, and Schonhooven}]{Frijns1995}
+Frijns, J. H.~M., Desnoo, S.~L., and Schonhooven, R. (1995).
+\newblock {Potential distribution and neural excitation patterns in
+  rotationally symmetrical model of the elctrically stimulated cochlea.}
+\newblock \emph{Hearing Research} 87, 170--186
+\bibAnnoteFile{Frijns1995}
+
+\bibitem[{Frijns et~al.(1994)Frijns, Mooij, and Kate}]{Frijns1994}
+Frijns, J. H.~M., Mooij, J., and Kate, J.~H. (1994).
+\newblock {A Quantitative Approach to Modeling Mammalian Myelinated Nerve
+  Fibers for Electrical Prosthesis Design}.
+\newblock \emph{IEEE Trnsactions on Biomedical Engineering} 41, 556--566
+\bibAnnoteFile{Frijns1994}
+
+\bibitem[{Goodman and Brette(2009)}]{Goodman2009}
+Goodman, D. F.~M. and Brette, R. (2009).
+\newblock {The Brian simulator}.
+\newblock \emph{frontiers in Neuroscience} 3, 192--197.
+\newblock \doi{10.3389/neuro.01.026.2009}
+\bibAnnoteFile{Goodman2009}
+
+\bibitem[{Hartmann et~al.(1984)Hartmann, Topp, and Klinke}]{Hartmann1984a}
+Hartmann, R., Topp, G., and Klinke, R. (1984).
+\newblock {Discharge patterns of cat primary auditory nerve fibers with
+  elecrical stimulation of the cochlea}.
+\newblock \emph{Hearing Research} 13, 47--62
+\bibAnnoteFile{Hartmann1984a}
+
+\bibitem[{Hodgkin and Huxley(1952)}]{Hodgkin1952}
+Hodgkin, A.~L. and Huxley, A.~F. (1952).
+\newblock {A quantitative description of membrane current and its application
+  to conduction and excitation in nerve}.
+\newblock \emph{J.Physiol} , 500--544
+\bibAnnoteFile{Hodgkin1952}
+
+\bibitem[{Hursh(1939)}]{Hursh1939}
+Hursh, J. (1939).
+\newblock {Conduction velocity and diameter of nerve fibers}.
+\newblock \emph{American Physiological Society}
+\bibAnnoteFile{Hursh1939}
+
+\bibitem[{Imennov and Rubinstein(2009)}]{Imennov2009}
+Imennov, N.~S. and Rubinstein, J.~T. (2009).
+\newblock {Stochastic population model for electrical stimulation of the
+  auditory nerve}.
+\newblock \emph{IEEE Transactions on Biomedical Engineering} 56, 2493--2501.
+\newblock \doi{10.1109/TBME.2009.2016667}
+\bibAnnoteFile{Imennov2009}
+
+\bibitem[{Javel et~al.(1987)Javel, Tong, Shepherd, and Clark}]{Javel1987}
+Javel, E., Tong, Y., Shepherd, R.~K., and Clark, G.~M. (1987).
+\newblock {Responses of cat auditory nerve fibers ot biphasic electrical
+  current pulses}.
+\newblock \emph{Physiology and Psychophysics}
+\bibAnnoteFile{Javel1987}
+
+\bibitem[{Kalkman et~al.(2014)Kalkman, Briaire, Dekker, and
+  Frijns}]{Kalkman2014a}
+Kalkman, R.~K., Briaire, J.~J., Dekker, D. M.~T., and Frijns, J. H.~M. (2014).
+\newblock {Place pitch versus electrode location in a realistic computational
+  model of the implanted human cochlea}.
+\newblock \emph{Hearing Research} 315, 10--24.
+\newblock \doi{10.1016/j.heares.2014.06.003}
+\bibAnnoteFile{Kalkman2014a}
+
+\bibitem[{Kalkman et~al.(2015)Kalkman, Briaire, and Frijns}]{Kalkman2015}
+Kalkman, R.~K., Briaire, J.~J., and Frijns, J. H.~M. (2015).
+\newblock {Current focussing in cochlear implants: An analysis of neural
+  recruitment in a computational model}.
+\newblock \emph{Hearing Research} 322, 89--98.
+\newblock \doi{10.1016/j.heares.2014.12.004}
+\bibAnnoteFile{Kalkman2015}
+
+\bibitem[{Lai and Dillier(2000)}]{Lai2000}
+Lai, W.~K. and Dillier, N. (2000).
+\newblock {A Simple Two-Component Model of the Electrically Evoked Compound
+  Action Potential in the Human Cochlea}.
+\newblock \emph{Zurich Open Repository and Archive} 5, 333--345
+\bibAnnoteFile{Lai2000}
+
+\bibitem[{Liberman and Oliver(1984)}]{Liberman1984}
+Liberman, M. and Oliver, M. (1984).
+\newblock {Morphometry of intracellularly labeled neurons of the auditory
+  nerve: correlations with functional properties.}
+\newblock \emph{Journal of Computational Neuroscience}
+\bibAnnoteFile{Liberman1984}
+
+\bibitem[{Litvak et~al.(2001)Litvak, Delgutte, and Eddington}]{Litvak2001}
+Litvak, L., Delgutte, B., and Eddington, D. (2001).
+\newblock {Auditory nerve fiber responses to electric stimulation : Modulated
+  and unmodulated pulse trains}.
+\newblock \emph{Acoustical Society of America} 368.
+\newblock \doi{10.1121/1.1375140}
+\bibAnnoteFile{Litvak2001}
+
+\bibitem[{Malherbe et~al.(2016)Malherbe, Hanekom, and Hanekom}]{Malherbe2016}
+Malherbe, T.~K., Hanekom, T., and Hanekom, J.~J. (2016).
+\newblock {Constructing a three-dimensional electrical model of a living
+  cochlear implant user ' s cochlea}.
+\newblock \emph{International Journal for Numerical Methods in Biomedical
+  Engineering} , 1--23\doi{10.1002/cnm}
+\bibAnnoteFile{Malherbe2016}
+
+\bibitem[{Miller et~al.(2001)Miller, Abbas, and Robinson}]{Miller2001}
+Miller, C.~A., Abbas, P.~J., and Robinson, B.~K. (2001).
+\newblock {Response Properties of the Refractory Auditory Nerve Fiber}.
+\newblock \emph{Journal of the Association for Research in Otolaryngology} 2,
+  216--232.
+\newblock \doi{10.1007/s101620010083}
+\bibAnnoteFile{Miller2001}
+
+\bibitem[{Miller et~al.(1999)Miller, Abbas, and Rubinstein}]{Miller1999}
+Miller, C.~A., Abbas, P.~J., and Rubinstein, J.~T. (1999).
+\newblock {An empirically based model of the electrically evoked compound
+  action potential.}
+\newblock \emph{Hearing Research} 135, 1--18.
+\newblock \doi{10.1016/S0378-5955(99)00081-7}
+\bibAnnoteFile{Miller1999}
+
+\bibitem[{Mino et~al.(2002)Mino, Rubinstein, and White}]{Mino2002}
+Mino, H., Rubinstein, J.~T., and White, J.~A. (2002).
+\newblock {Comparison of algorithms for the simulation of action potentials
+  with stochastic sodium channels}.
+\newblock \emph{Annals of Biomedical Engineering} 30, 578--587.
+\newblock \doi{10.1114/1.1475343}
+\bibAnnoteFile{Mino2002}
+
+\bibitem[{Negm and Bruce(2014)}]{Negm2014}
+Negm, M.~H. and Bruce, I.~C. (2014).
+\newblock {The effects of HCN and KLT ion channels on adaptation and
+  refractoriness in a stochastic auditory nerve model}.
+\newblock \emph{IEEE Transactions on Biomedical Engineering} 61, 2749--2759.
+\newblock \doi{10.1109/TBME.2014.2327055}
+\bibAnnoteFile{Negm2014}
+
+\bibitem[{Nogueira and Ashida(2018)}]{Nogueira2018}
+Nogueira, W. and Ashida, G. (2018).
+\newblock {Development of a Parametric Model of the Electrically Stimulated
+  Auditory Nerve}.
+\newblock \emph{Springer} 84.
+\newblock \doi{10.1007/978-3-319-59548-1}
+\bibAnnoteFile{Nogueira2018}
+
+\bibitem[{O'Brien and Rubinstein(2016)}]{OBrien2016}
+O'Brien, G.~E. and Rubinstein, J.~T. (2016).
+\newblock {The development of biophysical models of the electrically stimulated
+  auditory nerve: Single-node and cable models}.
+\newblock \emph{Network: Computation in Neural Systems} 27, 135--156.
+\newblock \doi{10.3109/0954898X.2016.1162338}
+\bibAnnoteFile{OBrien2016}
+
+\bibitem[{Paintal(1966)}]{Paintal1966}
+Paintal, A.~S. (1966).
+\newblock {The influence of diameter of medullated nerve fibres of cats on the
+  rising and falling phases of the spike and its recovery}.
+\newblock \emph{Journal of Physiology} , 791--811
+\bibAnnoteFile{Paintal1966}
+
+\bibitem[{Pfingst(1988)}]{Pfingst1988}
+Pfingst, B.~E. (1988).
+\newblock {Comparisons of psychophysical and neurophysiological studies of
+  cochlear implants}.
+\newblock \emph{Hearing Research} 34, 243--251
+\bibAnnoteFile{Pfingst1988}
+
+\bibitem[{Pfingst and Morris(1993)}]{Pfingst1993}
+Pfingst, B.~E. and Morris, D.~J. (1993).
+\newblock {Stimulus features affecting psychophysical detection thresholds for
+  electrical stimulation of the cochlea . II : Frequency and interpulse
+  interval}.
+\newblock \emph{The Journal of the Acoustical Society of America} 1287.
+\newblock \doi{10.1121/1.408155}
+\bibAnnoteFile{Pfingst1993}
+
+\bibitem[{Ranck(1975)}]{Ranck1975}
+Ranck, J. B.~J. (1975).
+\newblock {Which elements are excited in electrical stimulation of mammalian
+  central nervous system}.
+\newblock \emph{Brain Research} 98
+\bibAnnoteFile{Ranck1975}
+
+\bibitem[{Rattay et~al.(2001)Rattay, Leao, and Felix}]{Rattay2001}
+Rattay, F., Leao, R.~N., and Felix, H. (2001).
+\newblock {A model of the electrically excited human cochlear neuron I.
+  Contribution of neural substructures to the generation and propagation of
+  spikes}.
+\newblock \emph{Hearing Research} 153, 64--79.
+\newblock \doi{10.1016/S0378-5955(00)00257-4}
+\bibAnnoteFile{Rattay2001}
+
+\bibitem[{Rubinstein(1995)}]{Rubinstein1995}
+Rubinstein, J.~T. (1995).
+\newblock {Threshold fluctuations in an N sodium channel model of the node of
+  Ranvier}.
+\newblock \emph{Biophysical Journal} 68, 779--785.
+\newblock \doi{10.1016/S0006-3495(95)80252-3}
+\bibAnnoteFile{Rubinstein1995}
+
+\bibitem[{Schwarz and Eikhof(1987)}]{Schwarz1987}
+Schwarz, J.~R. and Eikhof, G. (1987).
+\newblock {Na currents and action potentials in rat myelinated nerve fibres at
+  20 and 37 C}.
+\newblock \emph{European Journal of Physiology} , 569--577
+\bibAnnoteFile{Schwarz1987}
+
+\bibitem[{Schwarz et~al.(1995)Schwarz, Reid, and Bostock}]{Schwarz1995}
+Schwarz, J.~R., Reid, G., and Bostock, H. (1995).
+\newblock {Action potentials and membrane currents in the human node of
+  Ranvier}.
+\newblock \emph{Pflugers Archiv European Journal of Physiology} 430, 283--292.
+\newblock \doi{10.1007/BF00374660}
+\bibAnnoteFile{Schwarz1995}
+
+\bibitem[{Shannon(1983)}]{Shannon1983}
+Shannon, R.~V. (1983).
+\newblock {Multichannel electrical stimulation of the auditory nerve in man . I
+  . Basic psychophysics}.
+\newblock \emph{Hearing Research} 11, 157--189
+\bibAnnoteFile{Shannon1983}
+
+\bibitem[{Smit et~al.(2008)Smit, Hanekom, and Hanekom}]{Smit2008}
+Smit, J.~E., Hanekom, T., and Hanekom, J.~J. (2008).
+\newblock {Predicting action potential characteristics of human auditory nerve
+  fibres through modification of the Hodgkin – Huxley equations}.
+\newblock \emph{South African Journal of Science} , 3--8
+\bibAnnoteFile{Smit2008}
+
+\bibitem[{Smit et~al.(2009)Smit, Hanekom, and Hanekom}]{Smit2009}
+Smit, J.~E., Hanekom, T., and Hanekom, J.~J. (2009).
+\newblock {Modelled temperature-dependent excitability behaviour of a
+  generalised human peripheral sensory nerve fibre}.
+\newblock \emph{Biological Cybernetics} 101, 115--130.
+\newblock \doi{10.1007/s00422-009-0324-7}
+\bibAnnoteFile{Smit2009}
+
+\bibitem[{Smit et~al.(2010)Smit, Hanekom, van Wieringen, Wouters, and
+  Hanekom}]{Smit2010}
+Smit, J.~E., Hanekom, T., van Wieringen, A., Wouters, J., and Hanekom, J.~J.
+  (2010).
+\newblock {Threshold predictions of different pulse shapes using a human
+  auditory nerve fibre model containing persistent sodium and slow potassium
+  currents}.
+\newblock \emph{Hearing Research} 269, 12--22.
+\newblock \doi{10.1016/j.heares.2010.08.004}
+\bibAnnoteFile{Smit2010}
+
+\bibitem[{Stypulkowski and {Van den Honert}(1984)}]{Stypulkowski1984}
+Stypulkowski, P.~H. and {Van den Honert}, C. (1984).
+\newblock {Physiological properties of the electrically stimulated auditory
+  nerve. I. Compound action potential recordings}.
+\newblock \emph{Hear Res} 14, 205--223
+\bibAnnoteFile{Stypulkowski1984}
+
+\bibitem[{{Van den Honert} and Stypulkowski(1984)}]{VandenHonert1984}
+{Van den Honert}, C. and Stypulkowski, P.~H. (1984).
+\newblock {Physiological properties of the electrically stimulated auditory
+  nerve. II. Single fiber recordings}.
+\newblock \emph{Hear Research} 14, 205--223
+\bibAnnoteFile{VandenHonert1984}
+
+\bibitem[{van Gendt et~al.(2016)van Gendt, Briaire, Kalkman, and
+  Frijns}]{VanGendt2016}
+van Gendt, M.~J., Briaire, J.~J., Kalkman, R.~K., and Frijns, J.~H. (2016).
+\newblock {A fast, stochastic, and adaptive model of auditory nerve responses
+  to cochlear implant stimulation}.
+\newblock \emph{Hearing Research} 341, 130--143.
+\newblock \doi{10.1016/j.heares.2016.08.011}
+\bibAnnoteFile{VanGendt2016}
+
+\bibitem[{van Gendt et~al.(2017)van Gendt, Briaire, Kalkman, and
+  Frijns}]{VanGendt2017}
+van Gendt, M.~J., Briaire, J.~J., Kalkman, R.~K., and Frijns, J. H.~M. (2017).
+\newblock {Modeled auditory nerve responses to amplitude modulated cochlear
+  implant stimulation}.
+\newblock \emph{Hearing Research} 351, 19--33.
+\newblock \doi{10.1016/j.heares.2017.05.007}
+\bibAnnoteFile{VanGendt2017}
+
+\bibitem[{Verveen(1962)}]{Verveen1962}
+Verveen, A.~A. (1962).
+\newblock {Axon diameter and fluctuation in excitability}.
+\newblock \emph{ACTA MORPHOLOGICA NEERLANDO-SCANDINAVICA} V
+\bibAnnoteFile{Verveen1962}
+
+\bibitem[{Verveen and Derksen(1968)}]{Verveen1968}
+Verveen, A.~A. and Derksen, H.~E. (1968).
+\newblock {Fluctuation Phenomena in Nerve Membrane}.
+\newblock \emph{Proceedings of the IEEE} 56, 906--916.
+\newblock \doi{10.1109/PROC.1968.6443}
+\bibAnnoteFile{Verveen1968}
+
+\bibitem[{Wesselink et~al.(1999)Wesselink, Holsheimer, and
+  Boom}]{Wesselink1999}
+Wesselink, W.~A., Holsheimer, J., and Boom, H.~B. (1999).
+\newblock {A model of the electrical behaviour of myelinated sensory nerve
+  fibres based on human data}.
+\newblock \emph{Med.Biol.Eng Comput.} 37, 228--235.
+\newblock \doi{10.1007/BF02513291}
+\bibAnnoteFile{Wesselink1999}
+
+\bibitem[{Westerman and Smith(1984)}]{Westerman1984}
+Westerman, L.~A. and Smith, R.~L. (1984).
+\newblock {Rapid and short-term adaptation in auditory nerve responses}.
+\newblock \emph{Hearing Research} 15, 249--260
+\bibAnnoteFile{Westerman1984}
+
+\bibitem[{Woo et~al.(2009)Woo, Miller, and Abbas}]{Woo2009}
+Woo, J., Miller, C., and Abbas, P. (2009).
+\newblock {Biophysical Model of an Auditory Nerve Fiber With a Novel Adaptation
+  Component}.
+\newblock \emph{IEEE Transactions on Biomedical Engineering} 56, 2177--2180.
+\newblock \doi{10.1109/TBME.2009.2023978}
+\bibAnnoteFile{Woo2009}
+
+\bibitem[{Woo et~al.(2010)Woo, Miller, and Abbas}]{Woo2010}
+Woo, J., Miller, C.~A., and Abbas, P.~J. (2010).
+\newblock {The dependence of auditory nerve rate adaptation on electric
+  stimulus parameters, electrode position, and fiber diameter: A computer model
+  study}.
+\newblock \emph{JARO - Journal of the Association for Research in
+  Otolaryngology} 11, 283--296.
+\newblock \doi{10.1007/s10162-009-0199-2}
+\bibAnnoteFile{Woo2010}
+
+\bibitem[{Zhang et~al.(2007)Zhang, Miller, Robinson, Abbas, and Hu}]{Zhang2007}
+Zhang, F., Miller, C.~A., Robinson, B.~K., Abbas, P.~J., and Hu, N. (2007).
+\newblock {Changes across time in spike rate and spike amplitude of auditory
+  nerve fibers stimulated by electric pulse trains}.
+\newblock \emph{JARO - Journal of the Association for Research in
+  Otolaryngology} 8, 356--372.
+\newblock \doi{10.1007/s10162-007-0086-7}
+\bibAnnoteFile{Zhang2007}
+
+\bibitem[{Zhou et~al.(2015)Zhou, Kraft, Colesa, and Pfingst}]{Zhou2015}
+Zhou, N., Kraft, C.~T., Colesa, D.~J., and Pfingst, B.~E. (2015).
+\newblock {Integration of Pulse Trains in Humans and Guinea Pigs with Cochlear
+  Implants}.
+\newblock \emph{Journal of the Association for Research in Otolaryngology} 534,
+  523--534.
+\newblock \doi{10.1007/s10162-015-0521-0}
+\bibAnnoteFile{Zhou2015}
+
+\end{thebibliography}

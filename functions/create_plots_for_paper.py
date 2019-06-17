@@ -63,8 +63,8 @@ def conduction_velocity_comparison(plot_name,
     plt.close(plot_name)
     
     ##### generate figure
-    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(7, 3))
-    fig.subplots_adjust(bottom=0.15)
+    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(8, 3.5))
+    fig.subplots_adjust(bottom=0.18)
     
     ##### no grid
     axes.grid(False)
@@ -91,8 +91,8 @@ def conduction_velocity_comparison(plot_name,
     plt.legend(ncol=2)
     
     ##### add labels to the axes
-    axes.set_xlabel(r"$D$ / $\rm{\mu m}$", fontsize=14)
-    axes.set_ylabel(r"$v_{\rm{c}}$ / $\rm{ms}^{-1}$", fontsize=14)
+    axes.set_xlabel(r"Diameter / $\rm{\mu m}$", fontsize=12)
+    axes.set_ylabel(r"Velocity / $\rm{ms}^{-1}$", fontsize=12)
     
     return fig
 
@@ -115,7 +115,7 @@ def single_node_response_comparison(plot_name,
         - "membrane potential (mV)" 
         - "time (ms)"
         - "model"
-        - "run
+        - "run"
                 
     Returns
     -------
@@ -162,14 +162,14 @@ def single_node_response_comparison(plot_name,
         
         ##### put legend next to plots
         if ii == len(models)-2:
-            axes[ii].legend(loc = (0.42, 0.65), shadow = False, title = "stimulus amplitude", fontsize=10)
+            axes[ii].legend(loc = (0.42, 0.65), shadow = False, title = "stimulus amplitude", fontsize=11)
             
         ##### remove top and right lines
         axes[ii].spines['top'].set_visible(False)
         axes[ii].spines['right'].set_visible(False)
             
         ##### write model name in plots
-        axes[ii].text(x_max*0.05, y_max-10, current_data_1th["short_name"].iloc[0], fontsize=12)
+        axes[ii].text(x_max*0.05, y_max-10, current_data_1th["short_name"].iloc[0], fontsize=13)
             
         ##### no grid
         axes[ii].grid(False)
@@ -375,7 +375,7 @@ def strength_duration_curve_comparison(plot_name,
             axes[ii].set_xlim([8,550])
     
             ##### add labels to x-axes    
-            axes[ii].set_xlabel(r'Phase duration / $\rm{\mu s}$', fontsize=14)
+            axes[ii].set_xlabel(r'Phase duration / $\rm{\mu s}$', fontsize=12)
     
         ##### use normal values for axes (no powered numbers)
         for axis in [axes[ii].xaxis, axes[ii].yaxis]:
@@ -389,14 +389,14 @@ def strength_duration_curve_comparison(plot_name,
     axes[1].tick_params(axis = 'y', left = 'off', right = "on", labelright = True)
     
     #### add titles
-    axes[0].set_title("Cathodic stimulation")
-    axes[1].set_title("Anodic stimulation")
+    axes[0].set_title("Cathodic stimulation", fontsize=12)
+    axes[1].set_title("Anodic stimulation", fontsize=12)
     
     ##### bring subplots close to each other.
     fig.subplots_adjust(wspace=0)
     
     ##### add y-axis label
-    axes[0].set_ylabel(r'Threshold / $\rm{\mu A}$', fontsize=14)
+    axes[0].set_ylabel(r'Threshold / $\rm{\mu A}$', fontsize=12)
     
     return fig
 
@@ -479,7 +479,7 @@ def refractory_curves_comparison(plot_name,
         axes[ii].spines['right'].set_visible(False)
             
         ##### write model name above plots
-        axes[ii].text(3, 16, current_data["short_name"].iloc[0], fontsize=14)
+        axes[ii].text(3, 16, current_data["short_name"].iloc[0], fontsize=13)
         #axes[ii].set_title(current_data["short_name"].iloc[0], fontsize=14)
             
         ##### no grid
@@ -489,8 +489,8 @@ def refractory_curves_comparison(plot_name,
     fig.subplots_adjust(hspace=0.2, wspace=0.05)
     
     ##### get labels for the axes
-    fig.text(0.5, 0.02, "IPI / ms", ha="center", fontsize=12)
-    fig.text(0.07, 0.5, r"$I_{\rm{th}}$ (2nd stimulus) / $I_{\rm{th}}$ (single pulse)", va="center", rotation="vertical", fontsize=11)
+    fig.text(0.5, 0.02, "IPI / ms", ha="center", fontsize=13)
+    fig.text(0.07, 0.5, r"$I_{\rm{th}}$ (2nd stimulus) / $I_{\rm{th}}$ (single pulse)", va="center", rotation="vertical", fontsize=12)
 
     return fig
 
@@ -599,10 +599,10 @@ def psth_comparison(plot_name,
                 axes[ii][col].set_xlim([-10,max(bin_edges)*1.1])
                 axes[ii][col].set_xticks([0,max(bin_edges)-0.5*bin_width])
                 
-                ##### add letter on right side to identify model
+                ##### add short name on right side to identify model
                 if col == nof_amplitudes*nof_pulse_rates-1:
                     axes[ii][col].yaxis.set_label_position("right")
-                    axes[ii][col].set_ylabel(current_data["short_name"].iloc[0], fontsize=14, rotation = 0)
+                    axes[ii][col].set_ylabel(current_data["short_name"].iloc[0], fontsize=12, rotation = 0)
                     axes[ii][col].yaxis.set_label_coords(1.1,0.5)
                     
                 ##### no grid
@@ -644,14 +644,14 @@ def psth_comparison(plot_name,
     
     ##### use the pulse rates as column titles
     for ax, columtitle in zip(axes[0], ["{} pps".format(pulse_rates[ii]) for ii in range(nof_pulse_rates)]):
-        ax.set_title(columtitle, y = 1.1)
+        ax.set_title(columtitle, y = 1.1, fontsize=12)
     
     ##### get labels for the axes
-    fig.text(0.5, 0.01, 'Time after stimulus onset / ms', ha='center', fontsize=14)
+    fig.text(0.5, 0.01, 'Time after stimulus onset / ms', ha='center', fontsize=12)
     if plot_style == "firing_efficiency":
-        fig.text(0.03, 0.5, 'firing efficiency', va='center', rotation='vertical', fontsize=14)
+        fig.text(0.03, 0.5, 'firing efficiency', va='center', rotation='vertical', fontsize=12)
     else:
-        fig.text(0.065, 0.5, 'Number of APs per {} ms timebin'.format(bin_width), va='center', rotation='vertical', fontsize=14)
+        fig.text(0.065, 0.5, 'Number of APs per {} ms timebin'.format(bin_width), va='center', rotation='vertical', fontsize=12)
 
     return fig
 
@@ -705,10 +705,10 @@ def voltage_course_comparison_plot(plot_name,
     plt.close(plot_name)
     
     ##### create figure
-    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=True, num = plot_name, figsize=(3.2*nof_cols, 2.7*nof_rows))
-    fig.subplots_adjust(bottom=0.16)
+    fig, axes = plt.subplots(nof_rows, nof_cols, sharex=False, sharey=True, num = plot_name, figsize=(10, 2.7*nof_rows))
+    fig.subplots_adjust(bottom=0.2)
     
-    ##### create plots  
+    ##### create plots
     for ii in range(nof_rows*nof_cols):
         
         ##### get row and column number
@@ -740,13 +740,13 @@ def voltage_course_comparison_plot(plot_name,
             
             ##### plot lines
             for jj in comps_to_plot:
-                axes[col].plot(time_vector/ms, offset[jj] - 1/(30)*(voltage_matrix[jj, :]-model.V_res)/mV, "black", linewidth = 0.9)
+                axes[col].plot(time_vector/ms, offset[jj] - 1/(45)*(voltage_matrix[jj, :]-model.V_res)/mV, "black", linewidth = 0.9)
             
             ##### write model name in plots
             if model == rattay_01: short_name = "RA"
             elif model == briaire_05: short_name = "BF"
             else: short_name = "SH"
-            axes[col].text(1.4, -3, "{}".format(short_name), fontsize=14)
+            axes[col].text(1.4, -1.9, "{}".format(short_name), fontsize=11)
                 
             ##### no grid
             axes[col].grid(False)
@@ -758,7 +758,7 @@ def voltage_course_comparison_plot(plot_name,
     fig.subplots_adjust(hspace=0, wspace=0)
     
     ##### get labels for the axes
-    fig.text(0.5, 0.004, 'Time / ms', ha='center', fontsize=12)
+    fig.text(0.5, 0.002, 'Time / ms', ha='center', fontsize=12)
     
     return fig
 
@@ -800,7 +800,7 @@ def stochastic_properties_comparison(plot_name,
     plt.close(plot_name)
     
     ##### create figure
-    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(7,3.5))
+    fig, axes = plt.subplots(1, 1, num = plot_name, figsize=(8,3.5))
     fig.subplots_adjust(bottom=0.15)
     
     ##### plot experimental range
@@ -824,7 +824,7 @@ def stochastic_properties_comparison(plot_name,
     axes.set_xlim([0,200])
                 
     ##### add legend
-    plt.legend(ncol=4)
+    plt.legend(ncol=4, handletextpad=0.3, columnspacing=1)
     
     ##### Write relative spreads as percentage
     vals = axes.get_yticks().astype(int)
@@ -834,8 +834,8 @@ def stochastic_properties_comparison(plot_name,
     axes.grid(False)
     
     ##### get labels for the axes
-    fig.text(0.5, 0.01, r'Jitter / $\rm{\mu s}$', ha='center', fontsize=14)
-    fig.text(0.02, 0.5, 'Relative spread of thresholds', va='center', rotation='vertical', fontsize=14)
+    fig.text(0.5, 0.015, r'Jitter / $\rm{\mu s}$', ha='center', fontsize=12)
+    fig.text(0.04, 0.5, 'Relative spread of thresholds', va='center', rotation='vertical', fontsize=12)
         
     return fig
 
@@ -872,20 +872,22 @@ def thresholds_for_pulse_trains(plot_name,
     nof_rows = len(models)
     
     ##### define colors and markers for rate plots
-    colors_rate = ["black","red","blue"]
-    edgecolors_rate = ["black","red","blue"]
-    markers_rate = ["s","o","v"]
+    colors_rate = ["blue","black","red"]
+    edgecolors_rate = ["blue","black","red"]
+    #markers_rate = ["s","o","v"]
+    markers_rate = [">","d","*"]
     
     ##### define colors and markers for duration plots
-    colors_dur = ["blue","black","red"]
-    markers_dur = ["s","o","v"]
-    edgecolors_dur = ["blue","black","red"]
+    colors_dur = ["black","red","blue"]
+    markers_dur = [">","d","*"]
+    edgecolors_dur = ["black","red","blue"]
               
     ##### close possibly open plots
     plt.close(plot_name)
     
     ##### create figure
-    fig, axes = plt.subplots(nof_rows, 2, sharex = "col", sharey=True, num = plot_name, figsize=(9, 1.5*nof_rows))
+    fig, axes = plt.subplots(nof_rows, 2, sharex = "col", sharey=True, num = plot_name, figsize=(8, 1.4*nof_rows))
+    fig.subplots_adjust(bottom=0.12)
     
     ##### loop over figure type
     for ii, method in enumerate(["thr_over_rate", "thr_over_dur"]):
@@ -936,10 +938,10 @@ def thresholds_for_pulse_trains(plot_name,
             ##### add legend to first plots per column
             if jj == 0:
                 if method == "thr_over_rate":
-                    legend = axes[jj][ii].legend(ncol=3 ,title='Train duration:', fontsize=10, loc=(0,1.05))
+                    legend = axes[jj][ii].legend(ncol=3 ,title='Train duration:', fontsize=10, loc=(0,1.05), frameon=False, handletextpad=0.01, columnspacing=0.5)
                     plt.setp(legend.get_title(),fontsize=11)
                 else:
-                    legend = axes[jj][ii].legend(ncol=3 ,title='Pulse rate:', fontsize=10, loc=(0,1.05))
+                    legend = axes[jj][ii].legend(ncol=3 ,title='Pulse rate:', fontsize=10, loc=(0,1.05), frameon=False, handletextpad=0.01, columnspacing=0.5)
                     plt.setp(legend.get_title(),fontsize=11)
                 
             ##### logarithmic achses
@@ -955,7 +957,7 @@ def thresholds_for_pulse_trains(plot_name,
                 axes[jj][ii].set_xticks([100,1000,10000])
                 ##### add letter on right side to identify model
                 axes[jj][ii].yaxis.set_label_position("right")
-                axes[jj][ii].set_ylabel(current_data["short_name"].iloc[0], fontsize=13, rotation = 0)
+                axes[jj][ii].set_ylabel(current_data["short_name"].iloc[0], fontsize=12, rotation = 0)
                 axes[jj][ii].yaxis.set_label_coords(1.048,0.57)
             else:
                 axes[jj][ii].set_xlim([0.09,30])
@@ -963,10 +965,10 @@ def thresholds_for_pulse_trains(plot_name,
                 axes[jj][ii].tick_params(axis = 'y', left = 'off', right = "on", labelright = True)
                 
             ##### set y ticks
-            axes[jj][ii].set_yticks([-2,-1,0,1])
+            #axes[jj][ii].set_yticks([-2,-1,0,1])
             
             ##### no grid
-            axes[jj][ii].grid(True, which='both', axis='both', linestyle='--', alpha = 0.5)
+            axes[jj][ii].grid(True, which='both', axis='both', alpha = 0.5) #, linestyle='--'
     
     ##### bring subplots close to each other.
     fig.subplots_adjust(hspace=0, wspace=0.1)
@@ -974,7 +976,7 @@ def thresholds_for_pulse_trains(plot_name,
     ##### get labels for the axes
     axes[nof_rows-1][0].set_xlabel('Pulse rate / pps', fontsize=12)
     axes[nof_rows-1][1].set_xlabel('Pulse-train duration / ms', fontsize=12)
-    fig.text(0.07, 0.5, 'Thre in dB (re single biphasic pulse)', va='center', rotation='vertical', fontsize=12)
+    fig.text(0.06, 0.5, 'Threshold in dB (re single biphasic pulse)', va='center', rotation='vertical', fontsize=12)
         
     return fig
 
@@ -1020,8 +1022,9 @@ def thresholds_for_sinus(plot_name,
     
     ##### define colors and markers
     colors = ["blue","black","red","blue","black","red"]
-    markers = ["s","o","v","s","o","v"]
+#    markers = ["s","o","v","s","o","v"]
     edgecolors = ["blue","black","red","blue","black","red"]
+    markers = [">","d","*"]
               
     ##### close possibly open plots
     plt.close(plot_name)
@@ -1072,24 +1075,24 @@ def thresholds_for_sinus(plot_name,
         axes[ii].set_xticks(np.array([0.25,0.5,1,2,4,8,16]))
         ##### change y-achses to dynamic range
         axes[ii].set_xticklabels(['{}'.format(y) for y in axes[ii].get_xticks()])
-        axes[ii].text(0.15, 0,"{}".format(current_model["short_name"].iloc[0]), fontsize=12)
+        axes[ii].text(0.15, 0,"{}".format(current_model["short_name"].iloc[0]), fontsize=14)
         
         ##### set y ticks
-        axes[ii].set_yticks([0, -5,-10,-15,-20,-25])
+        axes[ii].set_yticks([0, -6,-12,-18,-24])
         
         ##### add grid
-        axes[ii].grid(True, which='both', axis='both', linestyle='--', alpha = 0.5)
+        axes[ii].grid(True, which='both', axis='both', alpha = 0.5) #, linestyle='--'
         
         ##### save handles and labels for the plot before the one with the legend
         if ii == 1:
-            axes[ii].legend(loc=(0.01,0.05), title = "Stimulus duration", ncol=2)
+            axes[ii].legend(loc=(0.15,0.05), title = "Stimulus duration", ncol=2, handletextpad=0.01, columnspacing=0.5)
     
     ##### bring subplots close to each other.
     fig.subplots_adjust(hspace=0, wspace=0)
     
     ##### get labels for the axes
-    fig.text(0.5, 0.01, 'Frequency / kHz', ha='center', fontsize=12)
-    fig.text(0.045, 0.5, 'Threshold', va='center', rotation='vertical', fontsize=12)
-    fig.text(0.065, 0.5, '(dB re threshold for 16 kHz)', va='center', rotation='vertical', fontsize=12)
+    fig.text(0.5, 0.01, 'Frequency / kHz', ha='center', fontsize=14)
+    #fig.text(0.045, 0.5, 'Threshold in dB', va='center', rotation='vertical', fontsize=12)
+    fig.text(0.065, 0.5, 'Threshold in dB (re 16 kHz)', va='center', rotation='vertical', fontsize=14)
         
     return fig

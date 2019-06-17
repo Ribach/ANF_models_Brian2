@@ -88,7 +88,7 @@ if plot_ion_currents:
         I_adap = StateMonitor(neuron, ['I_KLT','I_HCN'], record=True)
 
 ##### get compartment number of second node
-stim_comp_index = np.where(model.structure == 2)[0][18]
+stim_comp_index = np.where(model.structure == 2)[0][1]
 
 ##### save initialization of the monitor(s)
 store('initialized')
@@ -102,20 +102,20 @@ if plot_voltage_course_lines or plot_voltage_course_colored:
     I_stim, runtime = stim.get_stimulus_current(model = model,
                                                 dt = dt,
                                                 stimulation_type = "extern",
-                                                pulse_form = "bi",
+                                                pulse_form = "mono",
                                                 stimulated_compartment = stim_comp_index,
-                                                nof_pulses = 20,
-                                                time_before = 0.5*ms,
+                                                nof_pulses = 1,
+                                                time_before = 1*ms,
                                                 time_after = 2*ms,
-                                                add_noise = False,
+                                                add_noise = True,
                                                 ##### monophasic stimulation
                                                 amp_mono = -300*uA,
                                                 duration_mono = 50*us,
                                                 ##### biphasic stimulation
-                                                amps_bi = [-500,500]*uA,
-                                                durations_bi = [40,0,40]*us,
+                                                amps_bi = [-5000,5000]*uA,
+                                                durations_bi = [20,0,20]*us,
                                                 ##### multiple pulses / pulse trains
-                                                inter_pulse_gap = 0.2*ms)
+                                                inter_pulse_gap = 1.96*ms)
     
     ##### get TimedArray of stimulus currents
     stimulus = TimedArray(np.transpose(I_stim), dt = dt)

@@ -99,7 +99,7 @@ refractory_curve = plot.refractory_curve(plot_name = "Refractory curve {}".forma
 
 ##### poststimulus time histogram plot
 post_stimulus_time_histogram = plot.post_stimulus_time_histogram(plot_name = "PSTH {}".format(model.display_name),
-                                                                 psth_dataset = psth_table,
+                                                                 psth_dataset = psth_table.copy(),
                                                                  plot_style = "pulses_per_timebin")
 
 if save_plots:

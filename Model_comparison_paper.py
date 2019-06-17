@@ -38,10 +38,10 @@ prefs.codegen.target = "numpy"
 models = [rattay_01, briaire_05, smit_10]
 
 ##### save plots
-save_plots = True
-save_tables = True
-paper_image_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Paper/images"
-paper_table_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Paper/tables"
+save_plots = False
+save_tables = False
+paper_image_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Paper/Frontiers_LaTeX/images"
+paper_table_path = "C:/Users/Richard/Documents/Studium/Master Elektrotechnik/Semester 4/Paper\Frontiers_LaTeX/tables"
 
 # =============================================================================
 # Conduction velocity tables
@@ -656,7 +656,7 @@ psth_data = [pd.DataFrame()]*len(models)
 for ii,model in enumerate(models):
     
     ##### get psth data of model
-    psth_data[ii] = pd.read_csv("results/{}/PSTH_table {}.csv".format(model.display_name,model.display_name))
+    psth_data[ii] = pd.read_csv("results/{}/PSTH_table_new {}.csv".format(model.display_name,model.display_name))
     
     #### add model information
     psth_data[ii]["model"] = model.display_name_plots
@@ -675,9 +675,9 @@ psth_data["short_name"][psth_data["model"] == "Rattay et al. (2001)"] = "RA"
 psth_data["short_name"][psth_data["model"] == "Smit et al. (2010)"] = "SH"
 
 ##### plot PSTH comparison
-psth_plot = plot.psth_comparison(plot_name = "PSTH model comparison",
-                                 psth_data = psth_data,
-                                 amplitudes = ['1*threshold'],
+psth_plot = plot.psth_comparison(plot_name = "PSTH model comparison3",
+                                 psth_data = psth_data.copy(),
+                                 amplitudes = ['1.5*threshold'],
                                  pulse_rates = [400, 800, 2000, 5000],
                                  plot_style = "spikes_per_time_bin")
 
@@ -688,7 +688,7 @@ if save_plots:
 # =============================================================================
 # Plot voltage course for all models
 # =============================================================================
-stim_amps = [0.14, 1.2, 0.3]
+stim_amps = [0.06, 2.1, 0.1]
 max_node = [7,15,16]
 max_comp = [0,0,0]
 
@@ -714,9 +714,9 @@ for ii, model in enumerate(models):
                                                 dt = 5*us,
                                                 pulse_form = "mono",
                                                 stimulation_type = "intern",
-                                                time_before = 0.2*ms,
-                                                time_after = 1.3*ms,
-                                                stimulated_compartment = np.where(model.structure == 2)[0][1],
+                                                time_before = 0.1*ms,
+                                                time_after = 1.5*ms,
+                                                stimulated_compartment = 0, #np.where(model.structure == 2)[0][1],
                                                 ##### monophasic stimulation
                                                 amp_mono = stim_amps[ii]*nA,
                                                 duration_mono = 100*us)
@@ -792,7 +792,7 @@ pulse_train_thr_over_dur["short_name"][pulse_train_thr_over_dur["model"] == "rat
 pulse_train_thr_over_dur["short_name"][pulse_train_thr_over_dur["model"] == "smit_10"] = "SH"
 
 ##### generate plot
-thresholds_for_pulse_trains_plot = plot.thresholds_for_pulse_trains(plot_name = "Thresholds for pulse trains2",
+thresholds_for_pulse_trains_plot = plot.thresholds_for_pulse_trains(plot_name = "Thresholds for pulse trains",
                                                                     pulse_train_thr_over_rate = pulse_train_thr_over_rate,
                                                                     pulse_train_thr_over_dur = pulse_train_thr_over_dur)
 

@@ -1,0 +1,262 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% This is just an example/guide for you to refer to when submitting manuscripts to Frontiers, it is not mandatory to use Frontiers .cls files nor frontiers.tex  %
+% This will only generate the Manuscript, the final article will be typeset by Frontiers after acceptance.   
+%                                              %
+%                                                                                                                                                         %
+% When submitting your files, remember to upload this *tex file, the pdf generated with it, the *bib file (if bibliography is not within the *tex) and all the figures.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% Version 3.4 Generated 2018/06/15 %%%
+%%% You will need to have the following packages installed: datetime, fmtcount, etoolbox, fcprefix, which are normally inlcuded in WinEdt. %%%
+%%% In http://www.ctan.org/ you can find the packages and how to install them, if necessary. %%%
+%%%  NB logo1.jpg is required in the path in order to correctly compile front page header %%%
+
+\documentclass[utf8]{frontiersSCNS} % for Science, Engineering and Humanities and Social Sciences articles
+%\documentclass[utf8]{frontiersHLTH} % for Health articles
+%\documentclass[utf8]{frontiersFPHY} % for Physics and Applied Mathematics and Statistics articles
+
+%\setcitestyle{square} % for Physics and Applied Mathematics and Statistics articles
+\usepackage{url,hyperref,lineno,microtype,subcaption}
+\usepackage[onehalfspacing]{setspace}
+\usepackage{siunitx}			% allows to use units in text
+
+\linenumbers
+
+
+% Leave a blank line between paragraphs instead of using \\
+
+%%% no italics (in equations) using T{}
+\newcommand{\T}[1]{\text{#1}}
+
+
+
+
+\def\keyFont{\fontsize{8}{11}\helveticabold }
+\def\firstAuthorLast{Sample {et~al.}} %use et al only if is more than 1 author
+\def\Authors{Richard Bachmaier\,$^{1}$, Jörg Encke\,$^{1,2,3}$, Miguel Obando-Leitón\,$^{1,2,4}$, Werner Hemmert\,$^{1,2,4}$ and Siwei Bai\,$^{1,2,5,*}$}
+% Affiliations should be keyed to the author's name with superscript numbers and be listed as follows: Laboratory, Institute, Department, Organization, City, State abbreviation (USA, Canada, Australia), and Country (without detailed address information such as city zip codes or street names).
+% If one of the authors has a change of address, list the new address below the correspondence details using a superscript symbol and use the same symbol to indicate the author in the author list.
+\def\Address{$^{1}$Department of Electrical and Computer Engineering, Technical University of Munich, 80333 Munich, Germany \\
+$^{2}$Munich School of Bioengineering, Technical University of Munich,85748 Garching, Germany \\
+$^{3}$(need inputs from Jörg) \\
+$^{4}$Graduate School of Systemic Neurosciences, Ludwig Maximilian University of Munich, 82152 Planegg, Germany \\
+$^{5}$Graduate School of Biomedical Engineering, University of New South Wales, Sydney, NSW 2052, Australia  }
+% The Corresponding Author should be marked with an asterisk
+% Provide the exact contact address (this time including street name and city zip code) and email of the corresponding author
+\def\corrAuthor{Siwei Bai}
+\def\corrEmail{siwei.bai(at)tum.de}
+
+
+
+
+\begin{document}
+\onecolumn
+\firstpage{1}
+
+\title[Running Title]{Comparison of multi-compartment cable models of human auditory nerve fibres} 
+
+\author[\firstAuthorLast ]{\Authors} %This field will be automatically populated
+\address{} %This field will be automatically populated
+\correspondance{} %This field will be automatically populated
+
+\extraAuth{}% If there are more than 1 corresponding author, comment this line and uncomment the next one.
+%\extraAuth{corresponding Author2 \\ Laboratory X2, Institute X2, Department X2, Organization X2, Street X2, City X2 , State XX2 (only USA, Canada and Australia), Zip Code2, X2 Country X2, email2@uni2.edu}
+
+
+\maketitle
+
+
+\begin{abstract}
+
+%%% Leave the Abstract empty if your article does not require one, please see the Summary Table for full details.
+\section{}
+Background: Multi-compartment cable models of auditory nerve fibres have been developed to assist the improvement of cochlear implants. With the advancement of computational technology and the results obtained from in vivo and in vitro experiments, these models have evolved to incorporate a considerable degree of morphological and physiological details. They have also been combined with three-dimensional volume conduction models of the cochlea to simulate neural responses to electrical stimulation. However, no specific rules have been provided on choosing the appropriate cable model, and most models adopted in recent studies were chosen without a specific reason or by inheritance.
+
+Methods: Three of the most cited multi-compartment cable models of the human auditory nerve, i.e. Rattay et al., Briaire and Friijns, and Smit et al., were implemented in this study. Several properties of single fibres were compared among the three models, including threshold, conduction velocity, action potential shape, latency, refractory properties, as well as stochastic and temporal behaviours. Experimental results regarding these properties were also included as a reference for comparison.
+
+Results: For monophasic single-pulse stimulation, the ratio of anodic versus cathodic thresholds in all models was within the experimental range, despite a much larger ratio in the model by Briaire and Friijns. For biphasic pulse-train stimulation, thresholds as a function of both pulse rate and pulse duration differed between the models, and none matched the experimental observations even coarsely. Similarly, for all other properties including the conduction velocity, action potential shape, and latency, the models presented different outcomes and not all of them fell within the range observed in experiments.
+
+Conclusions: While all three models presented similar values in certain single fibre properties to those obtained in experiments, none matched the experimental observations satisfactorily. In particular, the adaptation and temporal integration behaviours were completely missing in all models. Further extensions and analyses are required to explain and simulate realistic auditory nerve fibre responses to electrical stimulation.
+
+\tiny
+ \keyFont{ \section{Keywords:} Auditory nerve, computational model, biophysical, threshold, conduction velocity, latency, refractory periods, stochasticity} %All article types: you may provide up to 8 keywords; at least 5 are mandatory.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:introduction}
+
+% at some point its necessary to explain why only biophysical models are interesting here, or at least mentionthat we only are describing biophysical models
+Multi-compartment cable models of the auditory nerve fibers (ANF) have been developed to assist in understanding and predicting neural responses to external stimulation. They have been used to advance our knowledge regarding how the auditory nerve encodes timing, frequency and intensity information \citep{Imennov2009}. Moreover, multi-compartment ANF models have frequently been combined with three-dimensional volume conduction models of the cochlea to simulate responses to cochlear implant (CI) stimulation (some recent papers as refs). Alongside psychophysical experiments, computational models of the auditory nerve are used to evaluate new sound coding and stimulation strategies and are therefore crucial in the improvement of CIs. Nevertheless, there exist several ANF models in the literature with conflicting  morphological or ionic channel properties. No specific rules have been provided on choosing the appropriate cable model for a computational study, and most models adopted in existing studies were chosen without a specific reason or by inheritance.
+
+Generally speaking, multi-compartment models are morphological extensions of single-node models. Based on the Schwarz–Eikhof (SE) node model of rat and feline ion channel kinetics, \cite{Frijns1994} developed an axonal model, which was subsequently extended to match the feline ANF morphology \citep{Frijns1995}. 
+% "extended" in what sense?
+However, differences in morphology between human and cat might impact spike travel time, and this must be taken into account for correct predictions of CI stimulus coding in humans (Rattay et al. 2001; O'Brien, 2016). For this reason, this feline ANF model was later modified to incorporate the human ANF morphology \citep{Briaire2005}. Meanwhile, \cite{Rattay2001} designed a different human ANF model based on the Hodgkin-Huxley (HH) description of the unmyelinated giant axon of a squid, as well as with a varied morphological reconstruction of human ANF.
+% "as well as"? are there two models?
+ \cite{Smit2008} adopted the compositions of dendrite and soma by \cite{Rattay2001}, but modified the properties of the axon in order to account for differences in membrane currents at the node of Ranvier between human \citep{Schwarz1995} and squid. 
+
+In addition to differences in morphology and ionic channel descriptions, some ANF cable models also include additional modifications in order to implement specific physiological properties,  including stochastic effects as well as adaptation and temporal integration. For instance, \cite{Rattay2001} incorporated a simple and efficient approach to predict stochastic ANF responses by adding a Gaussian noise current term to the total ion current. In comparison, \cite{Imennov2009} represented the stochastic nature of ion channels by applying a channel number tracking (CNT) algorithm. \cite{Woo2010} included a model of ``short-term'' % why the quotation marks? maybe write something like "on the order of milliseconds" to specify
+ rate adaptation based on a dynamic external potassium concentration, whereas \cite{VanGendt2016} integrated their biophysical model with a phenomenological approach to simulate stochasticity, %which  stochasticity? of spike timing?
+ adaptation and accommodation. 
+
+Differences in the description of ANF morphology and physiology lead to distinct model characteristics. A meaningful comparison based on the respective publications is however not feasible, as the models were only fitted to specific ANF properties under certain stimulation patterns. For example, \cite{Rattay2001} detailed the initiation and propagation of action potentials (APs), but did not describe properties like the strength-duration relation and refractory period. \cite{Frijns1994} and \cite{Smit2008} measured the AP shape, conduction velocity, strength-duration relation and refractory period, but none of these properties was mentioned for the updated versions of their model in \cite{Briaire2005} and \cite{Smit2010}. For studies that included an adaptation mechanism in their ANF cable models, they presented almost exclusively responses to pulse-train stimulation, but did not include single-pulse responses as in other studies. Therefore, it is highly necessary 
+% maybe motivate why it is necessary? e.g. "to investigate if the models are valid with more generalised stimuli, ..."
+to compare the spiking characteristics of different ANF models in the same framework. In this study, three of the most cited human ANF cable models, i.e.\ the Rattay (RA) model from \cite{Rattay2001}, the Briaire-Frijns (BF) model from \cite{Briaire2005} and the Smit-Hanekom (SH) model from \cite{Smit2010}, were chosen to be implemented in a consistent framework, and their performances were evaluated by comparing them against experimental data.
+
+
+\section{Methods}
+\label{sec:methods}
+% If not in the intro, at the latest mention here why only some of the models mentioned in the intro were included. "These models were selected because ..."
+The multi-compartment ANF models by \cite{Rattay2001}, \cite{Briaire2005} and \cite{Smit2010}, from here on abbreviated as RA, BF and SH, respectively,  were implemented in a single framework in this study using Python 3.4, with the package Brian2. % cite Brian2 goodman2009brian*
+The models followed the morphology of a human ANF and consisted of dendrite, soma, and axon. Dendrite and axon were composed of an alternating structure of active nodes and passive myelinated internodes. Additionally, all models included a peripheral terminal as well as a pre-somatic region. These morphological components were modelled as electrical circuits and represented by cylindrical compartments, except for the somas in the RA and SH models, which were spherical. Compartment lengths and diameters were distinct in each model, as shown in Fig \ref{fig:morphologies}. Details of the morphologies can be taken from their respective publications. % maybe describe here what's necessary in a table? see comment below
+The length of dendritic internodes in \cite{Briaire2005} was defined as scalable so as to reflect the varied lengths from the organ of Corti to the soma. In this study, the dendritic internodes were scaled as suggested by \cite{Kalkman2014a} with a maximum length of \SI{250}{\micro\meter}.
+
+%*    Goodman DFM and Brette R (2009). The Brian simulator. Front Neurosci doi: 10.3389/neuro.01.026.2009
+%@article{goodman2009brian,
+%  title={The brian simulator},
+%  author={Goodman, Dan FM and Brette, Romain},
+%  journal={Frontiers in neuroscience},
+%  volume={3},
+%  pages={26},
+%  year={2009},
+%  publisher={Frontiers}
+%}
+
+
+
+\begin{figure*}[htb]
+  \centering  
+  \includegraphics[width=\linewidth]{images/morphologies.jpg}
+  \caption{Comparison of the ANF morphologies. All dendrites and axons were myelinated, denoted by the blue color. The somas of all three models were unmyelinated but surrounded by layers of ``satellite cells", as described in \cite{Rattay2001}, and so was the pre-somatic region of the BF model %for example "(in grey)"
+  . Relative differences in compartment size among the three models are indicated in the figure, but they are not true to scale.% so what is indicated exactly, if the scale is wrong?
+  }
+  % Maybe color the peripheral terminal differently, if the biophysical properties are different. 
+  \label{fig:morphologies}
+\end{figure*}
+
+In unmyelinated compartments of the ANF models, the cell membrane was represented by a capacitor which was charged or discharged by ionic currents. These currents depended on membrane's ionic permeabilities and Nernst potentials of individual ion species. All three models included exclusively sodium and potassium channels. 
+The BF model utilised the gating properties suggested by \cite{Schwarz1987} and calculated the ionic currents according to \cite{Frankenhaeuser1964}, whereas RA and SH adopted the gating properties and equations proposed by \cite{Hodgkin1952}. 
+However, compared to the original gating properties of Hodgkin-Huxley (HH) kinetics, which were measured in a squid at \SI{6.3}{\celsius}, in the RA and SH models they were each multiplied by a compensating factor to account for the faster gating processes in mammalian nerve fibers, and the ionic channel densities were increased.
+In addition, in order to specifically account for the human ANF physiology, \cite{Smit2010} added two modifications to the HH ion channels in the axon: a) the opening and closing of the potassium channels were modified to be slower
+ \citep{Smit2008}; b) a persistent sodium current was added to account for the total sodium current together with a transient one  \citep{Smit2009}. % unclear: was the transient current also new?, then "a persistent and a transient...", if not new, then "a persistent sodium current was added in addition with the transient one of the original HH-model"
+While the models by \cite{Briaire2005} and \cite{Smit2010} are deterministic, \cite{Rattay2001} incorporated a simple and efficient approach to predict stochastic ANF responses by adding a Gaussian noise current term to the total ion current. It was calculated with:
+\begin{equation}
+i_{noise} = X \cdot k_{\T{noise}} \sqrt{A g_{\T{Na}}},
+\label{equ:stochasticity_rattay}
+\end{equation}
+where $X$ is a Gaussian random variable (mean=0, S.D.=1). $g_{\T{Na}}$ denotes the maximum sodium conductivity, and $A$ is the membrane surface area. The term is multiplied with the factor $k_{\T{noise}}$, which is common to all compartments and is used to adjust how strongly the stochastic behavior of the channels is emphasized. In this study, we decided to add the noise term to all three models to investigate the feasibility of this approach to simulate the stochasticity.
+
+Regarding the passive internodes, \cite{Briaire2005} implied that they were surrounded by a perfectly insulating myelin sheath, so both their capacity and conductivity were assumed to be zero; whereas \cite{Rattay2001} described them as a passive resistor-capacitor network and thus as imperfect insulators. In \cite{Smit2010}, the dendritic internodes were modeled as in \cite{Rattay2001}, but the axonal internodes were described as having a double-cable structure as proposed by \cite{Blight1985}. Detailed information regarding the ionic models can again be found in their respective publications. 
+%I am really not sure, but wouldn't it maybe be better to include the details here, like in a review? Then someone reading the paper wouldn't necessarily have to go find to the original papers...
+
+The extracellular space of the ANF models was simulated as a homogeneous medium with an isotropic resistivity of \SI{3}{\ohm\meter}. Each fiber was stimulated externally by a point electrode situated above the third dendritic node with a vertical distance of \SI{500}{\micro\meter} to the fiber. Unless otherwise stated, measurements were performed at the tenth axonal node to ensure the propagation of an action potential (AP) to the axon. Several properties of single ANF were compared among the three models, including threshold, conduction velocity, AP shape, latency, refractory properties, as well as stochastic and temporal behaviors. 
+
+For each of the properties investigated here, the parameters for the applied stimuli were directly taken from the respective physiological experiments, in order to ensure a meaningful comparison with experimental measurements in the literature. Whenever a biphasic stimulus was administered, it was always cathodic-first.
+
+
+
+\section{Article types}
+
+For requirements for a specific article type please refer to the Article Types on any Frontiers journal page. Please also refer to  \href{http://home.frontiersin.org/about/author-guidelines#Sections}{Author Guidelines} for further information on how to organize your manuscript in the required sections or their equivalents for your field
+
+% For Original Research articles, please note that the Material and Methods section can be placed in any of the following ways: before Results, before Discussion or after Discussion.
+
+\section{Manuscript Formatting}
+
+\subsection{Heading Levels}
+
+%There are 5 heading levels
+
+\subsection{Level 2}
+\subsubsection{Level 3}
+\paragraph{Level 4}
+\subparagraph{Level 5}
+
+\subsection{Equations}
+Equations should be inserted in editable format from the equation editor.
+
+\begin{equation}
+\sum x+ y =Z\label{eq:01}
+\end{equation}
+
+\subsection{Figures}
+Frontiers requires figures to be submitted individually, in the same order as they are referred to in the manuscript. Figures will then be automatically embedded at the bottom of the submitted manuscript. Kindly ensure that each table and figure is mentioned in the text and in numerical order. Figures must be of sufficient resolution for publication \href{http://home.frontiersin.org/about/author-guidelines#ResolutionRequirements}{see here for examples and minimum requirements}. Figures which are not according to the guidelines will cause substantial delay during the production process. Please see \href{http://home.frontiersin.org/about/author-guidelines#GeneralStyleGuidelinesforFigures}{here} for full figure guidelines. Cite figures with subfigures as figure \ref{fig:2}B.
+
+
+\subsubsection{Permission to Reuse and Copyright}
+Figures, tables, and images will be published under a Creative Commons CC-BY licence and permission must be obtained for use of copyrighted material from other sources (including re-published/adapted/modified/partial figures and images from the internet). It is the responsibility of the authors to acquire the licenses, to follow any citation instructions requested by third-party rights holders, and cover any supplementary charges.
+%%Figures, tables, and images will be published under a Creative Commons CC-BY licence and permission must be obtained for use of copyrighted material from other sources (including re-published/adapted/modified/partial figures and images from the internet). It is the responsibility of the authors to acquire the licenses, to follow any citation instructions requested by third-party rights holders, and cover any supplementary charges.
+
+\subsection{Tables}
+Tables should be inserted at the end of the manuscript. Please build your table directly in LaTeX.Tables provided as jpeg/tiff files will not be accepted. Please note that very large tables (covering several pages) cannot be included in the final PDF for reasons of space. These tables will be published as \href{http://home.frontiersin.org/about/author-guidelines#SupplementaryMaterial}{Supplementary Material} on the online article page at the time of acceptance. The author will be notified during the typesetting of the final article if this is the case. 
+
+\section{Nomenclature}
+
+\subsection{Resource Identification Initiative}
+To take part in the Resource Identification Initiative, please use the corresponding catalog number and RRID in your current manuscript. For more information about the project and for steps on how to search for an RRID, please click \href{http://www.frontiersin.org/files/pdf/letter_to_author.pdf}{here}.
+
+\subsection{Life Science Identifiers}
+Life Science Identifiers (LSIDs) for ZOOBANK registered names or nomenclatural acts should be listed in the manuscript before the keywords. For more information on LSIDs please see \href{http://www.frontiersin.org/about/AuthorGuidelines#InclusionofZoologicalNomenclature}{Inclusion of Zoological Nomenclature} section of the guidelines.
+
+
+\section{Additional Requirements}
+
+For additional requirements for specific article types and further information please refer to \href{http://www.frontiersin.org/about/AuthorGuidelines#AdditionalRequirements}{Author Guidelines}.
+
+\section*{Conflict of Interest Statement}
+%All financial, commercial or other relationships that might be perceived by the academic community as representing a potential conflict of interest must be disclosed. If no such relationship exists, authors will be asked to confirm the following statement: 
+
+The authors declare that the research was conducted in the absence of any commercial or financial relationships that could be construed as a potential conflict of interest.
+
+\section*{Author Contributions}
+
+The Author Contributions section is mandatory for all articles, including articles by sole authors. If an appropriate statement is not provided on submission, a standard one will be inserted during the production process. The Author Contributions statement must describe the contributions of individual authors referred to by their initials and, in doing so, all authors agree to be accountable for the content of the work. Please see  \href{http://home.frontiersin.org/about/author-guidelines#AuthorandContributors}{here} for full authorship criteria.
+
+\section*{Funding}
+Details of all funding sources should be provided, including grant numbers if applicable. Please ensure to add all necessary funding information, as after publication this is no longer possible.
+
+\section*{Acknowledgments}
+This is a short text to acknowledge the contributions of specific colleagues, institutions, or agencies that aided the efforts of the authors.
+
+\section*{Supplemental Data}
+ \href{http://home.frontiersin.org/about/author-guidelines#SupplementaryMaterial}{Supplementary Material} should be uploaded separately on submission, if there are Supplementary Figures, please include the caption in the same file as the figure. LaTeX Supplementary Material templates can be found in the Frontiers LaTeX folder.
+
+\section*{Data Availability Statement}
+The datasets [GENERATED/ANALYZED] for this study can be found in the [NAME OF REPOSITORY] [LINK].
+% Please see the availability of data guidelines for more information, at https://www.frontiersin.org/about/author-guidelines#AvailabilityofData
+
+\bibliographystyle{frontiersinSCNS_ENG_HUMS} % for Science, Engineering and Humanities and Social Sciences articles, for Humanities and Social Sciences articles please include page numbers in the in-text citations
+%\bibliographystyle{frontiersinHLTH&FPHY} % for Health, Physics and Mathematics articles
+\bibliography{test}
+
+%%% Make sure to upload the bib file along with the tex file and PDF
+%%% Please see the test.bib file for some examples of references
+
+\section*{Figure captions}
+
+%%% Please be aware that for original research articles we only permit a combined number of 15 figures and tables, one figure with multiple subfigures will count as only one figure.
+%%% Use this if adding the figures directly in the mansucript, if so, please remember to also upload the files when submitting your article
+%%% There is no need for adding the file termination, as long as you indicate where the file is saved. In the examples below the files (logo1.eps and logos.eps) are in the Frontiers LaTeX folder
+%%% If using *.tif files convert them to .jpg or .png
+%%%  NB logo1.eps is required in the path in order to correctly compile front page header %%%
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=10cm]{logo1}% This is a *.eps file
+\end{center}
+\caption{ Enter the caption for your figure here.  Repeat as  necessary for each of your figures}\label{fig:1}
+\end{figure}
+
+
+\begin{figure}[h!]
+\begin{center}
+\includegraphics[width=15cm]{logos}
+\end{center}
+\caption{This is a figure with sub figures, \textbf{(A)} is one logo, \textbf{(B)} is a different logo.}\label{fig:2}
+\end{figure}
+
+%%% If you are submitting a figure with subfigures please combine these into one image file with part labels integrated.
+%%% If you don't add the figures in the LaTeX files, please upload them when submitting the article.
+%%% Frontiers will add the figures at the end of the provisional pdf automatically
+%%% The use of LaTeX coding to draw Diagrams/Figures/Structures should be avoided. They should be external callouts including graphics.
+
+\end{document}
